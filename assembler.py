@@ -1,3 +1,5 @@
+import re
+
 OPCODE = {
     'load': f'{0:05b}',
     'loadim': f'{1:05b}',
@@ -44,7 +46,22 @@ REGISTER = {
     'r7': f'{7:03b}'
 }
 
-file = open('input/input.txt', 'r')
-lines = file.readlines()
-for line in lines:
-    print(line)
+
+class Assembler:
+
+    def __init__(self, filename):
+        self.filename = filename
+        self.micro_instr = []
+
+    def read_source(self):
+        if self.is_valid_source():
+            source = open(self.filename, 'r')
+            lines = source.readlines()
+            for line in lines:
+                if line != '\n':
+                    self.micro_instr.append(line.strip())
+            lines.clear()
+            source.close()
+
+    def is_valid_source(self):
+        return re.match(r'^.+\.asm$', self.filename)
