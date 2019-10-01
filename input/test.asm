@@ -1,5 +1,5 @@
 org 0
-jmp start
+JMPADDR start
 
 valor1 db 5
 valor2 db 7
@@ -19,4 +19,4 @@ R1esMayor:
     LOADIM R3, #8
 
 fin:
-    JMP fin
+    JMPADDR fin

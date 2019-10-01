@@ -55,6 +55,7 @@ class Assembler:
     def __init__(self, filename):
         self.filename = filename
         self.micro_instr = []
+        self.mem_pointer = 0
 
     def read_source(self):
         if self.is_valid_source():
@@ -68,3 +69,21 @@ class Assembler:
 
     def is_valid_source(self):
         return re.match(r'^.+\.asm$', self.filename)
+
+    def store_instructions_in_ram(self):
+        for instruction in self.micro_instr:
+            source = instruction.split()
+            if len(source) < 2:
+                # Placeholder for now. Should figure out a way to handle label addresses correctly!
+                print("Hello World")
+            else:
+                if source[0].lower() in OPCODE:
+                    # Assign instruction to proper memory location
+                    print('It is an assembly instruction')
+                elif source[0].lower() == 'org':
+                    # Indicates at what memory location it will begin storing instructions
+                    org_address = f'0x{source[1]}'
+                    self.mem_pointer = int(org_address, 16)
+                    print(f'org: {org_address} mem: {self.mem_pointer}')
+                else:
+                    print(source)
