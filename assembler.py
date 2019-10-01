@@ -46,6 +46,9 @@ REGISTER = {
     'r7': f'{7:03b}'
 }
 
+# 4 KB RAM memory that stores assembly instructions to be simulated
+RAM = ['00000000' for i in range(4096)]
+
 
 class Assembler:
 
