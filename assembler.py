@@ -104,8 +104,10 @@ class Assembler:
                         # print('It is an assembly instruction')
                         for row in source:
                             if row.lower() in REGISTER:
+                                #stores OPCODE + reg in memory
                                 RAM[self.p_counter] = self.convert_instruction_to_binary(source[0].lower()) + self.convert_register_to_binary(row.lower()) 
                             elif len(source) == 2:
+                                #stores OPCODE in p_counter and label address in p_counter+1
                                 RAM[self.p_counter] = self.convert_instruction_to_binary(source[0].lower()) + '000'
                                 RAM[self.p_counter+1] = f'{self.p_counter+1:08b}'
                                 LABELS[source[1]] = f'{self.p_counter+1:08b}'
@@ -114,11 +116,13 @@ class Assembler:
 
                     else:
                         if source[0].lower() == 'const':
+                        #Checks for constants and stores them in Constant Dictionary. Then, stores in addresses the name of constant and p_counter as the address. then stores in memory p_counter as the address
                             CONSTANTS[source[1]] = f'{int(source[2], 16):08b}'
                             ADDRESSES[source[1]] = f'{self.p_counter:08b}'
                             RAM[self.p_counter] = f'{self.p_counter:08b}'
 
                         elif len(source) == 3:
+                            #Stores variables same manner as constants
                             VARIABLES[source[0]] = f'{int(source[2]):08b}'
                             ADDRESSES[source[0]] = f'{self.p_counter:08b}'
                             RAM[self.p_counter] = f'{self.p_counter:08b}'
@@ -136,25 +140,7 @@ class Assembler:
     def display_ram_content(self):
         for row in RAM:
             print(row)
-    def convert_all_to_binary(self):
-        inst = []
-      
-        print("\nChanging known instructions to binary: \n")
-        for instruction in self.micro_instr:
-            source = instruction.split()
-            i = 0
-            for row in source:
-                if row.lower() in OPCODE:
-                    inst[i].append(OPCODE.get(row))
-                elif row.lower() in REGISTER:
-                    inst[i].append(REGISTER.get(row))
-                elif row.lower() in LABELS:
-                    inst[i].append(LABELS.get(row))
-                elif row.lower() in ADDRESSES:
-                    inst[i].append(ADDRESSES.get(row))
-               
-                i+=1
-        print(inst)
+
 
     def convert_all_to_binary(self):
         op = []
