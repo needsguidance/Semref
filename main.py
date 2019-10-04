@@ -9,7 +9,7 @@ while read_files:
         asm.read_source()
         asm.store_instructions_in_ram()
         asm.convert_to_binary()
-    except (AssertionError, FileNotFoundError) as e:
+    except (AssertionError, FileNotFoundError, ValueError, MemoryError) as e:
         print(e)
     keep_reading = str(input('\nInput another file? (Y/N): '))
     if keep_reading.lower() != 'y':
