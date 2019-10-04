@@ -45,6 +45,7 @@ REGISTER = {
     'r6': f'{6:03b}',
     'r7': f'{7:03b}'
 }
+LABELS = { }
 
 # 4 KB RAM memory that stores assembly instructions to be simulated
 RAM = ['00000000' for i in range(4096)]
@@ -97,15 +98,31 @@ class Assembler:
                 else:
                     if source[0].lower() in OPCODE:
                         # Assign instruction to proper memory location
-                        print('It is an assembly instruction')
+                        # print('It is an assembly instruction')
+                        for row in source:
+                            if row.lower() in REGISTER:
+                                RAM[self.p_counter] = self.convert_instruction_to_binary(source[0].lower()) + self.convert_register_to_binary(row.lower()) 
+                            elif len(source) == 2:
+                                RAM[self.p_counter] = self.convert_instruction_to_binary(source[0].lower()) + 'xxx'
+                                RAM[self.p_counter+1] = f'{self.p_counter+1:08b}'
+                                LABELS[source[1].lower()] = f'{self.p_counter+1:08b}'
+                            else:
+                                RAM[self.p_counter]= self.convert_instruction_to_binary(source[0].lower()) + 'xxx'
+                        print(RAM[self.p_counter] +'  '+ RAM[self.p_counter+1])
+                        print(LABELS)
+                        
+
                     else:
                         print(source)
 
                     self.p_counter += 2  # Increase Program Counter
                     print('The current PC is: ' + str(self.p_counter))
 
+    def display_ram_content(self):
+        for row in RAM:
+            print(row)
     
-    def convert_to_binary(self):
+    def convert_all_to_binary(self):
         op = []
         reg = []
         inst = []
@@ -131,6 +148,16 @@ class Assembler:
 
         for row in inst:
             print(row)
+
+    def convert_instruction_to_binary(self, inst):
+        instBin = OPCODE.get(inst)
+        return instBin
+    
+    def convert_register_to_binary(self, reg):
+        regBin = REGISTER.get(reg)
+        return regBin
+
+
              
                    
 

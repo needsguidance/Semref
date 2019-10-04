@@ -8,7 +8,8 @@ while read_files:
         asm = Assembler(file)
         asm.read_source()
         asm.store_instructions_in_ram()
-        asm.convert_to_binary()
+        # asm.display_ram_content()
+        # asm.convert_to_binary()
     except (AssertionError, FileNotFoundError, ValueError, MemoryError) as e:
         print(e)
     keep_reading = str(input('\nInput another file? (Y/N): '))
