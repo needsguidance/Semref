@@ -1,6 +1,4 @@
-import re, logging
-
-logging.basicConfig(level=logging.DEBUG)  # for debug purpose.
+import re
 
 OPCODE = {
     'load': f'{0:05b}',
@@ -72,9 +70,6 @@ class Assembler:
     def is_valid_source(self):
         return re.match(r'^.+\.asm$', self.filename)
 
-    def is_hex_number(self, number):
-        return not isinstance(number, int)
-
     def store_instructions_in_ram(self):
         for instruction in self.micro_instr:
             source = instruction.split()
@@ -85,12 +80,7 @@ class Assembler:
                 if source[0].lower() == 'org':
                     # Indicates at what memory location it will begin storing instructions
                     org_address = source[1]
-                    if self.is_hex_number(org_address):
-                        self.p_counter = int(org_address, 16)
-                    else:
-                        org_address = f'0x{org_address}'
-                        self.p_counter = int(org_address, 16)
-
+                    self.p_counter = int(org_address, 16)
                     print(f'ORG: {org_address} MEM PC: {self.p_counter}')
                 else:
                     if source[0].lower() in OPCODE:
@@ -101,7 +91,5 @@ class Assembler:
 
                     self.p_counter += 2  # Increase Program Counter
                     print('The current PC is: ' + str(self.p_counter))
-                    # logging.debug('The current PC is: ' + str(self.p_counter))
-
 
 
