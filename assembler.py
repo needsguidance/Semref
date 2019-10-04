@@ -21,8 +21,8 @@ OPCODE = {
     'shiftl': f'{17:05b}',
     'rotar': f'{18:05b}',
     'rotal': f'{19:05b}',
-    'jumprind': f'{20:05b}',
-    'jumpaddr': f'{21:05b}',
+    'jmprind': f'{20:05b}',
+    'jmpaddr': f'{21:05b}',
     'jcondrin': f'{22:05b}',
     'jcondaddr': f'{23:05b}',
     'loop': f'{24:05b}',
@@ -87,3 +87,31 @@ class Assembler:
                     print(f'org: {org_address} mem: {self.mem_pointer}')
                 else:
                     print(source)
+    
+    def convert_to_binary(self):
+        op = []
+        reg = []
+        inst = []
+        i = 0
+        print("\nChanging known instructions to binary: \n")
+        for row in self.micro_instr:
+            inst.append([])
+            for column in row.split():
+                column = re.sub(r'[^\w\s]','',column) #Remove punctuation from lines
+
+                new1 = OPCODE.get(column.lower())  #Verifies if keyword is in OPCODE dict and stores values if it is. Otherwise, stores None value.
+                new2 = REGISTER.get(column.lower())   #Verifies if keyword is in REGISTER dict and stores value if it is. Otherwise, stores None value.
+
+                if new1 != None:
+                    op.append(new1)
+                    inst[i].append(new1)
+                elif new2 != None:
+                    reg.append(new2)
+                    inst[i].append(new2)
+                else:
+                    inst[i].append(column)
+            i+=1
+
+        for row in inst:
+            print(row)
+             
