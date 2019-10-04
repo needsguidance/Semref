@@ -104,4 +104,33 @@ class Assembler:
                     self.p_counter += 2  # Increase Program Counter
                     print('The current PC is: ' + str(self.p_counter))
 
+    
+    def convert_to_binary(self):
+        op = []
+        reg = []
+        inst = []
+        i = 0
+        print("\nChanging known instructions to binary: \n")
+        for row in self.micro_instr:
+            inst.append([])
+            for column in row.split():
+                column = re.sub(r'[^\w\s]','',column) #Remove punctuation from lines
+
+                new1 = OPCODE.get(column.lower())  #Verifies if keyword is in OPCODE dict and stores values if it is. Otherwise, stores None value.
+                new2 = REGISTER.get(column.lower())   #Verifies if keyword is in REGISTER dict and stores value if it is. Otherwise, stores None value.
+
+                if new1 != None:
+                    op.append(new1)
+                    inst[i].append(new1)
+                elif new2 != None:
+                    reg.append(new2)
+                    inst[i].append(new2)
+                else:
+                    inst[i].append(column)
+            i+=1
+
+        for row in inst:
+            print(row)
+             
+                   
 
