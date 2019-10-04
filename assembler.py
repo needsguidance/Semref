@@ -54,8 +54,11 @@ class Assembler:
 
     def __init__(self, filename):
         self.filename = filename
-        self.micro_instr = []
-        self.mem_pointer = 0
+        self.micro_instr = []  # Microprocessor instruction.
+        self.p_counter = 0  # Program Counter.
+        self.filename = filename
+        if not self.is_valid_source():
+            raise AssertionError(f'Unsupported file type [{self.filename}]. Only accepting files ending in .asm')
 
     def read_source(self):
         if self.is_valid_source():
@@ -77,15 +80,14 @@ class Assembler:
                 # Placeholder for now. Should figure out a way to handle label addresses correctly!
                 print("Hello World")
             else:
-                if source[0].lower() in OPCODE:
-                    # Assign instruction to proper memory location
-                    print('It is an assembly instruction')
-                elif source[0].lower() == 'org':
+                if source[0].lower() == 'org':
                     # Indicates at what memory location it will begin storing instructions
                     if len(source) > 2:
                         # there is more than one value after the 'org' - invalid address.
                         print('org initialization failed: too many arguments after org.')
-                    org_address = f'0x{source[1]}'
+                        break
+
+                    org_address = source[1]
                     try:
                         value = int(org_address, 16)
                     except ValueError:
@@ -95,7 +97,17 @@ class Assembler:
                         # the number given is not within the possible values (0 to 4096).
                         print('the number given is not within the possible values (0 to 4096).')
                         break
-                    self.mem_pointer = int(org_address, 16)
-                    print(f'org: {org_address} mem: {self.mem_pointer}')
+
+                    self.p_counter = int(org_address, 16)
+                    print(f'ORG: {org_address} MEM PC: {self.p_counter}')
                 else:
-                    print(source)
+                    if source[0].lower() in OPCODE:
+                        # Assign instruction to proper memory location
+                        print('It is an assembly instruction')
+                    else:
+                        print(source)
+
+                    self.p_counter += 2  # Increase Program Counter
+                    print('The current PC is: ' + str(self.p_counter))
+
+
