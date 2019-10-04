@@ -45,7 +45,10 @@ REGISTER = {
     'r6': f'{6:03b}',
     'r7': f'{7:03b}'
 }
+ADDRESSES = { }
 LABELS = { }
+VARIABLES = { }
+CONSTANTS = { }
 
 # 4 KB RAM memory that stores assembly instructions to be simulated
 RAM = ['00000000' for i in range(4096)]
@@ -103,47 +106,80 @@ class Assembler:
                             if row.lower() in REGISTER:
                                 RAM[self.p_counter] = self.convert_instruction_to_binary(source[0].lower()) + self.convert_register_to_binary(row.lower()) 
                             elif len(source) == 2:
-                                RAM[self.p_counter] = self.convert_instruction_to_binary(source[0].lower()) + 'xxx'
+                                RAM[self.p_counter] = self.convert_instruction_to_binary(source[0].lower()) + '000'
                                 RAM[self.p_counter+1] = f'{self.p_counter+1:08b}'
-                                LABELS[source[1].lower()] = f'{self.p_counter+1:08b}'
+                                LABELS[source[1]] = f'{self.p_counter+1:08b}'
                             else:
-                                RAM[self.p_counter]= self.convert_instruction_to_binary(source[0].lower()) + 'xxx'
-                        print(RAM[self.p_counter] +'  '+ RAM[self.p_counter+1])
-                        print(LABELS)
-                        
+                                RAM[self.p_counter]= self.convert_instruction_to_binary(source[0].lower()) + '000'                        
 
                     else:
-                        print(source)
+                        if source[0].lower() == 'const':
+                            CONSTANTS[source[1]] = f'{int(source[2], 16):08b}'
+                            ADDRESSES[source[1]] = f'{self.p_counter:08b}'
+                            RAM[self.p_counter] = f'{self.p_counter:08b}'
+
+                        elif len(source) == 3:
+                            VARIABLES[source[0]] = f'{int(source[2]):08b}'
+                            ADDRESSES[source[0]] = f'{self.p_counter:08b}'
+                            RAM[self.p_counter] = f'{self.p_counter:08b}'
+
+
+
 
                     self.p_counter += 2  # Increase Program Counter
                     print('The current PC is: ' + str(self.p_counter))
+        print(CONSTANTS)
+        print(VARIABLES)
+        print(LABELS)
+        print(ADDRESSES)
 
     def display_ram_content(self):
         for row in RAM:
             print(row)
-    
+    def convert_all_to_binary(self):
+        inst = []
+      
+        print("\nChanging known instructions to binary: \n")
+        for instruction in self.micro_instr:
+            source = instruction.split()
+            i = 0
+            for row in source:
+                if row.lower() in OPCODE:
+                    inst[i].append(OPCODE.get(row))
+                elif row.lower() in REGISTER:
+                    inst[i].append(REGISTER.get(row))
+                elif row.lower() in LABELS:
+                    inst[i].append(LABELS.get(row))
+                elif row.lower() in ADDRESSES:
+                    inst[i].append(ADDRESSES.get(row))
+               
+                i+=1
+        print(inst)
+
     def convert_all_to_binary(self):
         op = []
         reg = []
         inst = []
         i = 0
         print("\nChanging known instructions to binary: \n")
-        for row in self.micro_instr:
+        for instruction in self.micro_instr:
             inst.append([])
-            for column in row.split():
-                column = re.sub(r'[^\w\s]','',column) #Remove punctuation from lines
-
-                new1 = OPCODE.get(column.lower())  #Verifies if keyword is in OPCODE dict and stores values if it is. Otherwise, stores None value.
-                new2 = REGISTER.get(column.lower())   #Verifies if keyword is in REGISTER dict and stores value if it is. Otherwise, stores None value.
-
-                if new1 != None:
-                    op.append(new1)
-                    inst[i].append(new1)
-                elif new2 != None:
-                    reg.append(new2)
-                    inst[i].append(new2)
+            
+            for row in instruction.split():
+                row = re.sub(r'[^\w\s]','',row) #Remove punctuation from lines
+                print(row)
+           
+                if row.lower() in OPCODE:
+                    inst[i].append(OPCODE.get(row.lower()))
+                elif row.lower() in REGISTER:
+                    inst[i].append(REGISTER.get(row.lower()))
+                elif row in LABELS:
+                    inst[i].append(LABELS.get(row))
+                elif row in ADDRESSES:
+                    inst[i].append(ADDRESSES.get(row))
                 else:
-                    inst[i].append(column)
+                    inst[i].append(row)
+
             i+=1
 
         for row in inst:
