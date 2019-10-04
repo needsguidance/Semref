@@ -21,8 +21,8 @@ OPCODE = {
     'shiftl': f'{17:05b}',
     'rotar': f'{18:05b}',
     'rotal': f'{19:05b}',
-    'jumprind': f'{20:05b}',
-    'jumpaddr': f'{21:05b}',
+    'jmprind': f'{20:05b}',
+    'jmpaddr': f'{21:05b}',
     'jcondrin': f'{22:05b}',
     'jcondaddr': f'{23:05b}',
     'loop': f'{24:05b}',
@@ -82,7 +82,16 @@ class Assembler:
             else:
                 if source[0].lower() == 'org':
                     # Indicates at what memory location it will begin storing instructions
+                    if len(source) > 2:
+                        # there is more than one value after the 'org' - invalid address.
+                        raise SyntaxError("Too many arguments after 'org'.")
+
                     org_address = source[1]
+
+                    if int(org_address, 16) > 4096:
+                        # the number given is not within the possible values (0 to 4096).
+                        raise MemoryError('Exceeded Memory Size')
+
                     self.p_counter = int(org_address, 16)
                     print(f'ORG: {org_address} MEM PC: {self.p_counter}')
                 else:
