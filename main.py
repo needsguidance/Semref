@@ -1,5 +1,6 @@
-from assembler import Assembler, RAM
+from assembler import Assembler
 
-asm = Assembler('input/test.asm')
+file = input('Enter asm file: ')
+asm = Assembler(file)
 asm.read_source()
 asm.store_instructions_in_ram()
