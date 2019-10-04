@@ -84,19 +84,13 @@ class Assembler:
                     # Indicates at what memory location it will begin storing instructions
                     if len(source) > 2:
                         # there is more than one value after the 'org' - invalid address.
-                        print('org initialization failed: too many arguments after org.')
-                        break
+                        raise SyntaxError("Too many arguments after 'org'.")
 
                     org_address = source[1]
-                    try:
-                        value = int(org_address, 16)
-                    except ValueError:
-                        print('given hexadecimal value is invalid.')
-                        break
+
                     if int(org_address, 16) > 4096:
                         # the number given is not within the possible values (0 to 4096).
-                        print('the number given is not within the possible values (0 to 4096).')
-                        break
+                        raise MemoryError('Exceeded Memory Size')
 
                     self.p_counter = int(org_address, 16)
                     print(f'ORG: {org_address} MEM PC: {self.p_counter}')
