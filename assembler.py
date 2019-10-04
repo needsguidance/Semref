@@ -56,6 +56,9 @@ class Assembler:
         self.filename = filename
         self.micro_instr = []  # Microprocessor instruction.
         self.p_counter = 0  # Program Counter.
+        self.filename = filename
+        if not self.is_valid_source():
+            raise AssertionError(f'Unsupported file type [{self.filename}]. Only accepting files ending in .asm')
 
     def read_source(self):
         if self.is_valid_source():
