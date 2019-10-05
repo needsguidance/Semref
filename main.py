@@ -1,4 +1,4 @@
-from assembler import Assembler, RAM, verify_ram_content
+from assembler import Assembler, RAM, verify_ram_content, hexify_ram_content
 
 read_files = True
 file = None
@@ -12,6 +12,7 @@ while read_files:
         # asm.display_ram_content()
         asm.convert_all_to_binary()
         verify_ram_content()
+        hexify_ram_content()
         for m in range(50):
             print(f'{RAM[i]} {RAM[i + 1]}')
             i += 2
