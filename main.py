@@ -16,7 +16,7 @@ while read_files:
         for m in range(50):
             print(f'{RAM[i]} {RAM[i + 1]}')
             i += 2
-    except (AssertionError, FileNotFoundError, ValueError, MemoryError) as e:
+    except (AssertionError, FileNotFoundError, ValueError, MemoryError, KeyError) as e:
         print(e)
     keep_reading = str(input('\nInput another file? (Y/N): '))
     if keep_reading.lower() != 'y':
