@@ -78,12 +78,8 @@ def verify_ram_content():
 
 
 def hexify_ram_content():
-    i = 0
-    for i in range(2096):
-        val = f'{int(RAM[i] + RAM[i + 1]):04X}'
-        RAM[i] = val[0:2]
-        RAM[i+1] = val[2:]
-        i += 2
+    for i in range(4096):
+        RAM[i] = f'{int(RAM[i]):02X}'
 
 
 class Assembler:
