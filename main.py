@@ -1,7 +1,8 @@
-from assembler import Assembler
+from assembler import Assembler, RAM, verify_ram_content
 
 read_files = True
 file = None
+i = 0
 while read_files:
     try:
         file = input('Input asm file path: ')
@@ -10,8 +11,13 @@ while read_files:
         asm.store_instructions_in_ram()
         # asm.display_ram_content()
         asm.convert_all_to_binary()
+        verify_ram_content()
+        for m in range(50):
+            print(f'{RAM[i]} {RAM[i + 1]}')
+            i += 2
     except (AssertionError, FileNotFoundError, ValueError, MemoryError) as e:
         print(e)
     keep_reading = str(input('\nInput another file? (Y/N): '))
     if keep_reading.lower() != 'y':
         read_files = not read_files
+        i = 0

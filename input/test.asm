@@ -11,12 +11,12 @@ start:
     LOAD R2, valor2
     GRT  R1, R2
     JMPADDR R1esMayor
-    STORE mayor, R2
+    STORE R2, mayor
     JMP fin
 
 R1esMayor:
-    STORE mayor, R1
-    LOADIM R3, #8
+    STORE R1, mayor
+    LOADIM R3, 8
 
 fin:
     JMPADDR fin

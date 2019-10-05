@@ -45,13 +45,36 @@ REGISTER = {
     'r6': f'{6:03b}',
     'r7': f'{7:03b}'
 }
-ADDRESSES = { }
-LABELS = { }
-VARIABLES = { }
-CONSTANTS = { }
+ADDRESSES = {}
+LABELS = {}
+VARIABLES = {}
+CONSTANTS = {}
 
 # 4 KB RAM memory that stores assembly instructions to be simulated
 RAM = ['00000000' for i in range(4096)]
+
+
+def display_ram_content():
+    for row in RAM:
+        print(row)
+
+
+def verify_ram_content():
+    i = 0
+    for num in range(2048):
+        if RAM[i] == 'jmprind' or RAM[i] == 'jcondrin':
+            opcode = OPCODE[RAM[i]]
+            ra = REGISTER[RAM[i + 1]]
+            binary = opcode + ra + '00000000'
+            RAM[i] = binary[0:8]
+            RAM[i + 1] = binary[8:]
+        elif RAM[i] == 'jmpaddr' or RAM[i] == 'jcondaddr':
+            opcode = OPCODE[RAM[i]]
+            address = f'{int(RAM[i + 1], 16):011b}' if RAM[i + 1] not in VARIABLES else VARIABLES[RAM[i + 1]]
+            binary = opcode + address if len(address) == 11 else address
+            RAM[i] = binary[0:8]
+            RAM[i + 1] = binary[8:]
+        i += 2
 
 
 class Assembler:
@@ -82,7 +105,8 @@ class Assembler:
             source = instruction.split()
             if len(source) < 2:
                 # Placeholder for now. Should figure out a way to handle label addresses correctly!
-                print("Hello World")
+                label = source[0][:-1]
+                VARIABLES[label] = f'{(self.p_counter + 2):016b}'
             else:
                 if source[0].lower() == 'org':
                     # Indicates at what memory location it will begin storing instructions
@@ -97,49 +121,29 @@ class Assembler:
                         raise MemoryError('Exceeded Memory Size')
 
                     self.p_counter = int(org_address, 16)
-                    print(f'ORG: {org_address} MEM PC: {self.p_counter}')
                 else:
                     if source[0].lower() in OPCODE:
                         # Assign instruction to proper memory location
-                        # print('It is an assembly instruction')
-                        for row in source:
-                            if row.lower() in REGISTER:
-                                RAM[self.p_counter] = self.convert_instruction_to_binary(source[0].lower()) + self.convert_register_to_binary(row.lower()) 
-                            elif len(source) == 2:
-                                RAM[self.p_counter] = self.convert_instruction_to_binary(source[0].lower()) + '000'
-                                RAM[self.p_counter+1] = f'{self.p_counter+1:08b}'
-                                LABELS[source[1]] = f'{self.p_counter+1:08b}'
-                            else:
-                                RAM[self.p_counter]= self.convert_instruction_to_binary(source[0].lower()) + '000'                        
+                        self.convert_instruction_to_binary(source)
 
                     else:
                         if source[0].lower() == 'const':
-                            CONSTANTS[source[1]] = f'{int(source[2], 16):08b}'
-                            ADDRESSES[source[1]] = f'{self.p_counter:08b}'
-                            RAM[self.p_counter] = f'{self.p_counter:08b}'
+                            const = f'{int(source[2], 16):016b}'
+                            msb = const[0:8]
+                            lsb = const[8:]
+                            VARIABLES[source[1]] = self.p_counter
+                            RAM[self.p_counter] = msb
+                            RAM[self.p_counter + 1] = lsb
 
                         elif len(source) == 3:
-                            VARIABLES[source[0]] = f'{int(source[2]):08b}'
-                            ADDRESSES[source[0]] = f'{self.p_counter:08b}'
-                            RAM[self.p_counter] = f'{self.p_counter:08b}'
-
-
-
+                            VARIABLES[source[0]] = f'{self.p_counter:08b}'
+                            RAM[self.p_counter] = f'{int(source[2]):08b}'
 
                     self.p_counter += 2  # Increase Program Counter
-                    print('The current PC is: ' + str(self.p_counter))
-        print(CONSTANTS)
-        print(VARIABLES)
-        print(LABELS)
-        print(ADDRESSES)
 
-    def display_ram_content(self):
-        for row in RAM:
-            print(row)
     def convert_all_to_binary(self):
         inst = []
-      
-        print("\nChanging known instructions to binary: \n")
+
         for instruction in self.micro_instr:
             source = instruction.split()
             i = 0
@@ -152,23 +156,20 @@ class Assembler:
                     inst[i].append(LABELS.get(row))
                 elif row.lower() in ADDRESSES:
                     inst[i].append(ADDRESSES.get(row))
-               
-                i+=1
-        print(inst)
+
+                i += 1
 
     def convert_all_to_binary(self):
         op = []
         reg = []
         inst = []
         i = 0
-        print("\nChanging known instructions to binary: \n")
         for instruction in self.micro_instr:
             inst.append([])
-            
+
             for row in instruction.split():
-                row = re.sub(r'[^\w\s]','',row) #Remove punctuation from lines
-                print(row)
-           
+                row = re.sub(r'[^\w\s]', '', row)  # Remove punctuation from lines
+
                 if row.lower() in OPCODE:
                     inst[i].append(OPCODE.get(row.lower()))
                 elif row.lower() in REGISTER:
@@ -180,20 +181,45 @@ class Assembler:
                 else:
                     inst[i].append(row)
 
-            i+=1
+            i += 1
 
-        for row in inst:
-            print(row)
+    def convert_instruction_to_binary(self, inst, is_second_pass=False):
+        if not is_second_pass:
+            if inst[0].lower() == 'jmprind' or inst[0].lower() == 'jmpaddr' or inst[0].lower() == 'jcondrin' or \
+                    inst[0].lower() == 'jcondaddr':
+                RAM[self.p_counter] = inst[0].lower()
+                RAM[self.p_counter + 1] = inst[1]
+            else:
+                instruction = inst[0].lower()
+                opcode = OPCODE[instruction]
+                binary = f'{0:016b}'
+                if instruction == 'loadrind' or instruction == 'storerind' or instruction == 'add' or \
+                        instruction == 'sub' or instruction == 'and' or instruction == 'or' or instruction == 'xor' or \
+                        instruction == 'not' or instruction == 'neg' or instruction == 'shiftr' or \
+                        instruction == 'shiftl' or instruction == 'rotar' or instruction == 'rotal' or \
+                        instruction == 'grt' or instruction == 'grteq' or instruction == 'eq' or instruction == 'neq':
+                    ra = REGISTER[re.sub(r'[^\w\s]', '', inst[1]).lower()]
+                    rb = REGISTER[re.sub(r'[^\w\s]', '', inst[2]).lower()]
+                    rc = f'{3:03b}' if len(inst) == 3 else REGISTER[re.sub(r'[^\w\s]', '', inst[3]).lower()]
+                    binary = opcode + ra + rb + rc + '00'
+                elif instruction == 'load' or instruction == 'loadim' or instruction == 'pop' or \
+                        instruction == 'store' or instruction == 'push' or instruction == 'addim' or \
+                        instruction == 'subim' or instruction == 'loop':
+                    ra = REGISTER[re.sub(r'[^\w\s]', '', inst[1]).lower()]
+                    address = f'{int(inst[2], 16):08b}' if inst[2] not in VARIABLES else VARIABLES[inst[2]]
+                    binary = opcode + ra + address
+                elif instruction == 'call':
+                    address = f'{int(inst[2], 16):011b}' if inst[2] not in VARIABLES else VARIABLES[inst[2]]
+                    binary = opcode + address
+                RAM[self.p_counter] = binary[0:8]
+                RAM[self.p_counter + 1] = binary[8:]
 
-    def convert_instruction_to_binary(self, inst):
-        instBin = OPCODE.get(inst)
-        return instBin
-    
+        # instBin = OPCODE.get(inst)
+        # return instBin
+
     def convert_register_to_binary(self, reg):
         regBin = REGISTER.get(reg)
         return regBin
 
 
-             
-                   
 
