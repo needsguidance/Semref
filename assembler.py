@@ -77,6 +77,11 @@ def verify_ram_content():
         i += 2
 
 
+def hexify_ram_content():
+    for i in range(4096):
+        RAM[i] = hex(int(RAM[i]))
+
+
 class Assembler:
 
     def __init__(self, filename):
