@@ -16,8 +16,8 @@ while read_files:
         f = open("output/out.obj", "w")
         for m in range(50):
             print(f'{RAM[i]} {RAM[i + 1]}')
-            i += 2
             f.write(f'{RAM[i]} {RAM[i + 1]}'+'\n')
+            i += 2
         f.close()
 
     except (AssertionError, FileNotFoundError, ValueError, MemoryError, KeyError) as e:
