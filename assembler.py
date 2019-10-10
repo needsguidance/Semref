@@ -54,6 +54,10 @@ CONSTANTS = {}
 RAM = ['00000000' for i in range(4096)]
 
 
+def clear_ram():
+    for i in range(len(RAM)):
+        RAM[i] = '00000000'
+
 def display_ram_content():
     for row in RAM:
         print(row)
@@ -75,6 +79,11 @@ def verify_ram_content():
             RAM[i] = binary[0:8]
             RAM[i + 1] = binary[8:]
         i += 2
+
+
+def hexify_ram_content():
+    for i in range(4096):
+        RAM[i] = f'{int(RAM[i], 2):02X}'
 
 
 class Assembler:
@@ -103,10 +112,13 @@ class Assembler:
     def store_instructions_in_ram(self):
         for instruction in self.micro_instr:
             source = instruction.split()
-            if len(source) < 2:
-                # Placeholder for now. Should figure out a way to handle label addresses correctly!
+            contains_label = [s for s in source if ':' in s]
+            if contains_label:
                 label = source[0][:-1]
-                VARIABLES[label] = f'{(self.p_counter + 2):016b}'
+                VARIABLES[label] = f'{self.p_counter:011b}'
+                if len(source) > 1:
+                    self.convert_instruction_to_binary(source[1:])
+                    self.p_counter += 2
             else:
                 if source[0].lower() == 'org':
                     # Indicates at what memory location it will begin storing instructions
@@ -141,23 +153,23 @@ class Assembler:
 
                     self.p_counter += 2  # Increase Program Counter
 
-    def convert_all_to_binary(self):
-        inst = []
-
-        for instruction in self.micro_instr:
-            source = instruction.split()
-            i = 0
-            for row in source:
-                if row.lower() in OPCODE:
-                    inst[i].append(OPCODE.get(row))
-                elif row.lower() in REGISTER:
-                    inst[i].append(REGISTER.get(row))
-                elif row.lower() in LABELS:
-                    inst[i].append(LABELS.get(row))
-                elif row.lower() in ADDRESSES:
-                    inst[i].append(ADDRESSES.get(row))
-
-                i += 1
+    # def convert_all_to_binary(self):
+    #     inst = []
+    #
+    #     for instruction in self.micro_instr:
+    #         source = instruction.split()
+    #         i = 0
+    #         for row in source:
+    #             if row.lower() in OPCODE:
+    #                 inst[i].append(OPCODE.get(row))
+    #             elif row.lower() in REGISTER:
+    #                 inst[i].append(REGISTER.get(row))
+    #             elif row.lower() in LABELS:
+    #                 inst[i].append(LABELS.get(row))
+    #             elif row.lower() in ADDRESSES:
+    #                 inst[i].append(ADDRESSES.get(row))
+    #
+    #             i += 1
 
     def convert_all_to_binary(self):
         op = []
@@ -200,7 +212,7 @@ class Assembler:
                         instruction == 'grt' or instruction == 'grteq' or instruction == 'eq' or instruction == 'neq':
                     ra = REGISTER[re.sub(r'[^\w\s]', '', inst[1]).lower()]
                     rb = REGISTER[re.sub(r'[^\w\s]', '', inst[2]).lower()]
-                    rc = f'{3:03b}' if len(inst) == 3 else REGISTER[re.sub(r'[^\w\s]', '', inst[3]).lower()]
+                    rc = f'{0:03b}' if len(inst) == 3 else REGISTER[re.sub(r'[^\w\s]', '', inst[3]).lower()]
                     binary = opcode + ra + rb + rc + '00'
                 elif instruction == 'load' or instruction == 'loadim' or instruction == 'pop' or \
                         instruction == 'store' or instruction == 'push' or instruction == 'addim' or \
@@ -221,5 +233,6 @@ class Assembler:
         regBin = REGISTER.get(reg)
         return regBin
 
-
-
+    def generate_output_file(self):
+        file = open('output')
+        pass
