@@ -232,7 +232,3 @@ class Assembler:
     def convert_register_to_binary(self, reg):
         regBin = REGISTER.get(reg)
         return regBin
-
-    def generate_output_file(self):
-        file = open('output')
-        pass

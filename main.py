@@ -13,10 +13,12 @@ while read_files:
         asm.convert_all_to_binary()
         verify_ram_content()
         hexify_ram_content()
-        asm.generate_output_file()
+        f = open("output/out.obj", "w")
         for m in range(50):
             print(f'{RAM[i]} {RAM[i + 1]}')
+            f.write(f'{RAM[i]} {RAM[i + 1]}' + '\n')
             i += 2
+        f.close()
     except (AssertionError, FileNotFoundError, ValueError, MemoryError, KeyError) as e:
         print(e)
     keep_reading = str(input('\nInput another file? (Y/N): '))

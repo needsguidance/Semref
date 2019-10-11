@@ -5,16 +5,6 @@ import mock
 from assembler import Assembler, verify_ram_content, RAM, hexify_ram_content, clear_ram
 
 
-def yes_or_no():
-    answer = input("Do you want to quit? > ")
-    if answer == "yes":
-        return ("Quitter!")
-    elif answer == "no":
-        return ("Awesome!")
-    else:
-        return ("BANG!")
-
-
 class InputTestCase(unittest.TestCase):
 
     def test_invalid_input(self):
