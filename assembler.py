@@ -150,6 +150,9 @@ class Assembler:
                         elif len(source) == 3:
                             VARIABLES[source[0]] = f'{self.p_counter:08b}'
                             RAM[self.p_counter] = f'{int(source[2]):08b}'
+                        else:
+                            raise SyntaxError(f"'{instruction}' not a valid instruction")
+
 
                     self.p_counter += 2  # Increase Program Counter
 
