@@ -1,41 +1,88 @@
-import kivy
 
-from kivy.core.window import Window
-from kivy.uix.widget import Widget
+from kivy.app import App
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.recycleview.views import RecycleDataViewBehavior
+from kivy.uix.button import Button
+from kivy.properties import BooleanProperty, ListProperty, StringProperty, ObjectProperty
+from kivy.uix.recyclegridlayout import RecycleGridLayout
+from kivy.uix.behaviors import FocusBehavior
+from kivy.uix.recycleview.layout import LayoutSelectionBehavior
+from kivy.uix.popup import Popup
+from kivy.config import Config
+Config.set('graphics', 'width', '1024')
+Config.set('graphics', 'height', '650')
+
+class TextInputPopup(Popup):
+    obj = ObjectProperty(None)
+    obj_text = StringProperty("")
+
+    def __init__(self, obj, **kwargs):
+        super(TextInputPopup, self).__init__(**kwargs)
+        self.obj = obj
+        self.obj_text = obj.text
 
 
-class MyKeyboardListener(Widget):
+class SelectableRecycleGridLayout(FocusBehavior, LayoutSelectionBehavior, RecycleGridLayout):
+    
+    ''' Adds selection and focus behaviour to the view. '''
+
+
+class SelectableButton(RecycleDataViewBehavior, Button):
+    ''' Add selection support to the Button '''
+    index = None
+    selected = BooleanProperty(False)
+    selectable = BooleanProperty(True)
+
+    def refresh_view_attrs(self, rv, index, data):
+        ''' Catch and handle the view changes '''
+        self.index = index
+        return super(SelectableButton, self).refresh_view_attrs(rv, index, data)
+
+    def on_touch_down(self, touch):
+        ''' Add selection on touch down '''
+        if super(SelectableButton, self).on_touch_down(touch):
+            return True
+        if self.collide_point(*touch.pos) and self.selectable:
+            return self.parent.select_with_touch(self.index, touch)
+
+    def apply_selection(self, rv, index, is_selected):
+        ''' Respond to the selection of items in the view. '''
+        self.selected = is_selected
+
+    def on_press(self):
+        popup = TextInputPopup(self)
+        popup.open()
+
+    def update_changes(self, txt):
+        self.text = txt
+
+
+class RV(BoxLayout):
+    data_items = ListProperty([])
 
     def __init__(self, **kwargs):
-        super(MyKeyboardListener, self).__init__(**kwargs)
-        self._keyboard = Window.request_keyboard(
-            self._keyboard_closed, self, 'text')
-        if self._keyboard.widget:
-            # If it exists, this widget is a VKeyboard object which you can use
-            # to change the keyboard layout.
-            pass
-        self._keyboard.bind(on_key_down=self._on_keyboard_down)
+        super(RV, self).__init__(**kwargs)
+        self.get_users()
 
-    def _keyboard_closed(self):
-        print('My keyboard have been closed!')
-        self._keyboard.unbind(on_key_down=self._on_keyboard_down)
-        self._keyboard = None
-
-    def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
-        print('The key', keycode, 'have been pressed')
-        print(' - text is %r' % text)
-        print(' - modifiers are %r' % modifiers)
-
-        # Keycode is composed of an integer + a string
-        # If we hit escape, release the keyboard
-        if keycode[1] == 'escape':
-            keyboard.release()
-
-        # Return True to accept the key. Otherwise, it will be used by
-        # the system.
-        return True
+    def get_users(self):
+        rows = []
+        this = [['this','that'], ['this2', 'that2']]
+        rows.append(this)
 
 
-if __name__ == '__main__':
-    from kivy.base import runTouchApp
-    runTouchApp(MyKeyboardListener())
+        # create data_items
+        for row in rows:
+            for col in row:
+                self.data_items.append(col)
+
+
+class TestApp(App):
+    title = "Kivy 1024x650 Window"
+    
+
+    def build(self):
+        return RV()
+
+
+if __name__ == "__main__":
+    TestApp().run()
