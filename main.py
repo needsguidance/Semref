@@ -1,6 +1,6 @@
 from assembler import Assembler, RAM, verify_ram_content, hexify_ram_content
 
-read_files = True
+read_files = False
 file = None
 i = 0
 while read_files:
