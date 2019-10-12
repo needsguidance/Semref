@@ -35,11 +35,9 @@ p {
 table {
     border-collapse: collapse;
 }
-
 td {
     vertical-align: top;
 }
-
 table tr.hidden {
     display: none !important;
 }
@@ -53,7 +51,6 @@ a.nav {
     text-decoration: none;
     color: inherit;
 }
-
 a.nav:hover {
     text-decoration: underline;
     color: inherit;
@@ -106,7 +103,6 @@ h1 {
     float: right;
     margin: 0 2em 0 0;
 }
-
 #filter_container input {
     width: 10em;
 }
@@ -115,7 +111,6 @@ h2.stats {
     margin-top: .5em;
     font-size: 1em;
 }
-
 .stats span {
     border: 1px solid;
     padding: .1em .25em;
@@ -123,13 +118,11 @@ h2.stats {
     cursor: pointer;
     border-color: #999 #ccc #ccc #999;
 }
-
 .stats span.hide_run, .stats span.hide_exc,
 .stats span.hide_mis, .stats span.hide_par,
 .stats span.par.hide_run.hide_par {
     border-color: #ccc #999 #999 #ccc;
 }
-
 .stats span.par.hide_run {
     border-color: #999 #ccc #ccc #999;
 }
@@ -137,31 +130,24 @@ h2.stats {
 .stats span.run {
     background: #ddffdd;
 }
-
 .stats span.exc {
     background: #eeeeee;
 }
-
 .stats span.mis {
     background: #ffdddd;
 }
-
 .stats span.hide_run {
     background: #eeffee;
 }
-
 .stats span.hide_exc {
     background: #f5f5f5;
 }
-
 .stats span.hide_mis {
     background: #ffeeee;
 }
-
 .stats span.par {
     background: #ffffaa;
 }
-
 .stats span.hide_par {
     background: #ffffcc;
 }
@@ -224,16 +210,13 @@ h2.stats {
     font-size: .625em; /* 10/16 */
     line-height: 1.6em; /* 16/10 */
 }
-
 .linenos p.highlight {
     background: #ffdd00;
 }
-
 .linenos p a {
     text-decoration: none;
     color: #999999;
 }
-
 .linenos p a:hover {
     text-decoration: underline;
     color: #999999;
@@ -242,7 +225,6 @@ h2.stats {
 td.text {
     width: 100%;
 }
-
 .text p {
     margin: 0;
     padding: 0 0 0 .5em;
@@ -255,22 +237,18 @@ td.text {
     background: #ffdddd;
     border-left: 2px solid #ff0000;
 }
-
 .text p.run, .text p.run.hide_par {
     background: #ddffdd;
     border-left: 2px solid #00ff00;
 }
-
 .text p.exc {
     background: #eeeeee;
     border-left: 2px solid #808080;
 }
-
 .text p.par, .text p.par.hide_run {
     background: #ffffaa;
     border-left: 2px solid #eeee99;
 }
-
 .text p.hide_run, .text p.hide_exc, .text p.hide_mis, .text p.hide_par,
 .text p.hide_run.hide_par {
     background: inherit;
@@ -282,15 +260,12 @@ td.text {
     float: right;
     padding-right: .5em;
 }
-
 .text p.hide_par span.annotate {
     display: none;
 }
-
 .text span.annotate.long {
     display: none;
 }
-
 .text p:hover span.annotate.long {
     display: block;
     max-width: 50%;
@@ -316,12 +291,10 @@ td.text {
     font-style: italic;
     line-height: 1px;
 }
-
 .text .key {
     font-weight: bold;
     line-height: 1px;
 }
-
 .text .str {
     color: #000080;
 }
@@ -333,66 +306,53 @@ td.text {
     padding: .25em .5em;
     border-bottom: 1px solid #eee;
 }
-
 #index th {
     font-style: italic;
     color: #333;
     border-bottom: 1px solid #ccc;
     cursor: pointer;
 }
-
 #index th:hover {
     background: #eee;
     border-bottom: 1px solid #999;
 }
-
 #index td.left, #index th.left {
     padding-left: 0;
 }
-
 #index td.right, #index th.right {
     padding-right: 0;
 }
-
 #index th.headerSortDown, #index th.headerSortUp {
     border-bottom: 1px solid #000;
     white-space: nowrap;
     background: #eee;
 }
-
 #index th.headerSortDown:after {
     content: " ↓";
 }
-
 #index th.headerSortUp:after {
     content: " ↑";
 }
-
 #index td.name, #index th.name {
     text-align: left;
     width: auto;
 }
-
 #index td.name a {
     text-decoration: none;
     color: #000;
 }
-
 #index tr.total,
 #index tr.total_dynamic {
 }
-
 #index tr.total td,
 #index tr.total_dynamic td {
     font-weight: bold;
     border-top: 1px solid #ccc;
     border-bottom: none;
 }
-
 #index tr.file:hover {
     background: #eeeeee;
 }
-
 #index tr.file:hover td.name {
     text-decoration: underline;
     color: #000;

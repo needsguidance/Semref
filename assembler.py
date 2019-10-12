@@ -151,30 +151,6 @@ class Assembler:
 
                     self.p_counter += 2  # Increase Program Counter
 
-    def convert_all_to_binary(self):
-        op = []
-        reg = []
-        inst = []
-        i = 0
-        for instruction in self.micro_instr:
-            inst.append([])
-
-            for row in instruction.split():
-                row = re.sub(r'[^\w\s]', '', row)  # Remove punctuation from lines
-
-                if row.lower() in OPCODE:
-                    inst[i].append(OPCODE.get(row.lower()))
-                elif row.lower() in REGISTER:
-                    inst[i].append(REGISTER.get(row.lower()))
-                elif row in LABELS:
-                    inst[i].append(LABELS.get(row))
-                elif row in ADDRESSES:
-                    inst[i].append(ADDRESSES.get(row))
-                else:
-                    inst[i].append(row)
-
-            i += 1
-
     def convert_instruction_to_binary(self, inst, is_second_pass=False):
         if not is_second_pass:
             if inst[0].lower() == 'jmprind' or inst[0].lower() == 'jmpaddr' or inst[0].lower() == 'jcondrin' or \
