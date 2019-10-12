@@ -13,6 +13,8 @@ Config.set('graphics', 'width', '1024')
 Config.set('graphics', 'height', '650')
 Config.set('graphics', 'resizable', False)
 
+# Window tables with editable data rows
+#Uses test.kv as a config file
 
 class TextInputPopup(Popup):
     obj = ObjectProperty(None)
@@ -35,10 +37,10 @@ class SelectableButton(RecycleDataViewBehavior, Button):
     selected = BooleanProperty(False)
     selectable = BooleanProperty(True)
 
-    def refresh_view_attrs(self, rv, index, data):
+    def refresh_view_attrs(self, Window, index, data):
         ''' Catch and handle the view changes '''
         self.index = index
-        return super(SelectableButton, self).refresh_view_attrs(rv, index, data)
+        return super(SelectableButton, self).refresh_view_attrs(Window, index, data)
 
     def on_touch_down(self, touch):
         ''' Add selection on touch down '''
@@ -47,7 +49,7 @@ class SelectableButton(RecycleDataViewBehavior, Button):
         if self.collide_point(*touch.pos) and self.selectable:
             return self.parent.select_with_touch(self.index, touch)
 
-    def apply_selection(self, rv, index, is_selected):
+    def apply_selection(self, Window, index, is_selected):
         ''' Respond to the selection of items in the view. '''
         self.selected = is_selected
 
@@ -59,18 +61,17 @@ class SelectableButton(RecycleDataViewBehavior, Button):
         self.text = txt
 
 
-class RV(BoxLayout):
+class Window(BoxLayout):
     data_items = ListProperty([])
 
     def __init__(self, **kwargs):
-        super(RV, self).__init__(**kwargs)
-        self.get_users()
+        super(Window, self).__init__(**kwargs)
+        self.append_data()
 
-    def get_users(self):
+    def append_data(self):
         rows = []
-        this = [['this','that'], ['this2', 'that2']]
+        this = [['this','that'], ['this2', 'that2'],  ['this3', 'that3'],  ['this4', 'that4']]
         rows.append(this)
-
 
         # create data_items
         for row in rows:
@@ -83,8 +84,6 @@ class TestApp(App):
     
 
     def build(self):
-        return RV()
+        return Window()
 
 
-if __name__ == "__main__":
-    TestApp().run()

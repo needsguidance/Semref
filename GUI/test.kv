@@ -32,10 +32,19 @@
             pos: self.pos
             size: self.size
 
-<RV>:
+<Window>:
+
+    
     BoxLayout:
         orientation: "vertical"
-
+        
+        GridLayout:
+            size_hint: 1, None
+            size_hint_y: None
+            height: 25
+            cols: 1
+            Label: 
+                text: " Needs GUIdance: Semref"
         GridLayout:
             size_hint: 1, None
             size_hint_y: None
@@ -43,9 +52,9 @@
             cols: 2
 
             Label:
-                text: "User ID"
+                text: " Editable Table 1"
             Label:
-                text: "User Name"
+                text: " Editable Table 2"
 
         BoxLayout:
             RecycleView:
