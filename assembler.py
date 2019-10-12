@@ -58,10 +58,6 @@ def clear_ram():
     for i in range(len(RAM)):
         RAM[i] = '00000000'
 
-def display_ram_content():
-    for row in RAM:
-        print(row)
-
 
 def verify_ram_content():
     i = 0
@@ -153,26 +149,7 @@ class Assembler:
                         else:
                             raise SyntaxError(f"'{instruction}' not a valid instruction")
 
-
                     self.p_counter += 2  # Increase Program Counter
-
-    # def convert_all_to_binary(self):
-    #     inst = []
-    #
-    #     for instruction in self.micro_instr:
-    #         source = instruction.split()
-    #         i = 0
-    #         for row in source:
-    #             if row.lower() in OPCODE:
-    #                 inst[i].append(OPCODE.get(row))
-    #             elif row.lower() in REGISTER:
-    #                 inst[i].append(REGISTER.get(row))
-    #             elif row.lower() in LABELS:
-    #                 inst[i].append(LABELS.get(row))
-    #             elif row.lower() in ADDRESSES:
-    #                 inst[i].append(ADDRESSES.get(row))
-    #
-    #             i += 1
 
     def convert_all_to_binary(self):
         op = []
@@ -231,7 +208,3 @@ class Assembler:
 
         # instBin = OPCODE.get(inst)
         # return instBin
-
-    def convert_register_to_binary(self, reg):
-        regBin = REGISTER.get(reg)
-        return regBin
