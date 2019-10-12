@@ -9,8 +9,6 @@ while read_files:
         asm = Assembler(file)
         asm.read_source()
         asm.store_instructions_in_ram()
-        # asm.display_ram_content()
-        asm.convert_all_to_binary()
         verify_ram_content()
         hexify_ram_content()
         f = open("output/out.obj", "w")
