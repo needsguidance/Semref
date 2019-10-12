@@ -1,6 +1,7 @@
 from assembler import Assembler, RAM, verify_ram_content, hexify_ram_content
+from GUI.window import Window, TestApp
 
-read_files = True
+read_files = False
 file = None
 i = 0
 while read_files:
@@ -19,6 +20,7 @@ while read_files:
             f.write(f'{RAM[i]} {RAM[i + 1]}'+'\n')
             i += 2
         f.close()
+        
 
     except (AssertionError, FileNotFoundError, ValueError, MemoryError, KeyError) as e:
         print(e)
@@ -26,3 +28,5 @@ while read_files:
     if keep_reading.lower() != 'y':
         read_files = not read_files
         i = 0
+
+TestApp().run()
