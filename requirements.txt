@@ -1,3 +1,10 @@
+kivy
+Pillow
+pypiwin32
+kivy-deps.sdl2
+kivy-deps.gstreamer
+kivy-deps.angle
+kivy-deps.glew
 pylint
 mock
 coverage

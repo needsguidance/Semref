@@ -1,6 +1,7 @@
 from assembler import Assembler, RAM, verify_ram_content, hexify_ram_content
+from GUI.window import Window, TestApp
 
-read_files = True
+read_files = False
 file = None
 i = 0
 while read_files:
@@ -23,3 +24,5 @@ while read_files:
     if keep_reading.lower() != 'y':
         read_files = not read_files
         i = 0
+
+TestApp().run()
