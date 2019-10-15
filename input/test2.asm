@@ -1,4 +1,4 @@
-org 2
+org 2 3
 JMPADDR start
 
 valor1 db 5

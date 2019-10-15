@@ -1,0 +1,87 @@
+{
+  "format": 1,
+  "version": "4.5.4",
+  "settings": "d1ee4d693b89b6b3d28c9c0b8f8d23df",
+  "files": {
+    "_Users_craze_PycharmProjects_Semref_assembler_py": {
+      "hash": "b8aa2ce27a925a6cc9c67a1f9d780e72",
+      "index": {
+        "nums": [
+          1,
+          102,
+          0,
+          8,
+          0,
+          0,
+          0
+        ],
+        "html_filename": "_Users_craze_PycharmProjects_Semref_assembler_py.html",
+        "relative_filename": "C:\\Users\\craze\\PycharmProjects\\Semref\\assembler.py"
+      }
+    },
+    "_Users_craze_PycharmProjects_Semref_tests_test_valid_input_py": {
+      "hash": "0c6554092056ad2f4cb9d8aa2fabd1af",
+      "index": {
+        "nums": [
+          1,
+          62,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "html_filename": "_Users_craze_PycharmProjects_Semref_tests_test_valid_input_py.html",
+        "relative_filename": "C:\\Users\\craze\\PycharmProjects\\Semref\\tests\\test_valid_input.py"
+      }
+    },
+    "_Users_craze_PycharmProjects_Semref_venv_Lib_site-packages_mock___init___py": {
+      "hash": "eacfe9c26cd093f5922a9e347e650f84",
+      "index": {
+        "nums": [
+          1,
+          4,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "html_filename": "_Users_craze_PycharmProjects_Semref_venv_Lib_site-packages_mock___init___py.html",
+        "relative_filename": "C:\\Users\\craze\\PycharmProjects\\Semref\\venv\\Lib\\site-packages\\mock\\__init__.py"
+      }
+    },
+    "_Users_craze_PycharmProjects_Semref_venv_Lib_site-packages_mock_mock_py": {
+      "hash": "20e67b66c4e2ddd4f3cfff62d218cd19",
+      "index": {
+        "nums": [
+          1,
+          1390,
+          0,
+          967,
+          0,
+          0,
+          0
+        ],
+        "html_filename": "_Users_craze_PycharmProjects_Semref_venv_Lib_site-packages_mock_mock_py.html",
+        "relative_filename": "C:\\Users\\craze\\PycharmProjects\\Semref\\venv\\Lib\\site-packages\\mock\\mock.py"
+      }
+    },
+    "_Users_craze_PycharmProjects_Semref_venv_Lib_site-packages_six_py": {
+      "hash": "ad56e059947f8e1443d39d845a6ff104",
+      "index": {
+        "nums": [
+          1,
+          472,
+          0,
+          251,
+          0,
+          0,
+          0
+        ],
+        "html_filename": "_Users_craze_PycharmProjects_Semref_venv_Lib_site-packages_six_py.html",
+        "relative_filename": "C:\\Users\\craze\\PycharmProjects\\Semref\\venv\\Lib\\site-packages\\six.py"
+      }
+    }
+  }
+}

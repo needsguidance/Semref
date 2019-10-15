@@ -6,3 +6,5 @@ kivy-deps.gstreamer
 kivy-deps.angle
 kivy-deps.glew
 pylint
+mock
+coverage

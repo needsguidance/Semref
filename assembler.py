@@ -54,9 +54,9 @@ CONSTANTS = {}
 RAM = ['00000000' for i in range(4096)]
 
 
-def display_ram_content():
-    for row in RAM:
-        print(row)
+def clear_ram():
+    for i in range(len(RAM)):
+        RAM[i] = '00000000'
 
 
 def verify_ram_content():
@@ -79,7 +79,7 @@ def verify_ram_content():
 
 def hexify_ram_content():
     for i in range(4096):
-        RAM[i] = f'{int(RAM[i]):02X}'
+        RAM[i] = f'{int(RAM[i], 2):02X}'
 
 
 class Assembler:
@@ -108,10 +108,13 @@ class Assembler:
     def store_instructions_in_ram(self):
         for instruction in self.micro_instr:
             source = instruction.split()
-            if len(source) < 2:
-                # Placeholder for now. Should figure out a way to handle label addresses correctly!
+            contains_label = [s for s in source if ':' in s]
+            if contains_label:
                 label = source[0][:-1]
-                VARIABLES[label] = f'{(self.p_counter + 2):016b}'
+                VARIABLES[label] = f'{self.p_counter:011b}'
+                if len(source) > 1:
+                    self.convert_instruction_to_binary(source[1:])
+                    self.p_counter += 2
             else:
                 if source[0].lower() == 'org':
                     # Indicates at what memory location it will begin storing instructions
@@ -143,50 +146,10 @@ class Assembler:
                         elif len(source) == 3:
                             VARIABLES[source[0]] = f'{self.p_counter:08b}'
                             RAM[self.p_counter] = f'{int(source[2]):08b}'
+                        else:
+                            raise SyntaxError(f"'{instruction}' not a valid instruction")
 
                     self.p_counter += 2  # Increase Program Counter
-
-    def convert_all_to_binary(self):
-        inst = []
-
-        for instruction in self.micro_instr:
-            source = instruction.split()
-            i = 0
-            for row in source:
-                if row.lower() in OPCODE:
-                    inst[i].append(OPCODE.get(row))
-                elif row.lower() in REGISTER:
-                    inst[i].append(REGISTER.get(row))
-                elif row.lower() in LABELS:
-                    inst[i].append(LABELS.get(row))
-                elif row.lower() in ADDRESSES:
-                    inst[i].append(ADDRESSES.get(row))
-
-                i += 1
-
-    def convert_all_to_binary(self):
-        op = []
-        reg = []
-        inst = []
-        i = 0
-        for instruction in self.micro_instr:
-            inst.append([])
-
-            for row in instruction.split():
-                row = re.sub(r'[^\w\s]', '', row)  # Remove punctuation from lines
-
-                if row.lower() in OPCODE:
-                    inst[i].append(OPCODE.get(row.lower()))
-                elif row.lower() in REGISTER:
-                    inst[i].append(REGISTER.get(row.lower()))
-                elif row in LABELS:
-                    inst[i].append(LABELS.get(row))
-                elif row in ADDRESSES:
-                    inst[i].append(ADDRESSES.get(row))
-                else:
-                    inst[i].append(row)
-
-            i += 1
 
     def convert_instruction_to_binary(self, inst, is_second_pass=False):
         if not is_second_pass:
@@ -205,7 +168,7 @@ class Assembler:
                         instruction == 'grt' or instruction == 'grteq' or instruction == 'eq' or instruction == 'neq':
                     ra = REGISTER[re.sub(r'[^\w\s]', '', inst[1]).lower()]
                     rb = REGISTER[re.sub(r'[^\w\s]', '', inst[2]).lower()]
-                    rc = f'{3:03b}' if len(inst) == 3 else REGISTER[re.sub(r'[^\w\s]', '', inst[3]).lower()]
+                    rc = f'{0:03b}' if len(inst) == 3 else REGISTER[re.sub(r'[^\w\s]', '', inst[3]).lower()]
                     binary = opcode + ra + rb + rc + '00'
                 elif instruction == 'load' or instruction == 'loadim' or instruction == 'pop' or \
                         instruction == 'store' or instruction == 'push' or instruction == 'addim' or \
@@ -221,7 +184,3 @@ class Assembler:
 
         # instBin = OPCODE.get(inst)
         # return instBin
-
-    def convert_register_to_binary(self, reg):
-        regBin = REGISTER.get(reg)
-        return regBin
