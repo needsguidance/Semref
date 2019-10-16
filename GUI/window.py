@@ -47,7 +47,7 @@ class Window(PageLayout):
 ######################################################################## 
 
 # creating the App class in which name 
-#.kv file is to be named PageLayout.kv 
+#.kv file is to be named window.kv 
 class WindowApp(App): 
 	# defining build() 
 	def build(self): 
@@ -56,10 +56,7 @@ class WindowApp(App):
 
 ######################################################################## 
 	
-# creating object of Multiple_LayoutApp() class 
 
-
-# run the class 
 
 
 
