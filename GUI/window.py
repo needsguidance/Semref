@@ -1,23 +1,24 @@
 
 from kivy.app import App
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.recycleview.views import RecycleDataViewBehavior
-from kivy.uix.button import Button
-from kivy.properties import BooleanProperty, ListProperty, StringProperty, ObjectProperty
-from kivy.uix.recyclegridlayout import RecycleGridLayout
-from kivy.uix.behaviors import FocusBehavior
-from kivy.uix.recycleview.layout import LayoutSelectionBehavior
-from kivy.uix.popup import Popup
-from kivymd.theming import ThemeManager
-from kivy.lang import Builder
 from kivy.core.window import Window
+from kivy.lang import Builder
+from kivy.properties import (BooleanProperty, ListProperty, ObjectProperty,
+                             StringProperty)
+from kivy.uix.behaviors import FocusBehavior
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.button import Button
+from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.modalview import ModalView
-
-from kivymd.uix.filemanager import MDFileManager
-
-from kivymd.uix.navigationdrawer import NavigationDrawerIconButton
+from kivy.uix.popup import Popup
+from kivy.uix.recyclegridlayout import RecycleGridLayout
+from kivy.uix.recycleview.layout import LayoutSelectionBehavior
+from kivy.uix.recycleview.views import RecycleDataViewBehavior
+from kivymd.theming import ThemeManager
 from kivymd.toast import toast
+from kivymd.uix.filemanager import MDFileManager
+from kivymd.uix.navigationdrawer import NavigationDrawerIconButton
+from microprocessor_simulator import MicroSim
+
 # from kivy.config import Config
 # Config.set('graphics', 'width', '1024')
 # Config.set('graphics', 'height', '650')
@@ -61,7 +62,7 @@ class TestApp(App):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        Window.bind(on_keyboard=self.events)
+        # Window.bind(on_keyboard=self.events)
         self.manager_open = False
         self.manager = None
 
@@ -82,7 +83,7 @@ class TestApp(App):
         #             text="Item menu %d" % i,
         #             on_release=lambda x, y=i: self.callback(x, y)))
 
-    def file_manager_open(self):
+    def file_manager_open(self, instance):
         if not self.manager:
             self.manager = ModalView(size_hint=(1, 1), auto_dismiss=False)
             self.file_manager = MDFileManager(
@@ -102,6 +103,8 @@ class TestApp(App):
         """
 
         self.exit_manager()
+        sim = MicroSim()
+        sim.read_obj_file(path)
         toast(path)
 
     def exit_manager(self, *args):
