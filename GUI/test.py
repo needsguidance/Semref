@@ -26,6 +26,29 @@ from kivymd.toast import toast
 # Window tables with editable data rows
 # Uses test.kv as a config file
 
+test_kv = """
+<ContentNavigationDrawer@MDNavigationDrawer>:
+    drawer_logo: 'images/logo.jpg'
+    NavigationDrawerSubheader:
+        text: "Menu:"
+NavigationLayout:
+    id: nav_layout
+    ContentNavigationDrawer:
+        id: nav_drawer
+    BoxLayout:
+        orientation: 'vertical'
+        MDToolbar:
+            id: toolbar
+            title: 'Semref Micro Sim'
+            md_bg_color: app.theme_cls.primary_color
+            background_palette: 'Primary'
+            background_hue: '500'
+            elevation: 10
+            left_action_items:
+                [['dots-vertical', lambda x: app.root.toggle_nav_drawer()]]
+        Widget:
+"""
+
 
 class TestApp(App):
     theme_cls = ThemeManager()
@@ -38,7 +61,7 @@ class TestApp(App):
         self.manager = None
 
     def build(self):
-        
+        self.main_widget = Builder.load_string(test_kv)
         return self.main_widget
 
     def callback(self, instance, value):
