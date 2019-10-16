@@ -1,6 +1,5 @@
-import sys
 import subprocess
-
+import sys
 
 ALL = [
     'kivy==1.11.1',
@@ -31,7 +30,7 @@ def install(packages):
 
 install(ALL)
 platform = sys.platform
-if platform == 'windows':
+if platform == 'win32':
     install(WINDOWS)
 elif platform == 'darwin':
     install(MACOS)
