@@ -7,7 +7,8 @@ ALL = [
     'Pillow==6.2.0',
     'pylint>=2.4.2',
     'mock==3.0.5',
-    'coverage>=4.5.4'
+    'coverage>=4.5.4',
+    'kivymd>=0.100.2'
 ]
 
 WINDOWS = [
