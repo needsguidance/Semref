@@ -91,10 +91,9 @@ class TestApp(App):
             self.manager = ModalView(size_hint=(1, 1), auto_dismiss=False)
             self.file_manager = MDFileManager(exit_manager=self.exit_manager,
                                               select_path=self.select_path, 
-                                              ext=['.asm', '.obj'], 
-                                              current_path=str(Path.home()))
+                                              ext=['.asm', '.obj'])
             self.manager.add_widget(self.file_manager)
-            self.file_manager.show('/')  # output manager to the screen
+            self.file_manager.show(str(Path.home()))  # output manager to the screen
         self.manager_open = True
         self.manager.open()
 
@@ -108,8 +107,8 @@ class TestApp(App):
         """
 
         self.exit_manager()
-        self.micro_sim.read_obj_file(path)
-        toast(self.micro_sim.hex_instructions)
+        self.run_micro_sim(path)
+        toast(f'{path} loaded successfully')
 
     def exit_manager(self, *args):
         """Called when the user reaches the root of the directory tree."""
@@ -124,3 +123,7 @@ class TestApp(App):
             if self.manager_open:
                 self.file_manager.back()
         return True
+
+    def run_micro_sim(self, file):
+        self.micro_sim.read_obj_file(file)
+        print(self.micro_sim.micro_instructions)

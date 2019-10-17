@@ -13,41 +13,41 @@ class InputTestCase(unittest.TestCase):
             with self.assertRaises(AssertionError):
                 Assembler(file)
 
-        with mock.patch('builtins.input', return_value='input/test.asm'):
+        with mock.patch('builtins.input', return_value='test.asm'):
             file = input()
             asm = Assembler(file)
             with self.assertRaises(FileNotFoundError):
                 asm.read_source()
 
-        with mock.patch('builtins.input', return_value='../input/test1.asm'):
+        with mock.patch('builtins.input', return_value='input/test1.asm'):
             file = input()
             asm = Assembler(file)
             asm.read_source()
             with self.assertRaises(SyntaxError):
                 asm.store_instructions_in_ram()
 
-        with mock.patch('builtins.input', return_value='../input/test2.asm'):
+        with mock.patch('builtins.input', return_value='input/test2.asm'):
             file = input()
             asm = Assembler(file)
             asm.read_source()
             with self.assertRaises(SyntaxError):
                 asm.store_instructions_in_ram()
 
-        with mock.patch('builtins.input', return_value='../input/test4.asm'):
+        with mock.patch('builtins.input', return_value='input/test4.asm'):
             file = input()
             asm = Assembler(file)
             asm.read_source()
-            with self.assertRaises(SyntaxError):
+            with self.assertRaises(MemoryError):
                 asm.store_instructions_in_ram()
 
     def test_valid_input(self):
-        with mock.patch('builtins.input', return_value="..input/test.asm"):
+        with mock.patch('builtins.input', return_value="input/test.asm"):
             file = input()
             asm = Assembler(file)
             self.assertEqual(file, asm.filename, 'Filenames do not match')
 
     def test_ram_binary_content(self):
-        with mock.patch('builtins.input', return_value='../input/test.asm'):
+        with mock.patch('builtins.input', return_value='input/test.asm'):
             binary_content = [
                 '1010100000001010',  # JMPADDR start
                 '0000010100000000',  # valor1 db 5
@@ -82,7 +82,7 @@ class InputTestCase(unittest.TestCase):
             ]
             self._test_ram_binary_content_helper(start=0, binary_content=binary_content, hex_content=hex_content)
 
-        with mock.patch('builtins.input', return_value='../input/test3.asm'):
+        with mock.patch('builtins.input', return_value='input/test3.asm'):
             binary_content = [
                 '1010100000001010',  # JMPADDR start
                 '0000010100000000',  # valor1 db 5
