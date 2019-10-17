@@ -18,6 +18,7 @@ from kivymd.toast import toast
 from kivymd.uix.filemanager import MDFileManager
 from kivymd.uix.navigationdrawer import NavigationDrawerIconButton
 from microprocessor_simulator import MicroSim
+from pathlib import Path
 
 # from kivy.config import Config
 # Config.set('graphics', 'width', '1024')
@@ -56,6 +57,7 @@ NavigationLayout:
         Widget:
 """
 
+
 class TestApp(App):
     theme_cls = ThemeManager()
     theme_cls.primary_palette = 'Teal'
@@ -65,6 +67,7 @@ class TestApp(App):
         # Window.bind(on_keyboard=self.events)
         self.manager_open = False
         self.manager = None
+        self.micro_sim = MicroSim()
 
     def build(self):
         self.main_widget = Builder.load_string(test_kv)
@@ -86,8 +89,10 @@ class TestApp(App):
     def file_manager_open(self, instance):
         if not self.manager:
             self.manager = ModalView(size_hint=(1, 1), auto_dismiss=False)
-            self.file_manager = MDFileManager(
-                exit_manager=self.exit_manager, select_path=self.select_path)
+            self.file_manager = MDFileManager(exit_manager=self.exit_manager,
+                                              select_path=self.select_path, 
+                                              ext=['.asm', '.obj'], 
+                                              current_path=str(Path.home()))
             self.manager.add_widget(self.file_manager)
             self.file_manager.show('/')  # output manager to the screen
         self.manager_open = True
@@ -103,9 +108,8 @@ class TestApp(App):
         """
 
         self.exit_manager()
-        sim = MicroSim()
-        sim.read_obj_file(path)
-        toast(path)
+        self.micro_sim.read_obj_file(path)
+        toast(self.micro_sim.hex_instructions)
 
     def exit_manager(self, *args):
         """Called when the user reaches the root of the directory tree."""
