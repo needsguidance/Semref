@@ -1,6 +1,6 @@
 from assembler import Assembler, RAM, verify_ram_content, hexify_ram_content
 from microprocessor_simulator import MicroSim
-from GUI.test import TestApp
+from GUI.window import TestApp
 
 
 def assembler():
