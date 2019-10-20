@@ -24,15 +24,24 @@ class RunWindow(FloatLayout):
 
     def __init__(self, **kwargs):
         self.app = kwargs.pop('app')
+        self.micro_sim = kwargs.pop('micro_sim')
         super(RunWindow, self).__init__(**kwargs)
         self.run_button = MDFlatButton(text='Run',
                                        size_hint=(None, None),
-                                       pos_hint={'center_x': .7, 'center_y': 2.12})
+                                       pos_hint={'center_x': .7, 'center_y': 2.12},
+                                       on_release=self.run_micro_instructions)
         self.debug_button = MDFlatButton(text='Debug',
                                          size_hint=(None, None),
                                          pos_hint={'center_x': .85, 'center_y': 2.12})
         self.add_widget(self.run_button)
         self.add_widget(self.debug_button)
+
+    def run_micro_instructions(self, instance):
+        if not self.micro_sim.is_ram_loaded:
+            toast('Must load file first before running')
+        else:
+            self.micro_sim.run_micro_instructions()
+        # toast(self.micro_sim.micro_instructions.__str__())
 
 
 class MainWindow(BoxLayout):
@@ -40,6 +49,7 @@ class MainWindow(BoxLayout):
     def __init__(self, **kwargs):
         self.nav_drawer = kwargs.pop('nav_drawer')
         self.app = kwargs.pop('app')
+        self.micro_sim = kwargs.pop('micro_sim')
         super().__init__(**kwargs)
         self.ids['left_actions'] = BoxLayout()
         self.orientation = 'vertical'
@@ -51,7 +61,7 @@ class MainWindow(BoxLayout):
                                   ids=self.ids,
                                   left_action_items=[['dots-vertical', lambda x: self.nav_drawer.toggle_nav_drawer()]]))
         self.add_widget(BoxLayout())  # Bumps up navigation bar to the top
-        self.add_widget(RunWindow(app=self.app))
+        self.add_widget(RunWindow(app=self.app, micro_sim=self.micro_sim))
 
 
 class NavDrawer(MDNavigationDrawer):
@@ -109,6 +119,7 @@ class NavDrawer(MDNavigationDrawer):
 
     def run_micro_sim(self, file):
         self.micro_sim.read_obj_file(file)
+        print(self.micro_sim.micro_instructions.__str__())
 
 
 class GUI(NavigationLayout):
@@ -118,7 +129,7 @@ class GUI(NavigationLayout):
         self.app = App.get_running_app()
         self.micro_sim = MicroSim()
         self.add_widget(NavDrawer(micro_sim=self.micro_sim))
-        self.add_widget(MainWindow(nav_drawer=self, app=self.app))
+        self.add_widget(MainWindow(nav_drawer=self, app=self.app, micro_sim=self.micro_sim))
 
 
 class TestApp(App):
