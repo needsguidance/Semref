@@ -26,8 +26,9 @@ from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
 from microprocessor_simulator import MicroSim
 
 Builder.load_string('''
-<Table>:
+<Table1>:
     id: data_list
+    pos_hint:{'x': 0, 'center_y': .5}
     RecycleGridLayout:
         cols: 2
         default_size: None, dp(30)
@@ -36,7 +37,18 @@ Builder.load_string('''
         size_hint_x: 0.2
         height: self.minimum_height
         orientation: 'vertical'
-        
+       
+<Table2>:
+    id: data_list
+    pos_hint:{'x': 0.8, 'center_y': .5}
+    RecycleGridLayout:
+        cols: 2
+        default_size: None, dp(30)
+        default_size_hint: 1, None
+        size_hint_y: None
+        size_hint_x: 0.2
+        height: self.minimum_height
+        orientation: 'vertical'
 
 
 ''')
@@ -56,8 +68,13 @@ class MainWindow(BoxLayout):
                                   elevation=10,
                                   ids=self.ids,
                                   left_action_items=[['dots-vertical', lambda x: nav_drawer.toggle_nav_drawer()]]))
-        table = Table()
-        self.add_widget(table)
+        fl = FloatLayout()
+        table1 = Table1()
+        table2 = Table2()
+        fl.add_widget(table1)
+        fl.add_widget(table2)
+        self.add_widget(fl)
+
         self.add_widget(BoxLayout())  # Bumps up navigation bar to the top
         
 
@@ -116,17 +133,29 @@ class NavDrawer(MDNavigationDrawer):
 
     def run_micro_sim(self, file):
         self.micro_sim.read_obj_file(file)
-        table = Table()
+        table = Table1()
         table.get_data(self.micro_sim.micro_instructions)
         # print(self.micro_sim.micro_instructions)
 
-class Table(RecycleView):
-    # data_items = [['hello','hey'],['heyy','yow']]
+class Table1(RecycleView):
 
     def __init__(self, **kwargs):
-        super(Table, self).__init__(**kwargs)        
+        super(Table1, self).__init__(**kwargs)        
         self.viewclass = 'Label'
         test = [['hey','heyo'],['hey2','heyo2']]
+        self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for row in test for x in row]
+        print(self.data)
+
+    def get_data(self, data):
+        self.data = [{"text": x,"color": (.1,.1,.1,1)} for x in data]
+        print(self.data)
+        
+class Table2(RecycleView):
+
+    def __init__(self, **kwargs):
+        super(Table2, self).__init__(**kwargs)        
+        self.viewclass = 'Label'
+        test = [['hey3','heyo3'],['hey4','heyo4']]
         self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for row in test for x in row]
         print(self.data)
 
