@@ -1,20 +1,14 @@
-
 from pathlib import Path
 
-from kivy.app import App
-from kivy.core.window import Window
-from kivy.lang import Builder
-from kivy.properties import (BooleanProperty, ListProperty, ObjectProperty,
-                             StringProperty)
-from kivy.uix.behaviors import FocusBehavior
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.button import Button
+from kivy import Config
+
+Config.set('graphics', 'resizable', False)
 from kivy.uix.floatlayout import FloatLayout
+from kivymd.uix.button import MDFlatButton
+
+from kivy.app import App
+from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.modalview import ModalView
-from kivy.uix.popup import Popup
-from kivy.uix.recyclegridlayout import RecycleGridLayout
-from kivy.uix.recycleview.layout import LayoutSelectionBehavior
-from kivy.uix.recycleview.views import RecycleDataViewBehavior
 from kivymd.theming import ThemeManager
 from kivymd.toast import toast
 from kivymd.uix.filemanager import MDFileManager
@@ -26,31 +20,48 @@ from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
 from microprocessor_simulator import MicroSim
 
 
+class RunWindow(FloatLayout):
+
+    def __init__(self, **kwargs):
+        self.app = kwargs.pop('app')
+        super(RunWindow, self).__init__(**kwargs)
+        self.run_button = MDFlatButton(text='Run',
+                                       size_hint=(None, None),
+                                       pos_hint={'center_x': .7, 'center_y': 2.12})
+        self.debug_button = MDFlatButton(text='Debug',
+                                         size_hint=(None, None),
+                                         pos_hint={'center_x': .85, 'center_y': 2.12})
+        self.add_widget(self.run_button)
+        self.add_widget(self.debug_button)
+
+
 class MainWindow(BoxLayout):
 
-    def __init__(self, nav_drawer, **kwargs):
+    def __init__(self, **kwargs):
+        self.nav_drawer = kwargs.pop('nav_drawer')
+        self.app = kwargs.pop('app')
         super().__init__(**kwargs)
         self.ids['left_actions'] = BoxLayout()
         self.orientation = 'vertical'
-        self.app = App.get_running_app()
         self.add_widget(MDToolbar(title='Semref Micro Sim',
                                   md_bg_color=self.app.theme_cls.primary_color,
                                   background_palette='Primary',
                                   background_hue='500',
                                   elevation=10,
                                   ids=self.ids,
-                                  left_action_items=[['dots-vertical', lambda x: nav_drawer.toggle_nav_drawer()]]))
+                                  left_action_items=[['dots-vertical', lambda x: self.nav_drawer.toggle_nav_drawer()]]))
         self.add_widget(BoxLayout())  # Bumps up navigation bar to the top
+        self.add_widget(RunWindow(app=self.app))
 
 
 class NavDrawer(MDNavigationDrawer):
 
     def __init__(self, **kwargs):
+        self.micro_sim = kwargs.pop('micro_sim')
         super().__init__(**kwargs)
         self.drawer_logo = 'images/logo.jpg'
         self.manager_open = False
         self.manager = None
-        self.micro_sim = MicroSim()
 
         self.add_widget(NavigationDrawerSubheader(text='Menu:'))
         self.add_widget(NavigationDrawerIconButton(icon='checkbox-blank-circle',
@@ -98,16 +109,16 @@ class NavDrawer(MDNavigationDrawer):
 
     def run_micro_sim(self, file):
         self.micro_sim.read_obj_file(file)
-        print(self.micro_sim.micro_instructions)
 
 
 class GUI(NavigationLayout):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.nav_drawer = NavDrawer()
-        self.add_widget(self.nav_drawer)
-        self.add_widget(MainWindow(self))
+        self.app = App.get_running_app()
+        self.micro_sim = MicroSim()
+        self.add_widget(NavDrawer(micro_sim=self.micro_sim))
+        self.add_widget(MainWindow(nav_drawer=self, app=self.app))
 
 
 class TestApp(App):
