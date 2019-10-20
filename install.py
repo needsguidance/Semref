@@ -1,6 +1,5 @@
-import sys
 import subprocess
-
+import sys
 
 ALL = [
     'kivy==1.11.1',
