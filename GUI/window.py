@@ -37,7 +37,8 @@ Builder.load_string('''
         size_hint_x: 0.2
         height: self.minimum_height
         orientation: 'vertical'
-       
+        
+        
 <Table2>:
     id: data_list
     pos_hint:{'x': 0.8, 'center_y': .5}
