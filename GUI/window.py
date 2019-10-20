@@ -29,14 +29,14 @@ from microprocessor_simulator import MicroSim
 
 Builder.load_string('''
 <Table>:
-
+    id: data_list
     RecycleBoxLayout:
         default_size: None, dp(56)
         default_size_hint: 1, None
         size_hint_y: None
         height: self.minimum_height
         orientation: 'vertical'
-        color: 1,0,1,1       
+        color: .5,.5,1,1     
 ''')
 
 class MainWindow(BoxLayout):
@@ -115,26 +115,29 @@ class NavDrawer(MDNavigationDrawer):
 
     def run_micro_sim(self, file):
         self.micro_sim.read_obj_file(file)
-        print(self.micro_sim.micro_instructions)
+        table = Table()
+        table.get_data(self.micro_sim.micro_instructions)
+        # print(self.micro_sim.micro_instructions)
 
 class Table(RecycleView):
     # data_items = [['hello','hey'],['heyy','yow']]
 
-
     def __init__(self, **kwargs):
-        super(Table, self).__init__(**kwargs)
+        super(Table, self).__init__(**kwargs)        
         self.viewclass = 'Label'
-        self.data = [{'text': str(x)} for x in range(10)]
-        self.color = .5,.5,1,1
+        self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for x in range(10)]
+        print(self.data)
 
-
-    # def get_users(self):
         
-    #     rows = 
-    #     # create data_items
-    #     for row in rows:
-    #         for col in row:
-    #             self.data_items.append(col)
+
+
+    def get_data(self, data):
+        self.data = [{"text": x,"color": (.1,.1,.1,1)} for x in data]
+        print(self.data)
+        
+
+
+      
     
 
 
