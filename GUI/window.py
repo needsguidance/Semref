@@ -28,13 +28,17 @@ from microprocessor_simulator import MicroSim
 Builder.load_string('''
 <Table>:
     id: data_list
-    RecycleBoxLayout:
-        default_size: None, dp(56)
+    RecycleGridLayout:
+        cols: 2
+        default_size: None, dp(30)
         default_size_hint: 1, None
         size_hint_y: None
+        size_hint_x: 0.2
         height: self.minimum_height
         orientation: 'vertical'
-        color: .5,.5,1,1     
+        
+
+
 ''')
 
 class MainWindow(BoxLayout):
@@ -122,7 +126,8 @@ class Table(RecycleView):
     def __init__(self, **kwargs):
         super(Table, self).__init__(**kwargs)        
         self.viewclass = 'Label'
-        self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for x in range(10)]
+        test = [['hey','heyo'],['hey2','heyo2']]
+        self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for row in test for x in row]
         print(self.data)
 
     def get_data(self, data):
