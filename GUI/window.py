@@ -1,6 +1,4 @@
-
 from pathlib import Path
-
 from kivy.app import App
 from kivy.core.window import Window
 from kivy.lang import Builder
@@ -94,7 +92,6 @@ class NavDrawer(MDNavigationDrawer):
         :param path: path to the selected directory or file;
 
         """
-
         self.exit_manager()
         self.run_micro_sim(path)
         toast(f'{path} loaded successfully')
@@ -128,17 +125,11 @@ class Table(RecycleView):
         self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for x in range(10)]
         print(self.data)
 
-        
-
-
     def get_data(self, data):
         self.data = [{"text": x,"color": (.1,.1,.1,1)} for x in data]
         print(self.data)
         
 
-
-      
-    
 
 
 class GUI(NavigationLayout):
