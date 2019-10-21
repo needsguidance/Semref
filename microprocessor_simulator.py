@@ -56,7 +56,7 @@ class MicroSim:
 
     def run_micro_instructions_step(self):
         binary_instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
-        self.decode_instruction(binary_instruction)
+        self.execute_instruction(binary_instruction)
         if self.false_index == self.index:
             self.is_running = False
         else:
@@ -79,7 +79,7 @@ class MicroSim:
 
 
 
-    def decode_instruction(self, instruction):
+    def execute_instruction(self, instruction):
         if re.match('^[0]+$', instruction):
             self.micro_instructions.append('NOP')
         else:
