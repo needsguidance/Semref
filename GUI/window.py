@@ -66,6 +66,7 @@ class RunWindow(FloatLayout):
     def __init__(self, **kwargs):
         self.app = kwargs.pop('app')
         self.micro_sim = kwargs.pop('micro_sim')
+        self.step_index = 0
         super(RunWindow, self).__init__(**kwargs)
         self.run_button = MDFillRoundFlatIconButton(text='Run',
                                                     icon='run',
@@ -91,30 +92,35 @@ class RunWindow(FloatLayout):
         self.add_widget(table2)
 
     def run_micro_instructions(self, instance):
-        if not self.micro_sim.is_ram_loaded:
-            toast('Must load file first before running')
-        else:
-            self.micro_sim.run_micro_instructions()
-            for i in self.micro_sim.micro_instructions:
-                if i != 'NOP':
-                    print(i)
         if self.micro_sim.is_running == False:
             toast("Infinite loop encountered. Program stopped")
 
+        else:
+            if not self.micro_sim.is_ram_loaded:
+                toast('Must load file first before running')
+            else:
+                self.micro_sim.run_micro_instructions()
+                for i in self.micro_sim.micro_instructions:
+                    if i != 'NOP':
+                        print(i)
+        
     def clear(self, instance):
         self.micro_sim.micro_clear()
         toast('Micro memory cleared! Load new data')
 
     def run_micro_instructions_step(self, instance):
-        if not self.micro_sim.is_ram_loaded:
-            toast('Must load file first before running')
-        else:
-            self.micro_sim.run_micro_instructions_step()
-            for i in self.micro_sim.micro_instructions:
-                if i != 'NOP':
-                    print(i)
         if self.micro_sim.is_running == False:
             toast("Infinite loop encountered. Program stopped")
+        else:    
+            if not self.micro_sim.is_ram_loaded:
+                toast('Must load file first before running')
+            else:
+                self.step_index += 1
+                self.micro_sim.run_micro_instructions_step(self.step_index)
+                for i in self.micro_sim.micro_instructions:
+                    if i != 'NOP':
+                        print(i)
+            
         
 class MainWindow(BoxLayout):
 
