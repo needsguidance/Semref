@@ -23,7 +23,7 @@ from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
                                          NavigationDrawerSubheader,
                                          NavigationLayout)
 
-from microprocessor_simulator import MicroSim, RAM
+from microprocessor_simulator import MicroSim
 
 Builder.load_string('''
 <Table1>:
@@ -85,14 +85,14 @@ class RunWindow(FloatLayout):
         registers = [[k, v] for k, v in self.register]
         self.table1.data_list.clear()
         self.table1.get_data(registers)
+
         table2 = Table2()
         self.add_widget(self.table1)
         self.add_widget(table2)
 
     def run_micro_instructions(self, instance):
-        if self.micro_sim.is_running == False:
+        if not self.micro_sim.is_running:
             toast("Infinite loop encountered. Program stopped")
-
         else:
             if not self.micro_sim.is_ram_loaded:
                 toast('Must load file first before running')
@@ -101,13 +101,16 @@ class RunWindow(FloatLayout):
                 for i in self.micro_sim.micro_instructions:
                     if i != 'NOP':
                         print(i)
+        registers = [[k, v.upper()] for k, v in self.register]
+        self.table1.data_list.clear()
+        self.table1.get_data(registers)
 
     def clear(self, instance):
         self.micro_sim.micro_clear()
         toast('Micro memory cleared! Load new data')
 
     def run_micro_instructions_step(self, instance):
-        if self.micro_sim.is_running == False:
+        if not self.micro_sim.is_running:
             toast("Infinite loop encountered. Program stopped")
         else:
             if not self.micro_sim.is_ram_loaded:
@@ -118,8 +121,11 @@ class RunWindow(FloatLayout):
                 for i in self.micro_sim.micro_instructions:
                     if i != 'NOP':
                         print(i)
+        registers = [[k, v] for k, v in self.register]
+        self.table1.data_list.clear()
+        self.table1.get_data(registers)
 
-        
+
 class MainWindow(BoxLayout):
 
     def __init__(self, **kwargs):
@@ -197,16 +203,6 @@ class NavDrawer(MDNavigationDrawer):
 
     def run_micro_sim(self, file):
         self.micro_sim.read_obj_file(file)
-
-        table = Table1()
-        i = 0
-        for m in range(50):
-            self.data.append(f'{RAM[i]} {RAM[i + 1]}')
-            i += 2
-
-        table.get_data(self.data)
-
-        # print(self.micro_sim.micro_instructions)
 
 
 class Table1(RecycleView):
