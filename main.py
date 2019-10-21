@@ -4,7 +4,7 @@ from GUI.window import TestApp
 
 
 def assembler():
-    read_files = True
+    read_files = False
     file = None
     i = 0
     while read_files:
@@ -30,7 +30,7 @@ def assembler():
 
 
 def micro_sim():
-    read_files = True
+    read_files = False
     i = 0
     while read_files:
         file = input('Input obj file path: ')

@@ -28,6 +28,7 @@ class MicroSim:
         self.cond = False
         self.stack_pointer = 0
         self.program_counter = 0
+        self.false_index = -1
 
     def read_obj_file(self, filename):
         file = open(filename, 'r')
@@ -53,11 +54,38 @@ class MicroSim:
             else:
                 index = self.index
 
-    def execute_instruction(self, instruction):
+    def run_micro_instructions_step(self):
+        binary_instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
+        self.decode_instruction(binary_instruction)
+        if self.false_index == self.index:
+            self.is_running = False
+        else:
+            self.false_index = self.index
+       
+        print(self.index)
+        print(self.is_running)
+    
+    def micro_clear(self):
+        self.is_ram_loaded = False
+        self.micro_instructions = []
+        self.decoded_micro_instructions = []
+        self.index = 0
+        self.is_running = True
+        self.cond = False
+        self.stack_pointer = 0
+        self.program_counter = 0
+        self.false_index = -1
+
+
+
+
+    def decode_instruction(self, instruction):
         if re.match('^[0]+$', instruction):
             self.micro_instructions.append('NOP')
         else:
+            
             opcode = get_opcode_key(instruction[0:5])
+            
             if opcode in FORMAT_1_OPCODE:
                 ra = f'R{int(instruction[5:8], 2)}'
                 rb = f'R{int(instruction[8:11], 2)}'
