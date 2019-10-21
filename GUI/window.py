@@ -89,9 +89,9 @@ class RunWindow(FloatLayout):
             toast('Must load file first before running')
         else:
             self.micro_sim.run_micro_instructions()
-        # toast(self.micro_sim.micro_instructions.__str__())
+        # toast(self.micro_sim.micro_instructions.__str__())w
     def refresh(self, instance):
-        self._rebuild()
+        toast('Not Implemented')
 
 
 class MainWindow(BoxLayout):
@@ -119,6 +119,7 @@ class MainWindow(BoxLayout):
 
 
 class NavDrawer(MDNavigationDrawer):
+    data = ListProperty([])
 
     def __init__(self, **kwargs):
         self.micro_sim = kwargs.pop('micro_sim')
@@ -172,46 +173,62 @@ class NavDrawer(MDNavigationDrawer):
 
     def run_micro_sim(self, file):
         self.micro_sim.read_obj_file(file)
+            
         table = Table1()
-        data =[]
         i = 0
         for m in range(50):
-            data.append(f'{RAM[i]} {RAM[i + 1]}')
+            self.data.append(f'{RAM[i]} {RAM[i + 1]}')
             i += 2
         
-        table.get_data(data)
+        table.get_data(self.data)
         
         # print(self.micro_sim.micro_instructions)
 
 class Table1(RecycleView):
+    data_list = ListProperty([])
+
 
     def __init__(self, **kwargs):
         super(Table1, self).__init__(**kwargs)        
         self.viewclass = 'Label'
         test = [['hey','heyo'],['hey2','heyo2']]
+        for row in test:
+            for x in row:
+                self.get_data(x)
+
         # self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for x in range(50)]
 
-        self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for row in test for x in row]
+        # self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for row in test for x in row]
         print(self.data)
 
     def get_data(self, data):
-        self.data = [{"text": x,"color": (.1,.1,.1,1)} for x in data]
+        self.data_list.append(data)
+        self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for x in self.data_list]
         print(self.data)
         
+        
+        
 class Table2(RecycleView):
+    data_list = ListProperty([])
 
     def __init__(self, **kwargs):
-        super(Table2, self).__init__(**kwargs)        
+        super(Table2, self).__init__(**kwargs)    
         self.viewclass = 'Label'
         test = [['hey3','heyo3'],['hey4','heyo4']]
+        for row in test:
+            for x in row:
+                self.get_data(x)
         # self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for x in range(50)]
 
-        self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for row in test for x in row]
+        # self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for row in test for x in row]
         print(self.data)
 
     def get_data(self, data):
-        self.data = [{"text": x,"color": (.1,.1,.1,1)} for x in data]
+        
+        self.data_list.append(data)
+        self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for x in self.data_list]
         print(self.data)
+        
        
         
 
