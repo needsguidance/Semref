@@ -54,16 +54,38 @@ class MicroSim:
             else:
                 index = self.index
 
-    def run_micro_instructions_step(self):
+    def run_micro_instructions_step(self, step_index):
+        if(self.index == 0):
+            f = open("output/debugger.txt", "w")
+        else:
+            f = open("output/debugger.txt", "a")
+
+
         binary_instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
-        self.decode_instruction(binary_instruction)
+        self.execute_instruction(binary_instruction)
         if self.false_index == self.index:
             self.is_running = False
         else:
             self.false_index = self.index
-       
-        print(self.index)
-        print(self.is_running)
+        
+        print("\n\n Instruction: " + str(self.index) + ":" + f'{RAM[self.index]}' + ":" + "INSTRUCTION")
+        f.write("\n\n Instruction: " + str(self.index) + ":" + f'{RAM[self.index]}' + ":" + "INSTRUCTION")
+        print("\n\n Step " + str(step_index) + "\n\n")
+        f.write("\n\n Step " + str(step_index) + "\n\n")
+        print("\n\n Register Content: \n\n")
+        f.write("\n\n Register Content: \n\n")
+        print(REGISTER)
+        f.write(f'{REGISTER}')
+        print("\n\n First 50 slots in memory: \n\n")
+        f.write("\n\n First 50 slots in memory: \n\n")
+        i = 0
+        for m in range(50):
+                print(f'{RAM[i]} {RAM[i + 1]}')
+                f.write(f'{RAM[i]} {RAM[i + 1]}' + '\n')
+
+                i += 2
+        f.close()
+
     
     def micro_clear(self):
         self.is_ram_loaded = False
@@ -79,7 +101,7 @@ class MicroSim:
 
 
 
-    def decode_instruction(self, instruction):
+    def execute_instruction(self, instruction):
         if re.match('^[0]+$', instruction):
             self.micro_instructions.append('NOP')
         else:
