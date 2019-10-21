@@ -41,13 +41,25 @@ Builder.load_string('''
         
 <memory_table>:
     id: data_list
-    pos_hint:{'x': 0.8, 'center_y': 1.5}
+    pos_hint:{'x': 0.75, 'center_y': 1.5}
     RecycleGridLayout:
         cols: 2
         default_size: None, dp(30)
         default_size_hint: 1, None
         size_hint_y: None
-        size_hint_x: 0.2
+        size_hint_x: 0.25
+        height: self.minimum_height
+        orientation: 'vertical'
+
+<instruction_table>:
+    id: data_list
+    pos_hint:{'x': 0.2, 'center_y': 1.5}
+    RecycleGridLayout:
+        cols: 3
+        default_size: None, dp(30)
+        default_size_hint: 1, None
+        size_hint_y: None
+        size_hint_x: 0.5
         height: self.minimum_height
         orientation: 'vertical'
 
@@ -83,13 +95,19 @@ class RunWindow(FloatLayout):
         self.add_widget(self.refresh_button)
         self.reg_table = register_table()
         self.mem_table = memory_table()
+        self.inst_table = instruction_table()
         self.reg_table.data_list.clear()
         self.reg_table.get_data()
         self.mem_table.data_list.clear()
         self.mem_table.get_data()
-        
+        self.inst_table.data_list.clear()
+        self.inst_table.get_data()
+        self.reg_table.data_list.clear()
+        self.mem_table.data_list.clear()
+        self.inst_table.data_list.clear()
         self.add_widget(self.reg_table)
         self.add_widget(self.mem_table)
+        self.add_widget(self.inst_table)
 
     def run_micro_instructions(self, instance):
         if not(self.micro_sim.is_running):
@@ -108,6 +126,8 @@ class RunWindow(FloatLayout):
         self.reg_table.get_data()
         self.mem_table.data_list.clear()
         self.mem_table.get_data()
+        self.inst_table.data_list.clear()
+        self.inst_table.get_data()
 
     def clear(self, instance):
         self.micro_sim.micro_clear()
@@ -132,6 +152,8 @@ class RunWindow(FloatLayout):
         self.reg_table.get_data()
         self.mem_table.data_list.clear()
         self.mem_table.get_data()
+        self.inst_table.data_list.clear()
+        self.inst_table.get_data()
 
 
 class MainWindow(BoxLayout):
@@ -221,6 +243,8 @@ class register_table(RecycleView):
         self.viewclass = 'Label'
 
     def get_data(self):
+        self.data_list.append('REGISTER')
+        self.data_list.append('VALUE')
         for k, v in REGISTER.items():
             self.data_list.append(k)
             self.data_list.append(v)
@@ -238,6 +262,8 @@ class memory_table(RecycleView):
 
 
     def get_data(self):
+        self.data_list.append('MEMORY 4bits')
+        self.data_list.append('MEMORY 4bits')
         i = 0
         for m in range(50):
             self.data_list.append(f'{RAM[i]}')
@@ -247,6 +273,30 @@ class memory_table(RecycleView):
 
         self.data = [{"text": str(x.upper()), "color": (.1, .1, .1, 1)} for x in self.data_list]
 
+class instruction_table(RecycleView):
+    data_list = ListProperty([])
+
+    def __init__(self, **kwargs):
+        # self.register = REGISTER
+        super(instruction_table, self).__init__(**kwargs)
+        self.viewclass = 'Label'
+
+
+    def get_data(self):
+        self.data_list.append('ADDRESS')
+        self.data_list.append('CONTENT')
+        self.data_list.append('DISASSEMBLED INSTRUCTION')
+        i = 0
+        for m in range(50):
+            self.data_list.append('ADDRESS')
+            self.data_list.append('CONTENT')
+            self.data_list.append('DISASSEMBLED INSTRUCTION')
+
+            
+            i+= 2
+          
+
+        self.data = [{"text": str(x.upper()), "color": (.1, .1, .1, 1)} for x in self.data_list]
 
 class GUI(NavigationLayout):
 
