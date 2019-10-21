@@ -47,13 +47,13 @@ class MicroSim:
         index = -1
         while self.is_running:
             binary_instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
-            self.decode_instruction(binary_instruction)
+            self.execute_instruction(binary_instruction)
             if index == self.index:
                 self.is_running = False
             else:
                 index = self.index
 
-    def decode_instruction(self, instruction):
+    def execute_instruction(self, instruction):
         if re.match('^[0]+$', instruction):
             self.micro_instructions.append('NOP')
         else:
@@ -107,6 +107,7 @@ class MicroSim:
                 else:
                     self.micro_instructions.append(f'{opcode.upper()} {ra}, {rb}, {rc}')
                 self.index += 2
+                self.program_counter += 2
             elif opcode in FORMAT_2_OPCODE:
                 ra = f'R{int(instruction[5:8], 2)}'
                 address_or_const = int(instruction[8:], 2)
@@ -132,11 +133,13 @@ class MicroSim:
                     if reg_ra != 0:
                         self.stack_pointer = address_or_const
                 self.index += 2
+                self.program_counter += 2
             elif opcode in FORMAT_3_OPCODE:
                 ra = f'R{int(instruction[5:8], 2)}'
                 address = int(instruction[5:], 2)
                 if opcode == 'jmpaddr':
                     self.index = address
+                    self.program_counter = address + 2
                 elif opcode == 'jcondrin':
                     self.program_counter = int(REGISTER[ra.lower()], 16) if self.cond else self.program_counter + 2
                 elif opcode == 'jcondaddr':
