@@ -27,6 +27,7 @@ class MicroSim:
         self.is_running = True
         self.cond = False
         self.stack_pointer = 0
+        self.program_counter = 0
 
     def read_obj_file(self, filename):
         file = open(filename, 'r')
@@ -67,6 +68,8 @@ class MicroSim:
                     self.micro_instructions.append(f'{opcode.upper()} {ra}, {rb}')
                 elif opcode == 'grt':
                     self.cond = REGISTER[ra.lower()] > REGISTER[rb.lower()]
+                elif opcode == 'jmprind':
+                    self.program_counter = REGISTER[ra.lower()]
                 else:
                     self.micro_instructions.append(f'{opcode.upper()} {ra}, {rb}, {rc}')
                 self.index += 2
@@ -83,8 +86,16 @@ class MicroSim:
                 elif opcode == 'push':
                     self.stack_pointer -= 1
                     RAM[self.stack_pointer] = REGISTER[ra.lower()]
+                elif opcode == 'loop':
+                    pass
                 self.index += 2
             elif opcode in FORMAT_3_OPCODE:
-                address = instruction[5:]
-                self.index = int(address, 2)
+                ra = f'R{int(instruction[5:8], 2)}'
+                address = int(instruction[5:], 2)
+                if opcode == 'jmpaddr':
+                    self.index = address
+                elif opcode == 'jcondrin':
+                    self.program_counter = REGISTER[ra.lower()] if self.cond else self.program_counter + 2
+                elif opcode == 'jcondaddr':
+                    self.program_counter = address if self.cond else self.program_counter + 2
                 # self.micro_instructions.append(f'{opcode.upper()} {address}')
