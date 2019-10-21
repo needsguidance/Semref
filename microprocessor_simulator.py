@@ -26,6 +26,7 @@ class MicroSim:
         self.index = 0
         self.is_running = True
         self.cond = False
+        self.stack_pointer = 0
 
     def read_obj_file(self, filename):
         file = open(filename, 'r')
@@ -43,9 +44,14 @@ class MicroSim:
         file.close()
 
     def run_micro_instructions(self):
+        index = -1
         while self.is_running:
             binary_instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
             self.decode_instruction(binary_instruction)
+            if index == self.index:
+                self.is_running = False
+            else:
+                index = self.index
             # print(instruction)
 
     def decode_instruction(self, instruction):
@@ -60,17 +66,23 @@ class MicroSim:
                 if opcode == 'loadrind' or opcode == 'storerind':
                     self.micro_instructions.append(f'{opcode.upper()} {ra}, {rb}')
                 elif opcode == 'grt':
-                    self.cond = REGISTER[ra] > REGISTER[rb]
+                    self.cond = REGISTER[ra.lower()] > REGISTER[rb.lower()]
                 else:
                     self.micro_instructions.append(f'{opcode.upper()} {ra}, {rb}, {rc}')
                 self.index += 2
             elif opcode in FORMAT_2_OPCODE:
                 ra = f'R{int(instruction[5:8], 2)}'
                 address_or_const = int(instruction[8:], 2)
-                if opcode == 'load':
+                if opcode == 'load' or 'loadim':
                     REGISTER[ra.lower()] = int(RAM[address_or_const] + RAM[address_or_const + 1], 16)
                 elif opcode == 'store':
                     RAM[self.index] = REGISTER[ra.lower()]
+                elif opcode == 'pop':
+                    REGISTER[ra.lower()] = RAM[self.stack_pointer]
+                    self.stack_pointer += 1
+                elif opcode == 'push':
+                    self.stack_pointer -= 1
+                    RAM[self.stack_pointer] = REGISTER[ra.lower()]
                 self.index += 2
             elif opcode in FORMAT_3_OPCODE:
                 address = instruction[5:]
