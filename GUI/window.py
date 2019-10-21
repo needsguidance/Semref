@@ -92,15 +92,18 @@ class RunWindow(FloatLayout):
         self.add_widget(self.mem_table)
 
     def run_micro_instructions(self, instance):
-        if not self.micro_sim.is_ram_loaded:
-            toast('Must load file first before running')
-        else:
-            self.micro_sim.run_micro_instructions()
-            for i in self.micro_sim.micro_instructions:
-                if i != 'NOP':
-                    print(i)
         if not(self.micro_sim.is_running):
             toast("Infinite loop encountered. Program stopped")
+        else:
+            if not self.micro_sim.is_ram_loaded:
+                toast('Must load file first before running')
+            else:
+                self.micro_sim.run_micro_instructions()
+                toast('File executed successfully')
+                for i in self.micro_sim.micro_instructions:
+                    if i != 'NOP':
+                        print(i)
+        
         self.reg_table.data_list.clear()
         self.reg_table.get_data()
         self.mem_table.data_list.clear()
@@ -112,16 +115,19 @@ class RunWindow(FloatLayout):
         toast('Micro memory cleared! Load new data')
 
     def run_micro_instructions_step(self, instance):
-        if not self.micro_sim.is_ram_loaded:
-            toast('Must load file first before running')
-        else:
-            self.step_index += 1
-            self.micro_sim.run_micro_instructions_step(self.step_index)
-            for i in self.micro_sim.micro_instructions:
-                if i != 'NOP':
-                    print(i)
         if not(self.micro_sim.is_running):
             toast("Infinite loop encountered. Program stopped")
+        else:
+            if not self.micro_sim.is_ram_loaded:
+                toast('Must load file first before running')
+            else:
+                self.step_index += 1
+                self.micro_sim.run_micro_instructions_step(self.step_index)
+                toast('Runnin instruction in step-by-step mode. Step ' + str(self.step_index) + ' is running')
+                for i in self.micro_sim.micro_instructions:
+                    if i != 'NOP':
+                        print(i)
+        
         self.reg_table.data_list.clear()
         self.reg_table.get_data()
         self.mem_table.data_list.clear()
@@ -151,7 +157,6 @@ class MainWindow(BoxLayout):
 
 
 class NavDrawer(MDNavigationDrawer):
-    data = ListProperty([])
 
     def __init__(self, **kwargs):
         self.micro_sim = kwargs.pop('micro_sim')
