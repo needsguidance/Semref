@@ -262,8 +262,8 @@ class memory_table(RecycleView):
 
 
     def get_data(self):
-        self.data_list.append('MEMORY 4bits')
-        self.data_list.append('MEMORY 4bits')
+        self.data_list.append('MEMORY BYTE')
+        self.data_list.append('MEMORY BYTE')
         i = 0
         for m in range(50):
             self.data_list.append(f'{RAM[i]}')
