@@ -60,7 +60,6 @@ Builder.load_string('''
 
 
 class RunWindow(FloatLayout):
-    step_index = 0
 
     def __init__(self, **kwargs):
         self.app = kwargs.pop('app')
@@ -76,11 +75,11 @@ class RunWindow(FloatLayout):
                                                       size_hint=(None, None),
                                                       pos_hint={'center_x': .9, 'center_y': 2.12},
                                                       on_release=self.run_micro_instructions_step)
-        self.refresh_button = MDFillRoundFlatIconButton(text='Refresh',
+        self.refresh_button = MDFillRoundFlatIconButton(text='Clear',
                                                         icon='refresh',
                                                         size_hint=(None, None),
                                                         pos_hint={'center_x': .5, 'center_y': 2.12},
-                                                        on_release=self.refresh)
+                                                        on_release=self.clear)
         self.add_widget(self.run_button)
         self.add_widget(self.debug_button)
         self.add_widget(self.refresh_button)
@@ -97,21 +96,23 @@ class RunWindow(FloatLayout):
             for i in self.micro_sim.micro_instructions:
                 if i != 'NOP':
                     print(i)
-            # print(self.micro_sim.micro_instructions)
-        # toast(self.micro_sim.micro_instructions.__str__())
+        if self.micro_sim.is_running == False:
+            toast("Infinite loop encountered. Program stopped")
 
-    def refresh(self, instance):
-        toast('Not Implemented HueHue')
+    def clear(self, instance):
+        self.micro_sim.micro_clear()
+        toast('Micro memory cleared! Load new data')
 
     def run_micro_instructions_step(self, instance):
         if not self.micro_sim.is_ram_loaded:
             toast('Must load file first before running')
         else:
-            self.micro_sim.run_micro_instructions_step(self.step_index)
-            self.step_index +=2
+            self.micro_sim.run_micro_instructions_step()
             for i in self.micro_sim.micro_instructions:
                 if i != 'NOP':
                     print(i)
+        if self.micro_sim.is_running == False:
+            toast("Infinite loop encountered. Program stopped")
         
 class MainWindow(BoxLayout):
 
@@ -216,12 +217,12 @@ class Table1(RecycleView):
         # self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for x in range(50)]
 
         # self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for row in test for x in row]
-        print(self.data)
+        
 
     def get_data(self, data):
         self.data_list.append(data)
         self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for x in self.data_list]
-        print(self.data)
+        
         
         
         
@@ -238,13 +239,13 @@ class Table2(RecycleView):
         # self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for x in range(50)]
 
         # self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for row in test for x in row]
-        print(self.data)
+        
 
     def get_data(self, data):
         
         self.data_list.append(data)
         self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for x in self.data_list]
-        print(self.data)
+        
         
        
 

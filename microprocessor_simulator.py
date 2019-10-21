@@ -28,6 +28,7 @@ class MicroSim:
         self.cond = False
         self.stack_pointer = 0
         self.program_counter = 0
+        self.false_index = -1
 
     def read_obj_file(self, filename):
         file = open(filename, 'r')
@@ -39,7 +40,6 @@ class MicroSim:
             RAM[i] = hex_instruction[0:2]
             RAM[i + 1] = hex_instruction[2:]
             i += 2
-            # self.micro_instructions.append(hex_to_binary(hex_instruction))
         self.is_ram_loaded = True
         lines.clear()
         file.close()
@@ -53,12 +53,30 @@ class MicroSim:
                 self.is_running = False
             else:
                 index = self.index
-            # print(instruction)
 
-    def run_micro_instructions_step(self, index):
-        binary_instruction = hex_to_binary(f'{RAM[index]}{RAM[index + 1]}')
+    def run_micro_instructions_step(self):
+        binary_instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
         self.decode_instruction(binary_instruction)
-        print(index)
+        if self.false_index == self.index:
+            self.is_running = False
+        else:
+            self.false_index = self.index
+       
+        print(self.index)
+        print(self.is_running)
+    
+    def micro_clear(self):
+        self.is_ram_loaded = False
+        self.micro_instructions = []
+        self.decoded_micro_instructions = []
+        self.index = 0
+        self.is_running = True
+        self.cond = False
+        self.stack_pointer = 0
+        self.program_counter = 0
+        self.false_index = -1
+
+
 
 
     def decode_instruction(self, instruction):
@@ -67,39 +85,53 @@ class MicroSim:
         else:
             
             opcode = get_opcode_key(instruction[0:5])
-         
+            
             if opcode in FORMAT_1_OPCODE:
                 ra = f'R{int(instruction[5:8], 2)}'
                 rb = f'R{int(instruction[8:11], 2)}'
                 rc = f'R{int(instruction[11:14], 2)}'
-                if opcode == 'loadrind' or opcode == 'storerind':
-                    self.micro_instructions.append(f'{opcode.upper()} {ra}, {rb}')
+                if opcode == 'loadrind':
+                    REGISTER[ra.lower()] = RAM[REGISTER[rb.lower()]]
+                elif opcode == 'storerind':
+                    REGISTER[rb.lower()] = RAM[REGISTER[ra.lower()]]
                 elif opcode == 'grt':
                     self.cond = REGISTER[ra.lower()] > REGISTER[rb.lower()]
                 elif opcode == 'add':
-                    REGISTER[ra] = REGISTER[rb] + REGISTER[rc]
+                    REGISTER[ra.lower()] = f'{int(REGISTER[rb.lower()], 16) + int(REGISTER[rc.lower()], 16):02x}'
                 elif opcode == 'sub':
-                    REGISTER[ra] = REGISTER[rb] - REGISTER[rc]
+                    REGISTER[ra.lower()] = f'{REGISTER[rb.lower()] - REGISTER[rc.lower()]:02x}'
                 elif opcode == 'and':
-                    REGISTER[ra] = REGISTER[rb] * REGISTER[rc]
+                    REGISTER[ra.lower()] = f'{REGISTER[rb.lower()] * REGISTER[rc.lower()]:02x}'
                 elif opcode == 'or':
-                    REGISTER[ra] = REGISTER[rb] + REGISTER[rc]
+                    REGISTER[ra.lower()] = f'{REGISTER[rb.lower()] + REGISTER[rc.lower()]:02x}'
                 elif opcode == 'xor':
-                    REGISTER[ra] = REGISTER[rb] + REGISTER[rc] - 2 * REGISTER[rb] * REGISTER[rc]
+                    _xor = REGISTER[rb.lower()] + REGISTER[rc.lower()] - 2 * REGISTER[rb.lower()] * REGISTER[rc.lower()]
+                    REGISTER[ra.lower()] = f'{_xor:02x}'
                 elif opcode == 'not':
-                    REGISTER[ra] = self.bit_not(REGISTER[rb])
+                    REGISTER[ra.lower()] = f'{self.bit_not(hex_to_binary(REGISTER[rb.lower()])):02x}'
                 elif opcode == 'neg':
-                    REGISTER[ra] = (-1)*REGISTER[rb]
+                    REGISTER[ra.lower()] = f'{(-1) * REGISTER[rb.lower()]:02x}'
                 elif opcode == 'shiftr':
-                    REGISTER[ra] = REGISTER[rb] >> REGISTER[rc]
+                    REGISTER[ra.lower()] = f'{REGISTER[rb.lower()] >> REGISTER[rc.lower()]:02x}'
                 elif opcode == 'shiftl':
-                    REGISTER[ra] = REGISTER[rb] << REGISTER[rc]
+                    REGISTER[ra.lower()] = f'{REGISTER[rb.lower()] << REGISTER[rc.lower()]:02x}'
                 elif opcode == 'rotar':
-                    REGISTER[ra] = self.rotr(REGISTER[rb], REGISTER[rc])
+                    _rotar = self.rotr(int(REGISTER[rb.lower()], 16), int(REGISTER[rc.lower()], 16))
+                    REGISTER[ra.lower()] = f'{_rotar:02x}'
                 elif opcode == 'rotal':
-                    REGISTER[ra] = self.rotl(REGISTER[rb], REGISTER[rc])
+                    _rotl = self.rotl(int(REGISTER[rb.lower()], 16), int(REGISTER[rc.lower()], 16))
+                    REGISTER[ra.lower()] = f'{_rotl:02x}'
                 elif opcode == 'jmprind':
-                    self.program_counter = REGISTER[ra.lower()]
+                    self.program_counter = int(REGISTER[ra.lower()], 16)
+                elif opcode == 'grteq':
+                    self.cond = int(REGISTER[ra.lower()], 16) >= int(REGISTER[rb.lower()], 16)
+                elif opcode == 'eq':
+                    self.cond = int(REGISTER[ra.lower()], 16) == int(REGISTER[rb.lower()], 16)
+                elif opcode == 'neq':
+                    self.cond = int(REGISTER[ra.lower()], 16) != int(REGISTER[rb.lower()], 16)
+                elif opcode == 'nop':
+                    # Do nothing
+                    pass
                 else:
                     self.micro_instructions.append(f'{opcode.upper()} {ra}, {rb}, {rc}')
                 self.index += 2
@@ -107,13 +139,15 @@ class MicroSim:
                 ra = f'R{int(instruction[5:8], 2)}'
                 address_or_const = int(instruction[8:], 2)
                 if opcode == 'load' or 'loadim':
-                    REGISTER[ra.lower()] = int(RAM[address_or_const] + RAM[address_or_const + 1], 16)
+                    REGISTER[ra.lower()] = f'{int(RAM[address_or_const] + RAM[address_or_const + 1], 16):02x}'
                 elif opcode == 'store':
                     RAM[self.index] = REGISTER[ra.lower()]
                 elif opcode == 'addim':
-                    REGISTER[ra] = REGISTER[ra] + int(RAM[address_or_const] + RAM[address_or_const + 1], 16)
+                    _addim = int(REGISTER[ra], 16) + int(RAM[address_or_const] + RAM[address_or_const + 1], 16)
+                    REGISTER[ra] = f'{_addim:02x}'
                 elif opcode == 'subim':
-                    REGISTER[ra] = REGISTER[ra] - int(RAM[address_or_const] + RAM[address_or_const + 1], 16)
+                    _subim = int(REGISTER[ra], 16) - int(RAM[address_or_const] + RAM[address_or_const + 1], 16)
+                    REGISTER[ra] = f'{_subim:02x}'
                 elif opcode == 'pop':
                     REGISTER[ra.lower()] = RAM[self.stack_pointer]
                     self.stack_pointer += 1
@@ -121,8 +155,9 @@ class MicroSim:
                     self.stack_pointer -= 1
                     RAM[self.stack_pointer] = REGISTER[ra.lower()]
                 elif opcode == 'loop':
-                    REGISTER[ra.lower()] = REGISTER[ra.lower()] - 1
-                    if REGISTER[ra.lower()] != 0:
+                    reg_ra = int(REGISTER[ra.lower()], 16) - 1
+                    REGISTER[ra.lower()] = f'{reg_ra:02x}'
+                    if reg_ra != 0:
                         self.stack_pointer = address_or_const
                 self.index += 2
             elif opcode in FORMAT_3_OPCODE:
@@ -131,10 +166,16 @@ class MicroSim:
                 if opcode == 'jmpaddr':
                     self.index = address
                 elif opcode == 'jcondrin':
-                    self.program_counter = REGISTER[ra.lower()] if self.cond else self.program_counter + 2
+                    self.program_counter = int(REGISTER[ra.lower()], 16) if self.cond else self.program_counter + 2
                 elif opcode == 'jcondaddr':
                     self.program_counter = address if self.cond else self.program_counter + 2
-                # self.micro_instructions.append(f'{opcode.upper()} {address}')
+                elif opcode == 'call':
+                    self.stack_pointer -= 2
+                    RAM[self.stack_pointer] = f"{self.program_counter:08x}"
+                    self.program_counter = address
+            elif opcode == 'return':
+                self.program_counter = RAM[self.stack_pointer]
+                self.stack_pointer += 2
 
 
 
@@ -143,19 +184,19 @@ class MicroSim:
         return (1 << numbits) - 1 - n
 
     def rotl(self, num, bits):
-        bit = num & (1 << (bits-1))
+        bit = num & (1 << (bits - 1))
         num <<= 1
-        if(bit):
+        if bit:
             num |= 1
-        num &= (2<<bits-1)
+        num &= (2 << bits - 1)
 
         return num
 
     def rotr(self, num, bits):
-        num &= (2<<bits-1)
+        num &= (2 << bits - 1)
         bit = num & 1
         num >>= 1
-        if(bit):
-            num |= (1 << (bits-1))
+        if bit:
+            num |= (1 << (bits - 1))
 
         return num
