@@ -1,6 +1,6 @@
 import re
 
-from constants import OPCODE
+from constants import OPCODE, FORMAT_1_OPCODE, FORMAT_2_OPCODE, FORMAT_3_OPCODE, REGISTER
 
 RAM = ['00' for i in range(4096)]
 
@@ -23,6 +23,9 @@ class MicroSim:
         self.is_ram_loaded = False
         self.micro_instructions = []
         self.decoded_micro_instructions = []
+        self.index = 0
+        self.is_running = True
+        self.cond = False
 
     def read_obj_file(self, filename):
         file = open(filename, 'r')
@@ -40,16 +43,36 @@ class MicroSim:
         file.close()
 
     def run_micro_instructions(self):
-        index = 0
-        for i in range(int(len(RAM) / 2)):
-            binary_instruction = hex_to_binary(f'{RAM[index]}{RAM[index + 1]}')
+        while self.is_running:
+            binary_instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
             self.decode_instruction(binary_instruction)
-            index += 2
             # print(instruction)
 
     def decode_instruction(self, instruction):
         if re.match('^[0]+$', instruction):
-            print('nop')
+            self.micro_instructions.append('NOP')
         else:
             opcode = get_opcode_key(instruction[0:5])
-            print(opcode)
+            if opcode in FORMAT_1_OPCODE:
+                ra = f'R{int(instruction[5:8], 2)}'
+                rb = f'R{int(instruction[8:11], 2)}'
+                rc = f'R{int(instruction[11:14], 2)}'
+                if opcode == 'loadrind' or opcode == 'storerind':
+                    self.micro_instructions.append(f'{opcode.upper()} {ra}, {rb}')
+                elif opcode == 'grt':
+                    self.cond = REGISTER[ra] > REGISTER[rb]
+                else:
+                    self.micro_instructions.append(f'{opcode.upper()} {ra}, {rb}, {rc}')
+                self.index += 2
+            elif opcode in FORMAT_2_OPCODE:
+                ra = f'R{int(instruction[5:8], 2)}'
+                address_or_const = int(instruction[8:], 2)
+                if opcode == 'load':
+                    REGISTER[ra.lower()] = int(RAM[address_or_const] + RAM[address_or_const + 1], 16)
+                elif opcode == 'store':
+                    RAM[self.index] = REGISTER[ra.lower()]
+                self.index += 2
+            elif opcode in FORMAT_3_OPCODE:
+                address = instruction[5:]
+                self.index = int(address, 2)
+                # self.micro_instructions.append(f'{opcode.upper()} {address}')
