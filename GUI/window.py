@@ -60,6 +60,7 @@ class RunWindow(FloatLayout):
     def __init__(self, **kwargs):
         self.app = kwargs.pop('app')
         self.micro_sim = kwargs.pop('micro_sim')
+        self.step_index = 0
         self.register = kwargs.pop('registers')
         super(RunWindow, self).__init__(**kwargs)
         self.run_button = MDFillRoundFlatIconButton(text='Run',
@@ -81,7 +82,7 @@ class RunWindow(FloatLayout):
         self.add_widget(self.debug_button)
         self.add_widget(self.refresh_button)
         self.table1 = Table1()
-        registers = [[k, v] for k, v in REGISTER]
+        registers = [[k, v] for k, v in self.register]
         self.table1.data_list.clear()
         self.table1.get_data(registers)
         table2 = Table2()
@@ -89,38 +90,36 @@ class RunWindow(FloatLayout):
         self.add_widget(table2)
 
     def run_micro_instructions(self, instance):
-        if not self.micro_sim.is_ram_loaded:
-            toast('Must load file first before running')
-        else:
-            self.micro_sim.run_micro_instructions()
-            for i in self.micro_sim.micro_instructions:
-                if i != 'NOP':
-                    print(i)
-        if not self.micro_sim.is_running:
+        if self.micro_sim.is_running == False:
             toast("Infinite loop encountered. Program stopped")
-        registers = [[k, v] for k, v in REGISTER]
-        self.table1.data_list.clear()
-        self.table1.get_data(registers)
+
+        else:
+            if not self.micro_sim.is_ram_loaded:
+                toast('Must load file first before running')
+            else:
+                self.micro_sim.run_micro_instructions()
+                for i in self.micro_sim.micro_instructions:
+                    if i != 'NOP':
+                        print(i)
 
     def clear(self, instance):
         self.micro_sim.micro_clear()
         toast('Micro memory cleared! Load new data')
 
     def run_micro_instructions_step(self, instance):
-        if not self.micro_sim.is_ram_loaded:
-            toast('Must load file first before running')
-        else:
-            self.micro_sim.run_micro_instructions_step()
-            for i in self.micro_sim.micro_instructions:
-                if i != 'NOP':
-                    print(i)
-        if not self.micro_sim.is_running:
+        if self.micro_sim.is_running == False:
             toast("Infinite loop encountered. Program stopped")
-        registers = [[k, v] for k, v in REGISTER]
-        self.table1.data_list.clear()
-        self.table1.get_data(registers)
+        else:
+            if not self.micro_sim.is_ram_loaded:
+                toast('Must load file first before running')
+            else:
+                self.step_index += 1
+                self.micro_sim.run_micro_instructions_step(self.step_index)
+                for i in self.micro_sim.micro_instructions:
+                    if i != 'NOP':
+                        print(i)
 
-
+        
 class MainWindow(BoxLayout):
 
     def __init__(self, **kwargs):
