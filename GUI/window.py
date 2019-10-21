@@ -1,4 +1,8 @@
 from pathlib import Path
+from kivy import Config
+
+Config.set('graphics', 'resizable', False)
+from kivymd.uix.button import MDFlatButton
 from kivy.app import App
 from kivy.core.window import Window
 from kivy.lang import Builder
@@ -23,12 +27,12 @@ from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
                                          NavigationDrawerSubheader,
                                          NavigationLayout)
 
-from microprocessor_simulator import MicroSim
+from microprocessor_simulator import MicroSim, RAM
 
 Builder.load_string('''
 <Table1>:
     id: data_list
-    pos_hint:{'x': 0, 'center_y': .5}
+    pos_hint:{'x': 0, 'center_y': 1.5}
     RecycleGridLayout:
         cols: 2
         default_size: None, dp(30)
@@ -41,7 +45,7 @@ Builder.load_string('''
         
 <Table2>:
     id: data_list
-    pos_hint:{'x': 0.8, 'center_y': .5}
+    pos_hint:{'x': 0.8, 'center_y': 1.5}
     RecycleGridLayout:
         cols: 2
         default_size: None, dp(30)
@@ -54,40 +58,74 @@ Builder.load_string('''
 
 ''')
 
+
+class RunWindow(FloatLayout):
+
+    def __init__(self, **kwargs):
+        self.app = kwargs.pop('app')
+        self.micro_sim = kwargs.pop('micro_sim')
+        super(RunWindow, self).__init__(**kwargs)
+        self.run_button = MDFlatButton(text='Run',
+                                       size_hint=(None, None),
+                                       pos_hint={'center_x': .7, 'center_y': 2.12},
+                                       on_release=self.run_micro_instructions)
+        self.debug_button = MDFlatButton(text='Debug',
+                                         size_hint=(None, None),
+                                         pos_hint={'center_x': .85, 'center_y': 2.12})
+        self.refresh_button = MDFlatButton(text='Refresh',
+                                       size_hint=(None, None),
+                                       pos_hint={'center_x': .5, 'center_y': 2.12},
+                                       on_release=self.refresh)
+        self.add_widget(self.run_button)
+        self.add_widget(self.debug_button)
+        self.add_widget(self.refresh_button)
+        table1 = Table1()
+        table2 = Table2()
+        self.add_widget(table1)
+        self.add_widget(table2)
+
+    def run_micro_instructions(self, instance):
+        if not self.micro_sim.is_ram_loaded:
+            toast('Must load file first before running')
+        else:
+            self.micro_sim.run_micro_instructions()
+        # toast(self.micro_sim.micro_instructions.__str__())
+    def refresh(self, instance):
+        self._rebuild()
+
+
 class MainWindow(BoxLayout):
 
-    def __init__(self, nav_drawer, **kwargs):
+    def __init__(self, **kwargs):
+        self.nav_drawer = kwargs.pop('nav_drawer')
+        self.app = kwargs.pop('app')
+        self.micro_sim = kwargs.pop('micro_sim')
         super().__init__(**kwargs)
-        
         self.ids['left_actions'] = BoxLayout()
         self.orientation = 'vertical'
-        self.app = App.get_running_app()
         self.add_widget(MDToolbar(title='Semref Micro Sim',
                                   md_bg_color=self.app.theme_cls.primary_color,
                                   background_palette='Primary',
                                   background_hue='500',
                                   elevation=10,
                                   ids=self.ids,
-                                  left_action_items=[['dots-vertical', lambda x: nav_drawer.toggle_nav_drawer()]]))
-        fl = FloatLayout()
-        table1 = Table1()
-        table2 = Table2()
-        fl.add_widget(table1)
-        fl.add_widget(table2)
-        self.add_widget(fl)
+                                  left_action_items=[['dots-vertical', lambda x: self.nav_drawer.toggle_nav_drawer()]]))
+       
 
         self.add_widget(BoxLayout())  # Bumps up navigation bar to the top
+        self.add_widget(RunWindow(app=self.app, micro_sim=self.micro_sim))
         
+
 
 
 class NavDrawer(MDNavigationDrawer):
 
     def __init__(self, **kwargs):
+        self.micro_sim = kwargs.pop('micro_sim')
         super().__init__(**kwargs)
         self.drawer_logo = 'images/logo.jpg'
         self.manager_open = False
         self.manager = None
-        self.micro_sim = MicroSim()
 
         self.add_widget(NavigationDrawerSubheader(text='Menu:'))
         self.add_widget(NavigationDrawerIconButton(icon='checkbox-blank-circle',
@@ -135,7 +173,14 @@ class NavDrawer(MDNavigationDrawer):
     def run_micro_sim(self, file):
         self.micro_sim.read_obj_file(file)
         table = Table1()
-        table.get_data(self.micro_sim.micro_instructions)
+        data =[]
+        i = 0
+        for m in range(50):
+            data.append(f'{RAM[i]} {RAM[i + 1]}')
+            i += 2
+        
+        table.get_data(data)
+        
         # print(self.micro_sim.micro_instructions)
 
 class Table1(RecycleView):
@@ -144,6 +189,8 @@ class Table1(RecycleView):
         super(Table1, self).__init__(**kwargs)        
         self.viewclass = 'Label'
         test = [['hey','heyo'],['hey2','heyo2']]
+        # self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for x in range(50)]
+
         self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for row in test for x in row]
         print(self.data)
 
@@ -157,12 +204,15 @@ class Table2(RecycleView):
         super(Table2, self).__init__(**kwargs)        
         self.viewclass = 'Label'
         test = [['hey3','heyo3'],['hey4','heyo4']]
+        # self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for x in range(50)]
+
         self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for row in test for x in row]
         print(self.data)
 
     def get_data(self, data):
         self.data = [{"text": x,"color": (.1,.1,.1,1)} for x in data]
         print(self.data)
+       
         
 
 
@@ -171,9 +221,10 @@ class GUI(NavigationLayout):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.nav_drawer = NavDrawer()
-        self.add_widget(self.nav_drawer)
-        self.add_widget(MainWindow(self))
+        self.app = App.get_running_app()
+        self.micro_sim = MicroSim()
+        self.add_widget(NavDrawer(micro_sim=self.micro_sim))
+        self.add_widget(MainWindow(nav_drawer=self, app=self.app, micro_sim=self.micro_sim))
 
 
 class TestApp(App):
