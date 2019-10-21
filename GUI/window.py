@@ -44,8 +44,6 @@ class RunWindow(FloatLayout):
             for i in self.micro_sim.micro_instructions:
                 if i != 'NOP':
                     print(i)
-            # print(self.micro_sim.micro_instructions)
-        # toast(self.micro_sim.micro_instructions.__str__())
 
 
 class MainWindow(BoxLayout):
