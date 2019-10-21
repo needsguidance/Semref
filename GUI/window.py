@@ -81,6 +81,9 @@ class RunWindow(FloatLayout):
         self.add_widget(self.debug_button)
         self.add_widget(self.refresh_button)
         self.table1 = Table1()
+        registers = [[k, v] for k, v in REGISTER]
+        self.table1.data_list.clear()
+        self.table1.get_data(registers)
         table2 = Table2()
         self.add_widget(self.table1)
         self.add_widget(table2)
@@ -208,18 +211,18 @@ class Table1(RecycleView):
     data_list = ListProperty([])
 
     def __init__(self, **kwargs):
-        self.register = REGISTER
+        # self.register = REGISTER
         super(Table1, self).__init__(**kwargs)
         self.viewclass = 'Label'
         # test = [['hey', 'heyo'], ['hey2', 'heyo2']]
-        test = []
+        # test = []
         # test = [[k,v for k, v in self.register.items()]]
-        for k, v in self.register.items():
-            test.append([k.upper(), v])
-        for row in test:
-            for x in row:
-                self.get_data(x)
-        test.clear()
+        # for k, v in self.register.items():
+        #     test.append([k.upper(), v])
+        # for row in test:
+        #     for x in row:
+        #         self.get_data(x)
+        # test.clear()
 
         # self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for x in range(50)]
 
