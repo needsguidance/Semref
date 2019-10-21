@@ -113,7 +113,9 @@ class MicroSim:
                     self.stack_pointer -= 1
                     RAM[self.stack_pointer] = REGISTER[ra.lower()]
                 elif opcode == 'loop':
-                    pass
+                    REGISTER[ra.lower()] = REGISTER[ra.lower()] - 1
+                    if REGISTER[ra.lower()] != 0:
+                        self.stack_pointer = address_or_const
                 self.index += 2
             elif opcode in FORMAT_3_OPCODE:
                 ra = f'R{int(instruction[5:8], 2)}'
