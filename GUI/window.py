@@ -1,14 +1,24 @@
 from pathlib import Path
-
 from kivy import Config
 
 Config.set('graphics', 'resizable', False)
-from kivy.uix.floatlayout import FloatLayout
-from kivymd.uix.button import MDFlatButton
-
+from kivymd.uix.button import MDFlatButton, MDRectangleFlatIconButton, MDFillRoundFlatIconButton
 from kivy.app import App
+from kivy.core.window import Window
+from kivy.lang import Builder
+from kivy.properties import (BooleanProperty, ListProperty, ObjectProperty,
+                             StringProperty)
+from kivy.uix.behaviors import FocusBehavior
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.button import Button
+from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.modalview import ModalView
+from kivy.uix.popup import Popup
+from kivy.uix.recycleboxlayout import RecycleBoxLayout
+from kivy.uix.recycleview import RecycleView
+from kivy.uix.recyclegridlayout import RecycleGridLayout
+from kivy.uix.recycleview.layout import LayoutSelectionBehavior
+from kivy.uix.recycleview.views import RecycleDataViewBehavior
 from kivymd.theming import ThemeManager
 from kivymd.toast import toast
 from kivymd.uix.filemanager import MDFileManager
@@ -17,7 +27,36 @@ from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
                                          NavigationDrawerSubheader,
                                          NavigationLayout)
 
-from microprocessor_simulator import MicroSim
+from microprocessor_simulator import MicroSim, RAM
+
+Builder.load_string('''
+<Table1>:
+    id: data_list
+    pos_hint:{'x': 0, 'center_y': 1.5}
+    RecycleGridLayout:
+        cols: 2
+        default_size: None, dp(30)
+        default_size_hint: 1, None
+        size_hint_y: None
+        size_hint_x: 0.2
+        height: self.minimum_height
+        orientation: 'vertical'
+        
+        
+<Table2>:
+    id: data_list
+    pos_hint:{'x': 0.8, 'center_y': 1.5}
+    RecycleGridLayout:
+        cols: 2
+        default_size: None, dp(30)
+        default_size_hint: 1, None
+        size_hint_y: None
+        size_hint_x: 0.2
+        height: self.minimum_height
+        orientation: 'vertical'
+
+
+''')
 
 
 class RunWindow(FloatLayout):
@@ -26,15 +65,27 @@ class RunWindow(FloatLayout):
         self.app = kwargs.pop('app')
         self.micro_sim = kwargs.pop('micro_sim')
         super(RunWindow, self).__init__(**kwargs)
-        self.run_button = MDFlatButton(text='Run',
-                                       size_hint=(None, None),
-                                       pos_hint={'center_x': .7, 'center_y': 2.12},
-                                       on_release=self.run_micro_instructions)
-        self.debug_button = MDFlatButton(text='Debug',
-                                         size_hint=(None, None),
-                                         pos_hint={'center_x': .85, 'center_y': 2.12})
+        self.run_button = MDFillRoundFlatIconButton(text='Run',
+                                                    icon='run',
+                                                    size_hint=(None, None),
+                                                    pos_hint={'center_x': .7, 'center_y': 2.12},
+                                                    on_release=self.run_micro_instructions)
+        self.debug_button = MDFillRoundFlatIconButton(text='Debug',
+                                                      icon='android-debug-bridge',
+                                                      size_hint=(None, None),
+                                                      pos_hint={'center_x': .9, 'center_y': 2.12})
+        self.refresh_button = MDFillRoundFlatIconButton(text='Refresh',
+                                                        icon='refresh',
+                                                        size_hint=(None, None),
+                                                        pos_hint={'center_x': .5, 'center_y': 2.12},
+                                                        on_release=self.refresh)
         self.add_widget(self.run_button)
         self.add_widget(self.debug_button)
+        self.add_widget(self.refresh_button)
+        table1 = Table1()
+        table2 = Table2()
+        self.add_widget(table1)
+        self.add_widget(table2)
 
     def run_micro_instructions(self, instance):
         if not self.micro_sim.is_ram_loaded:
@@ -64,11 +115,13 @@ class MainWindow(BoxLayout):
                                   elevation=10,
                                   ids=self.ids,
                                   left_action_items=[['dots-vertical', lambda x: self.nav_drawer.toggle_nav_drawer()]]))
+
         self.add_widget(BoxLayout())  # Bumps up navigation bar to the top
         self.add_widget(RunWindow(app=self.app, micro_sim=self.micro_sim))
 
 
 class NavDrawer(MDNavigationDrawer):
+    data = ListProperty([])
 
     def __init__(self, **kwargs):
         self.micro_sim = kwargs.pop('micro_sim')
@@ -78,7 +131,7 @@ class NavDrawer(MDNavigationDrawer):
         self.manager = None
 
         self.add_widget(NavigationDrawerSubheader(text='Menu:'))
-        self.add_widget(NavigationDrawerIconButton(icon='checkbox-blank-circle',
+        self.add_widget(NavigationDrawerIconButton(icon='paperclip',
                                                    text='Load File',
                                                    on_release=self.file_manager_open))
 
@@ -102,7 +155,6 @@ class NavDrawer(MDNavigationDrawer):
         :param path: path to the selected directory or file;
 
         """
-
         self.exit_manager()
         self.run_micro_sim(path)
         toast(f'{path} loaded successfully')
@@ -123,8 +175,64 @@ class NavDrawer(MDNavigationDrawer):
 
     def run_micro_sim(self, file):
         self.micro_sim.read_obj_file(file)
-        print(self.micro_sim.micro_instructions.__str__())
+            
+        table = Table1()
+        i = 0
+        for m in range(50):
+            self.data.append(f'{RAM[i]} {RAM[i + 1]}')
+            i += 2
+        
+        table.get_data(self.data)
+        
+        # print(self.micro_sim.micro_instructions)
 
+
+class Table1(RecycleView):
+    data_list = ListProperty([])
+
+
+    def __init__(self, **kwargs):
+        super(Table1, self).__init__(**kwargs)
+        self.viewclass = 'Label'
+        test = [['hey','heyo'],['hey2','heyo2']]
+        for row in test:
+            for x in row:
+                self.get_data(x)
+
+        # self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for x in range(50)]
+
+        # self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for row in test for x in row]
+        print(self.data)
+
+    def get_data(self, data):
+        self.data_list.append(data)
+        self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for x in self.data_list]
+        print(self.data)
+        
+        
+        
+class Table2(RecycleView):
+    data_list = ListProperty([])
+
+    def __init__(self, **kwargs):
+        super(Table2, self).__init__(**kwargs)    
+        self.viewclass = 'Label'
+        test = [['hey3','heyo3'],['hey4','heyo4']]
+        for row in test:
+            for x in row:
+                self.get_data(x)
+        # self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for x in range(50)]
+
+        # self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for row in test for x in row]
+        print(self.data)
+
+    def get_data(self, data):
+        
+        self.data_list.append(data)
+        self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for x in self.data_list]
+        print(self.data)
+        
+       
 
 class GUI(NavigationLayout):
 
