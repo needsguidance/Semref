@@ -26,7 +26,7 @@ class MicroSim:
         self.index = 0
         self.is_running = True
         self.cond = False
-        self.false_index = -1
+        self.prev_index = -1
 
     def read_obj_file(self, filename):
         file = open(filename, 'r')
@@ -60,10 +60,10 @@ class MicroSim:
 
         binary_instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
         self.execute_instruction(binary_instruction)
-        if self.false_index == self.index:
+        if self.prev_index == self.index:
             self.is_running = False
         else:
-            self.false_index = self.index
+            self.prev_index = self.index
 
         print("\n\n Instruction: " + str(self.index) + ":" + f'{RAM[self.index]}' + ":" + "INSTRUCTION")
         f.write("\n\n Instruction: " + str(self.index) + ":" + f'{RAM[self.index]}' + ":" + "INSTRUCTION")
@@ -90,8 +90,8 @@ class MicroSim:
         self.index = 0
         self.is_running = True
         self.cond = False
-        # TODO: Validate if need sp here.
-        self.false_index = -1
+        REGISTER['sp'] = f'{0:02x}'
+        self.prev_index = -1
 
     def execute_instruction(self, instruction):
         if re.match('^[0]+$', instruction):
@@ -173,7 +173,7 @@ class MicroSim:
                     reg_ra = int(REGISTER[ra.lower()], 16) - 1
                     REGISTER[ra.lower()] = f'{reg_ra:02x}'
                     if reg_ra != 0:
-                        REGISTER['sp'] = f'{address_or_const}'
+                        REGISTER['sp'] = f'{address_or_const:02x}'
                 self.index += 2
                 REGISTER['pc'] = f"{int(REGISTER['pc'], 16) + 2:02x}"
             elif opcode in FORMAT_3_OPCODE:
