@@ -177,9 +177,6 @@ class MicroSim:
                 self.program_counter = RAM[self.stack_pointer]
                 self.stack_pointer += 2
 
-
-
-
     def bit_not(self, n, numbits=8):
         return (1 << numbits) - 1 - n
 

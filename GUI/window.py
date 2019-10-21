@@ -1,6 +1,8 @@
 from pathlib import Path
 from kivy import Config
 
+Config.set('graphics', 'width', '1024')
+Config.set('graphics', 'height', '650')
 Config.set('graphics', 'resizable', False)
 from kivymd.uix.button import MDFlatButton, MDRectangleFlatIconButton, MDFillRoundFlatIconButton
 from kivy.app import App
