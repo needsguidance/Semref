@@ -60,6 +60,7 @@ Builder.load_string('''
 
 
 class RunWindow(FloatLayout):
+    step_index = 0
 
     def __init__(self, **kwargs):
         self.app = kwargs.pop('app')
@@ -73,7 +74,8 @@ class RunWindow(FloatLayout):
         self.debug_button = MDFillRoundFlatIconButton(text='Debug',
                                                       icon='android-debug-bridge',
                                                       size_hint=(None, None),
-                                                      pos_hint={'center_x': .9, 'center_y': 2.12})
+                                                      pos_hint={'center_x': .9, 'center_y': 2.12},
+                                                      on_release=self.run_micro_instructions_step)
         self.refresh_button = MDFillRoundFlatIconButton(text='Refresh',
                                                         icon='refresh',
                                                         size_hint=(None, None),
@@ -98,7 +100,19 @@ class RunWindow(FloatLayout):
             # print(self.micro_sim.micro_instructions)
         # toast(self.micro_sim.micro_instructions.__str__())
 
+    def refresh(self, instance):
+        toast('Not Implemented HueHue')
 
+    def run_micro_instructions_step(self, instance):
+        if not self.micro_sim.is_ram_loaded:
+            toast('Must load file first before running')
+        else:
+            self.micro_sim.run_micro_instructions_step(self.step_index)
+            self.step_index +=2
+            for i in self.micro_sim.micro_instructions:
+                if i != 'NOP':
+                    print(i)
+        
 class MainWindow(BoxLayout):
 
     def __init__(self, **kwargs):

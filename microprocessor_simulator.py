@@ -55,13 +55,19 @@ class MicroSim:
                 index = self.index
             # print(instruction)
 
+    def run_micro_instructions_step(self, index):
+        binary_instruction = hex_to_binary(f'{RAM[index]}{RAM[index + 1]}')
+        self.decode_instruction(binary_instruction)
+        print(index)
+
+
     def decode_instruction(self, instruction):
         if re.match('^[0]+$', instruction):
             self.micro_instructions.append('NOP')
         else:
-            i = 0
+            
             opcode = get_opcode_key(instruction[0:5])
-            print(REGISTER)
+         
             if opcode in FORMAT_1_OPCODE:
                 ra = f'R{int(instruction[5:8], 2)}'
                 rb = f'R{int(instruction[8:11], 2)}'
