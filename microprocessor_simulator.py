@@ -26,9 +26,7 @@ class MicroSim:
         self.index = 0
         self.is_running = True
         self.cond = False
-        self.stack_pointer = 0
-        self.program_counter = 0
-        self.false_index = -1
+        self.prev_index = -1
 
     def read_obj_file(self, filename):
         file = open(filename, 'r')
@@ -47,6 +45,7 @@ class MicroSim:
     def run_micro_instructions(self):
         index = -1
         while self.is_running:
+            REGISTER['ir'] = f'{RAM[self.index]}{RAM[self.index + 1]}'
             binary_instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
             self.execute_instruction(binary_instruction)
             if index == self.index:
@@ -54,17 +53,37 @@ class MicroSim:
             else:
                 index = self.index
 
-    def run_micro_instructions_step(self):
+    def run_micro_instructions_step(self, step_index):
+        if self.index == 0:
+            f = open("output/debugger.txt", "w")
+        else:
+            f = open("output/debugger.txt", "a")
+
         binary_instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
         self.execute_instruction(binary_instruction)
-        if self.false_index == self.index:
+        if self.prev_index == self.index:
             self.is_running = False
         else:
-            self.false_index = self.index
-       
-        print(self.index)
-        print(self.is_running)
-    
+            self.prev_index = self.index
+
+        print("\n\n Instruction: " + str(self.index) + ":" + f'{RAM[self.index]}' + ":" + "INSTRUCTION")
+        f.write("\n\n Instruction: " + str(self.index) + ":" + f'{RAM[self.index]}' + ":" + "INSTRUCTION")
+        print("\n\n Step " + str(step_index) + "\n\n")
+        f.write("\n\n Step " + str(step_index) + "\n\n")
+        print("\n\n Register Content: \n\n")
+        f.write("\n\n Register Content: \n\n")
+        print(REGISTER)
+        f.write(f'{REGISTER}')
+        print("\n\n First 50 slots in memory: \n\n")
+        f.write("\n\n First 50 slots in memory: \n\n")
+        i = 0
+        for m in range(50):
+            print(f'{RAM[i]} {RAM[i + 1]}')
+            f.write(f'{RAM[i]} {RAM[i + 1]}' + '\n')
+
+            i += 2
+        f.close()
+
     def micro_clear(self):
         self.is_ram_loaded = False
         self.micro_instructions = []
@@ -72,17 +91,16 @@ class MicroSim:
         self.index = 0
         self.is_running = True
         self.cond = False
-        self.stack_pointer = 0
-        self.program_counter = 0
-        self.false_index = -1
+        REGISTER['sp'] = f'{0:02x}'
+        self.prev_index = -1
 
     def execute_instruction(self, instruction):
         if re.match('^[0]+$', instruction):
             self.micro_instructions.append('NOP')
         else:
-            
+
             opcode = get_opcode_key(instruction[0:5])
-            
+
             if opcode in FORMAT_1_OPCODE:
                 ra = f'R{int(instruction[5:8], 2)}'
                 rb = f'R{int(instruction[8:11], 2)}'
@@ -132,7 +150,7 @@ class MicroSim:
                 else:
                     self.micro_instructions.append(f'{opcode.upper()} {ra}, {rb}, {rc}')
                 self.index += 2
-                self.program_counter += 2
+                REGISTER['pc'] = f"{int(REGISTER['pc'], 16) + 2:03x}"
             elif opcode in FORMAT_2_OPCODE:
                 ra = f'R{int(instruction[5:8], 2)}'
                 address_or_const = int(instruction[8:], 2)
@@ -147,35 +165,35 @@ class MicroSim:
                     _subim = int(REGISTER[ra], 16) - int(RAM[address_or_const] + RAM[address_or_const + 1], 16)
                     REGISTER[ra] = f'{_subim:02x}'
                 elif opcode == 'pop':
-                    REGISTER[ra.lower()] = RAM[self.stack_pointer]
-                    self.stack_pointer += 1
+                    REGISTER[ra.lower()] = RAM[REGISTER['sp']]
+                    REGISTER['sp'] = f"{int(REGISTER['sp'], 16) + 1:03x}"
                 elif opcode == 'push':
-                    self.stack_pointer -= 1
-                    RAM[self.stack_pointer] = REGISTER[ra.lower()]
+                    REGISTER['sp'] = f"{int(REGISTER['sp'], 16) - 1:03x}"
+                    RAM[REGISTER['sp']] = REGISTER[ra.lower()]
                 elif opcode == 'loop':
                     reg_ra = int(REGISTER[ra.lower()], 16) - 1
                     REGISTER[ra.lower()] = f'{reg_ra:02x}'
                     if reg_ra != 0:
-                        self.stack_pointer = address_or_const
+                        REGISTER['sp'] = f'{address_or_const:03x}'
                 self.index += 2
-                self.program_counter += 2
+                REGISTER['pc'] = f"{int(REGISTER['pc'], 16) + 2:03x}"
             elif opcode in FORMAT_3_OPCODE:
                 ra = f'R{int(instruction[5:8], 2)}'
                 address = int(instruction[5:], 2)
                 if opcode == 'jmpaddr':
                     self.index = address
-                    self.program_counter = address + 2
+                    REGISTER['pc'] = f'{address + 2:03x}'
                 elif opcode == 'jcondrin':
-                    self.program_counter = int(REGISTER[ra.lower()], 16) if self.cond else self.program_counter + 2
+                    REGISTER['pc'] = REGISTER[ra.lower()] if self.cond else f"{int(REGISTER['pc'], 16) + 2:03x}"
                 elif opcode == 'jcondaddr':
-                    self.program_counter = address if self.cond else self.program_counter + 2
+                    REGISTER['pc'] = f'{address:03x}' if self.cond else f"{int(REGISTER['pc'], 16) + 2:03x}"
                 elif opcode == 'call':
-                    self.stack_pointer -= 2
-                    RAM[self.stack_pointer] = f"{self.program_counter:08x}"
-                    self.program_counter = address
+                    REGISTER['sp'] = f"{int(REGISTER['sp'], 16) - 2:03x}"
+                    RAM[REGISTER['sp']] = REGISTER['pc']
+                    REGISTER['pc'] = f'{address + 2:03x}'
             elif opcode == 'return':
-                self.program_counter = RAM[self.stack_pointer]
-                self.stack_pointer += 2
+                REGISTER['pc'] = RAM[REGISTER['sp']]
+                REGISTER['sp'] = f"{int(REGISTER['sp'], 16) + 2:03x}"
 
     def bit_not(self, n, numbits=8):
         return (1 << numbits) - 1 - n

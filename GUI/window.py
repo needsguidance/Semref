@@ -26,7 +26,7 @@ from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
 from microprocessor_simulator import MicroSim, RAM
 
 Builder.load_string('''
-<Table1>:
+<register_table>:
     id: data_list
     pos_hint:{'x': 0, 'center_y': 1.5}
     RecycleGridLayout:
@@ -39,7 +39,7 @@ Builder.load_string('''
         orientation: 'vertical'
         
         
-<Table2>:
+<memory_table>:
     id: data_list
     pos_hint:{'x': 0.8, 'center_y': 1.5}
     RecycleGridLayout:
@@ -60,6 +60,7 @@ class RunWindow(FloatLayout):
     def __init__(self, **kwargs):
         self.app = kwargs.pop('app')
         self.micro_sim = kwargs.pop('micro_sim')
+        self.step_index = 0
         self.register = kwargs.pop('registers')
         super(RunWindow, self).__init__(**kwargs)
         self.run_button = MDFillRoundFlatIconButton(text='Run',
@@ -80,15 +81,15 @@ class RunWindow(FloatLayout):
         self.add_widget(self.run_button)
         self.add_widget(self.debug_button)
         self.add_widget(self.refresh_button)
-        self.table1 = Table1()
-        self.table2 = Table2()
-        self.table1.data_list.clear()
-        self.table1.get_data()
-        self.table2.data_list.clear()
-        self.table2.get_data()
+        self.reg_table = register_table()
+        self.mem_table = memory_table()
+        self.reg_table.data_list.clear()
+        self.reg_table.get_data()
+        self.mem_table.data_list.clear()
+        self.mem_table.get_data()
         
-        self.add_widget(self.table1)
-        self.add_widget(self.table2)
+        self.add_widget(self.reg_table)
+        self.add_widget(self.mem_table)
 
     def run_micro_instructions(self, instance):
         if not self.micro_sim.is_ram_loaded:
@@ -100,33 +101,31 @@ class RunWindow(FloatLayout):
                     print(i)
         if not(self.micro_sim.is_running):
             toast("Infinite loop encountered. Program stopped")
-        self.table1.data_list.clear()
-        self.table1.get_data()
-        self.table2.data_list.clear()
-        self.table2.get_data()
+        self.reg_table.data_list.clear()
+        self.reg_table.get_data()
+        self.mem_table.data_list.clear()
+        self.mem_table.get_data()
 
     def clear(self, instance):
         self.micro_sim.micro_clear()
-        # self.table1.data_list.clear()
-        # self.table1.get_data()
-        # self.table2.data_list.clear()
-        # self.table2.get_data()
+
         toast('Micro memory cleared! Load new data')
 
     def run_micro_instructions_step(self, instance):
         if not self.micro_sim.is_ram_loaded:
             toast('Must load file first before running')
         else:
-            self.micro_sim.run_micro_instructions_step()
+            self.step_index += 1
+            self.micro_sim.run_micro_instructions_step(self.step_index)
             for i in self.micro_sim.micro_instructions:
                 if i != 'NOP':
                     print(i)
         if not(self.micro_sim.is_running):
             toast("Infinite loop encountered. Program stopped")
-        self.table1.data_list.clear()
-        self.table1.get_data()
-        self.table2.data_list.clear()
-        self.table2.get_data()
+        self.reg_table.data_list.clear()
+        self.reg_table.get_data()
+        self.mem_table.data_list.clear()
+        self.mem_table.get_data()
 
 
 class MainWindow(BoxLayout):
@@ -208,59 +207,30 @@ class NavDrawer(MDNavigationDrawer):
         self.micro_sim.read_obj_file(file)
 
 
-        # print(self.micro_sim.micro_instructions)
-
-
-class Table1(RecycleView):
+class register_table(RecycleView):
     data_list = ListProperty([])
 
     def __init__(self, **kwargs):
         # self.register = REGISTER
-        super(Table1, self).__init__(**kwargs)
+        super(register_table, self).__init__(**kwargs)
         self.viewclass = 'Label'
-        # test = [['hey', 'heyo'], ['hey2', 'heyo2']]
-        # test = []
-        # test = [[k,v for k, v in self.register.items()]]
-        # for k, v in self.register.items():
-        #     test.append([k.upper(), v])
-        # for row in test:
-        #     for x in row:
-        #         self.get_data(x)
-        # test.clear()
-
-        # self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for x in range(50)]
-
-        # self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for row in test for x in row]
 
     def get_data(self):
         for k, v in REGISTER.items():
-            self.data_list.append(k.upper())
+            self.data_list.append(k)
             self.data_list.append(v)
 
-        # self.data_list.append(data)
-        self.data = [{"text": str(x), "color": (.1, .1, .1, 1)} for x in self.data_list]
+        self.data = [{"text": str(x.upper()), "color": (.1, .1, .1, 1)} for x in self.data_list]
 
 
-class Table2(RecycleView):
+class memory_table(RecycleView):
     data_list = ListProperty([])
 
     def __init__(self, **kwargs):
         # self.register = REGISTER
-        super(Table2, self).__init__(**kwargs)
+        super(memory_table, self).__init__(**kwargs)
         self.viewclass = 'Label'
-        # test = [['hey', 'heyo'], ['hey2', 'heyo2']]
-        # test = []
-        # test = [[k,v for k, v in self.register.items()]]
-        # for k, v in self.register.items():
-        #     test.append([k.upper(), v])
-        # for row in test:
-        #     for x in row:
-        #         self.get_data(x)
-        # test.clear()
 
-        # self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for x in range(50)]
-
-        # self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for row in test for x in row]
 
     def get_data(self):
         i = 0
@@ -270,8 +240,7 @@ class Table2(RecycleView):
             i+= 2
           
 
-        # self.data_list.append(data)
-        self.data = [{"text": str(x), "color": (.1, .1, .1, 1)} for x in self.data_list]
+        self.data = [{"text": str(x.upper()), "color": (.1, .1, .1, 1)} for x in self.data_list]
 
 
 class GUI(NavigationLayout):
