@@ -123,6 +123,10 @@ class RunWindow(FloatLayout):
                     print(i)
         if not(self.micro_sim.is_running):
             toast("Infinite loop encountered. Program stopped")
+        self.table1.data_list.clear()
+        self.table1.get_data()
+        self.table2.data_list.clear()
+        self.table2.get_data()
 
 
 class MainWindow(BoxLayout):
