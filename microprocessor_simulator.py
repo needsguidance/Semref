@@ -92,6 +92,12 @@ class MicroSim:
                     REGISTER[ra] = self.rotl(REGISTER[rb], REGISTER[rc])
                 elif opcode == 'jmprind':
                     self.program_counter = REGISTER[ra.lower()]
+                elif opcode == 'grteq':
+                    self.cond = REGISTER[ra.lower()] >= REGISTER[rb.lower()]
+                elif opcode == 'eq':
+                    self.cond = REGISTER[ra.lower()] == REGISTER[rb.lower()]
+                elif opcode == 'neq':
+                    self.cond = REGISTER[ra.lower()] != REGISTER[rb.lower()]
                 else:
                     self.micro_instructions.append(f'{opcode.upper()} {ra}, {rb}, {rc}')
                 self.index += 2
