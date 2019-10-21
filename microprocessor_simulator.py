@@ -59,7 +59,9 @@ class MicroSim:
         if re.match('^[0]+$', instruction):
             self.micro_instructions.append('NOP')
         else:
+            i = 0
             opcode = get_opcode_key(instruction[0:5])
+            print(REGISTER)
             if opcode in FORMAT_1_OPCODE:
                 ra = f'R{int(instruction[5:8], 2)}'
                 rb = f'R{int(instruction[8:11], 2)}'
@@ -127,6 +129,9 @@ class MicroSim:
                 elif opcode == 'jcondaddr':
                     self.program_counter = address if self.cond else self.program_counter + 2
                 # self.micro_instructions.append(f'{opcode.upper()} {address}')
+
+
+
 
     def bit_not(self, n, numbits=8):
         return (1 << numbits) - 1 - n
