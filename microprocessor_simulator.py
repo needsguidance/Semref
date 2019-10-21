@@ -61,6 +61,29 @@ class MicroSim:
                     self.micro_instructions.append(f'{opcode.upper()} {ra}, {rb}')
                 elif opcode == 'grt':
                     self.cond = REGISTER[ra] > REGISTER[rb]
+                elif opcode == 'add':
+                    REGISTER[ra] = REGISTER[rb] + REGISTER[rc]
+                elif opcode == 'sub':
+                    REGISTER[ra] = REGISTER[rb] - REGISTER[rc]
+                elif opcode == 'and':
+                    REGISTER[ra] = REGISTER[rb] * REGISTER[rc]
+                elif opcode == 'or':
+                    REGISTER[ra] = REGISTER[rb] + REGISTER[rc]
+                elif opcode == 'xor':
+                    REGISTER[ra] = REGISTER[rb] + REGISTER[rc] - 2 * REGISTER[rb] * REGISTER[rc]
+                elif opcode == 'not':
+                    REGISTER[ra] = self.bit_not(REGISTER[rb])
+                elif opcode == 'neg':
+                    REGISTER[ra] = (-1)*REGISTER[rb]
+                elif opcode == 'shiftr':
+                    REGISTER[ra] = REGISTER[rb] >> REGISTER[rc]
+                elif opcode == 'shiftl':
+                    REGISTER[ra] = REGISTER[rb] << REGISTER[rc]
+                elif opcode == 'rotar':
+                    REGISTER[ra] = self.rotr(REGISTER[rb], REGISTER[rc])
+                elif opcode == 'rotal':
+                    REGISTER[ra] = self.rotl(REGISTER[rb], REGISTER[rc])
+
                 else:
                     self.micro_instructions.append(f'{opcode.upper()} {ra}, {rb}, {rc}')
                 self.index += 2
@@ -71,8 +94,33 @@ class MicroSim:
                     REGISTER[ra.lower()] = int(RAM[address_or_const] + RAM[address_or_const + 1], 16)
                 elif opcode == 'store':
                     RAM[self.index] = REGISTER[ra.lower()]
+                elif opcode == 'addim':
+                    REGISTER[ra] = REGISTER[ra] + int(RAM[address_or_const] + RAM[address_or_const + 1], 16)
+                elif opcode == 'subim':
+                    REGISTER[ra] = REGISTER[ra] - int(RAM[address_or_const] + RAM[address_or_const + 1], 16)
                 self.index += 2
             elif opcode in FORMAT_3_OPCODE:
                 address = instruction[5:]
                 self.index = int(address, 2)
                 # self.micro_instructions.append(f'{opcode.upper()} {address}')
+    
+    def bit_not(n, numbits=8):
+        return (1 << numbits) - 1 - n
+    
+    def rotl(num, bits):
+        bit = num & (1 << (bits-1))
+        num <<= 1
+        if(bit):
+            num |= 1
+        num &= (2<<bits-1)
+
+        return num
+
+    def rotr(num, bits):
+        num &= (2<<bits-1)
+        bit = num & 1
+        num >>= 1
+        if(bit):
+            num |= (1 << (bits-1))
+
+        return num
