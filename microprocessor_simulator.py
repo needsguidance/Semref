@@ -45,6 +45,7 @@ class MicroSim:
     def run_micro_instructions(self):
         index = -1
         while self.is_running:
+            REGISTER['ir'] = f'{RAM[self.index]}{RAM[self.index + 1]}'
             binary_instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
             self.execute_instruction(binary_instruction)
             if index == self.index:
@@ -149,7 +150,7 @@ class MicroSim:
                 else:
                     self.micro_instructions.append(f'{opcode.upper()} {ra}, {rb}, {rc}')
                 self.index += 2
-                REGISTER['pc'] = f"{int(REGISTER['pc'], 16) + 2:02x}"
+                REGISTER['pc'] = f"{int(REGISTER['pc'], 16) + 2:03x}"
             elif opcode in FORMAT_2_OPCODE:
                 ra = f'R{int(instruction[5:8], 2)}'
                 address_or_const = int(instruction[8:], 2)
@@ -165,34 +166,34 @@ class MicroSim:
                     REGISTER[ra] = f'{_subim:02x}'
                 elif opcode == 'pop':
                     REGISTER[ra.lower()] = RAM[REGISTER['sp']]
-                    REGISTER['sp'] = f"{int(REGISTER['sp'], 16) + 1:02x}"
+                    REGISTER['sp'] = f"{int(REGISTER['sp'], 16) + 1:03x}"
                 elif opcode == 'push':
-                    REGISTER['sp'] = f"{int(REGISTER['sp'], 16) - 1:02x}"
+                    REGISTER['sp'] = f"{int(REGISTER['sp'], 16) - 1:03x}"
                     RAM[REGISTER['sp']] = REGISTER[ra.lower()]
                 elif opcode == 'loop':
                     reg_ra = int(REGISTER[ra.lower()], 16) - 1
                     REGISTER[ra.lower()] = f'{reg_ra:02x}'
                     if reg_ra != 0:
-                        REGISTER['sp'] = f'{address_or_const:02x}'
+                        REGISTER['sp'] = f'{address_or_const:03x}'
                 self.index += 2
-                REGISTER['pc'] = f"{int(REGISTER['pc'], 16) + 2:02x}"
+                REGISTER['pc'] = f"{int(REGISTER['pc'], 16) + 2:03x}"
             elif opcode in FORMAT_3_OPCODE:
                 ra = f'R{int(instruction[5:8], 2)}'
                 address = int(instruction[5:], 2)
                 if opcode == 'jmpaddr':
                     self.index = address
-                    REGISTER['pc'] = f'{address + 2:02x}'
+                    REGISTER['pc'] = f'{address + 2:03x}'
                 elif opcode == 'jcondrin':
-                    REGISTER['pc'] = REGISTER[ra.lower()] if self.cond else f"{int(REGISTER['pc'], 16) + 2:02x}"
+                    REGISTER['pc'] = REGISTER[ra.lower()] if self.cond else f"{int(REGISTER['pc'], 16) + 2:03x}"
                 elif opcode == 'jcondaddr':
-                    REGISTER['pc'] = f'{address:02x}' if self.cond else f"{int(REGISTER['pc'], 16) + 2:02x}"
+                    REGISTER['pc'] = f'{address:03x}' if self.cond else f"{int(REGISTER['pc'], 16) + 2:03x}"
                 elif opcode == 'call':
-                    REGISTER['sp'] = f"{int(REGISTER['sp'], 16) - 2:02x}"
+                    REGISTER['sp'] = f"{int(REGISTER['sp'], 16) - 2:03x}"
                     RAM[REGISTER['sp']] = REGISTER['pc']
-                    REGISTER['pc'] = f'{address + 2:02x}'
+                    REGISTER['pc'] = f'{address + 2:03x}'
             elif opcode == 'return':
                 REGISTER['pc'] = RAM[REGISTER['sp']]
-                REGISTER['sp'] = f"{int(REGISTER['sp'], 16) + 2:02x}"
+                REGISTER['sp'] = f"{int(REGISTER['sp'], 16) + 2:03x}"
 
     def bit_not(self, n, numbits=8):
         return (1 << numbits) - 1 - n

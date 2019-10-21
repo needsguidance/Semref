@@ -82,9 +82,8 @@ class RunWindow(FloatLayout):
         self.add_widget(self.debug_button)
         self.add_widget(self.refresh_button)
         self.register_table = register_table()
-        registers = [[k, v] for k, v in self.register]
         self.register_table.data_list.clear()
-        self.register_table.get_data(registers)
+        self.register_table.get_data()
 
         table2 = Table2()
         self.add_widget(self.register_table)
@@ -101,9 +100,8 @@ class RunWindow(FloatLayout):
                 for i in self.micro_sim.micro_instructions:
                     if i != 'NOP':
                         print(i)
-        registers = [[k, v] for k, v in self.register]
         self.register_table.data_list.clear()
-        self.register_table.get_data(registers)
+        self.register_table.get_data()
 
     def clear(self, instance):
         self.micro_sim.micro_clear()
@@ -121,9 +119,8 @@ class RunWindow(FloatLayout):
                 for i in self.micro_sim.micro_instructions:
                     if i != 'NOP':
                         print(i)
-        registers = [[k, v] for k, v in self.register]
         self.register_table.data_list.clear()
-        self.register_table.get_data(registers)
+        self.register_table.get_data()
 
 
 class MainWindow(BoxLayout):
@@ -213,12 +210,12 @@ class register_table(RecycleView):
         super(register_table, self).__init__(**kwargs)
         self.viewclass = 'Label'
 
-    def get_data(self, data):
+    def get_data(self):
         for k, v in REGISTER.items():
-            self.data_list.append(k.upper())
-            self.data_list.append(v.upper())
+            self.data_list.append(k)
+            self.data_list.append(v)
 
-        self.data = [{"text": str(x), "color": (.1, .1, .1, 1)} for x in self.data_list]
+        self.data = [{"text": str(x.upper()), "color": (.1, .1, .1, 1)} for x in self.data_list]
 
 
 class Table2(RecycleView):
