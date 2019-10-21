@@ -101,6 +101,11 @@ class MicroSim:
                     self.cond = int(REGISTER[ra.lower()], 16) == int(REGISTER[rb.lower()], 16)
                 elif opcode == 'neq':
                     self.cond = int(REGISTER[ra.lower()], 16) != int(REGISTER[rb.lower()], 16)
+                elif opcode == 'nop':
+                    # Do nothing
+                    pass
+                else:
+                    self.micro_instructions.append(f'{opcode.upper()} {ra}, {rb}, {rc}')
                 self.index += 2
             elif opcode in FORMAT_2_OPCODE:
                 ra = f'R{int(instruction[5:8], 2)}'
@@ -136,6 +141,13 @@ class MicroSim:
                     self.program_counter = int(REGISTER[ra.lower()], 16) if self.cond else self.program_counter + 2
                 elif opcode == 'jcondaddr':
                     self.program_counter = address if self.cond else self.program_counter + 2
+                elif opcode == 'call':
+                    self.stack_pointer -= 2
+                    RAM[self.stack_pointer] = f"{self.program_counter:08x}"
+                    self.program_counter = address
+            elif opcode == 'return':
+                self.program_counter = RAM[self.stack_pointer]
+                self.stack_pointer += 2
 
     def bit_not(self, n, numbits=8):
         return (1 << numbits) - 1 - n
@@ -143,7 +155,7 @@ class MicroSim:
     def rotl(self, num, bits):
         bit = num & (1 << (bits - 1))
         num <<= 1
-        if (bit):
+        if bit:
             num |= 1
         num &= (2 << bits - 1)
 
@@ -153,7 +165,7 @@ class MicroSim:
         num &= (2 << bits - 1)
         bit = num & 1
         num >>= 1
-        if (bit):
+        if bit:
             num |= (1 << (bits - 1))
 
         return num
