@@ -81,7 +81,7 @@ class MicroSim:
                 elif opcode == 'not':
                     REGISTER[ra] = self.bit_not(REGISTER[rb])
                 elif opcode == 'neg':
-                    REGISTER[ra] = (-1)*REGISTER[rb]
+                    REGISTER[ra] = (-1) * REGISTER[rb]
                 elif opcode == 'shiftr':
                     REGISTER[ra] = REGISTER[rb] >> REGISTER[rc]
                 elif opcode == 'shiftl':
@@ -98,6 +98,9 @@ class MicroSim:
                     self.cond = REGISTER[ra.lower()] == REGISTER[rb.lower()]
                 elif opcode == 'neq':
                     self.cond = REGISTER[ra.lower()] != REGISTER[rb.lower()]
+                elif opcode == 'nop':
+                    # Do nothing
+                    pass
                 else:
                     self.micro_instructions.append(f'{opcode.upper()} {ra}, {rb}, {rc}')
                 self.index += 2
@@ -132,25 +135,31 @@ class MicroSim:
                     self.program_counter = REGISTER[ra.lower()] if self.cond else self.program_counter + 2
                 elif opcode == 'jcondaddr':
                     self.program_counter = address if self.cond else self.program_counter + 2
-                # self.micro_instructions.append(f'{opcode.upper()} {address}')
+                elif opcode == 'call':
+                    self.stack_pointer -= 2
+                    RAM[self.stack_pointer] = f"{self.program_counter:08x}"
+                    self.program_counter = address
+            elif opcode == 'return':
+                self.program_counter = RAM[self.stack_pointer]
+                self.stack_pointer += 2
 
     def bit_not(self, n, numbits=8):
         return (1 << numbits) - 1 - n
 
     def rotl(self, num, bits):
-        bit = num & (1 << (bits-1))
+        bit = num & (1 << (bits - 1))
         num <<= 1
-        if(bit):
+        if (bit):
             num |= 1
-        num &= (2<<bits-1)
+        num &= (2 << bits - 1)
 
         return num
 
     def rotr(self, num, bits):
-        num &= (2<<bits-1)
+        num &= (2 << bits - 1)
         bit = num & 1
         num >>= 1
-        if(bit):
-            num |= (1 << (bits-1))
+        if (bit):
+            num |= (1 << (bits - 1))
 
         return num
