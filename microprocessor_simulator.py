@@ -26,8 +26,6 @@ class MicroSim:
         self.index = 0
         self.is_running = True
         self.cond = False
-        self.stack_pointer = 0
-        # self.program_counter = 0
         self.false_index = -1
 
     def read_obj_file(self, filename):
@@ -92,7 +90,7 @@ class MicroSim:
         self.index = 0
         self.is_running = True
         self.cond = False
-        self.stack_pointer = 0
+        # TODO: Validate if need sp here.
         self.false_index = -1
 
     def execute_instruction(self, instruction):
@@ -166,16 +164,16 @@ class MicroSim:
                     _subim = int(REGISTER[ra], 16) - int(RAM[address_or_const] + RAM[address_or_const + 1], 16)
                     REGISTER[ra] = f'{_subim:02x}'
                 elif opcode == 'pop':
-                    REGISTER[ra.lower()] = RAM[self.stack_pointer]
-                    self.stack_pointer += 1
+                    REGISTER[ra.lower()] = RAM[REGISTER['sp']]
+                    REGISTER['sp'] = f"{int(REGISTER['sp'], 16) + 1:02x}"
                 elif opcode == 'push':
-                    self.stack_pointer -= 1
-                    RAM[self.stack_pointer] = REGISTER[ra.lower()]
+                    REGISTER['sp'] = f"{int(REGISTER['sp'], 16) - 1:02x}"
+                    RAM[REGISTER['sp']] = REGISTER[ra.lower()]
                 elif opcode == 'loop':
                     reg_ra = int(REGISTER[ra.lower()], 16) - 1
                     REGISTER[ra.lower()] = f'{reg_ra:02x}'
                     if reg_ra != 0:
-                        self.stack_pointer = address_or_const
+                        REGISTER['sp'] = f'{address_or_const}'
                 self.index += 2
                 REGISTER['pc'] = f"{int(REGISTER['pc'], 16) + 2:02x}"
             elif opcode in FORMAT_3_OPCODE:
@@ -189,12 +187,12 @@ class MicroSim:
                 elif opcode == 'jcondaddr':
                     REGISTER['pc'] = f'{address:02x}' if self.cond else f"{int(REGISTER['pc'], 16) + 2:02x}"
                 elif opcode == 'call':
-                    self.stack_pointer -= 2
-                    RAM[self.stack_pointer] = REGISTER['pc']
+                    REGISTER['sp'] = f"{int(REGISTER['sp'], 16) - 2:02x}"
+                    RAM[REGISTER['sp']] = REGISTER['pc']
                     REGISTER['pc'] = f'{address + 2:02x}'
             elif opcode == 'return':
-                REGISTER['pc'] = RAM[self.stack_pointer]
-                self.stack_pointer += 2
+                REGISTER['pc'] = RAM[REGISTER['sp']]
+                REGISTER['sp'] = f"{int(REGISTER['sp'], 16) + 2:02x}"
 
     def bit_not(self, n, numbits=8):
         return (1 << numbits) - 1 - n

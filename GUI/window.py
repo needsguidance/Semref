@@ -26,7 +26,7 @@ from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
 from microprocessor_simulator import MicroSim
 
 Builder.load_string('''
-<Table1>:
+<register_table>:
     id: data_list
     pos_hint:{'x': 0, 'center_y': 1.5}
     RecycleGridLayout:
@@ -81,13 +81,13 @@ class RunWindow(FloatLayout):
         self.add_widget(self.run_button)
         self.add_widget(self.debug_button)
         self.add_widget(self.refresh_button)
-        self.table1 = Table1()
+        self.register_table = register_table()
         registers = [[k, v] for k, v in self.register]
-        self.table1.data_list.clear()
-        self.table1.get_data(registers)
+        self.register_table.data_list.clear()
+        self.register_table.get_data(registers)
 
         table2 = Table2()
-        self.add_widget(self.table1)
+        self.add_widget(self.register_table)
         self.add_widget(table2)
 
     def run_micro_instructions(self, instance):
@@ -102,8 +102,8 @@ class RunWindow(FloatLayout):
                     if i != 'NOP':
                         print(i)
         registers = [[k, v] for k, v in self.register]
-        self.table1.data_list.clear()
-        self.table1.get_data(registers)
+        self.register_table.data_list.clear()
+        self.register_table.get_data(registers)
 
     def clear(self, instance):
         self.micro_sim.micro_clear()
@@ -122,8 +122,8 @@ class RunWindow(FloatLayout):
                     if i != 'NOP':
                         print(i)
         registers = [[k, v] for k, v in self.register]
-        self.table1.data_list.clear()
-        self.table1.get_data(registers)
+        self.register_table.data_list.clear()
+        self.register_table.get_data(registers)
 
 
 class MainWindow(BoxLayout):
@@ -205,26 +205,13 @@ class NavDrawer(MDNavigationDrawer):
         self.micro_sim.read_obj_file(file)
 
 
-class Table1(RecycleView):
+class register_table(RecycleView):
     data_list = ListProperty([])
 
     def __init__(self, **kwargs):
         # self.register = REGISTER
-        super(Table1, self).__init__(**kwargs)
+        super(register_table, self).__init__(**kwargs)
         self.viewclass = 'Label'
-        # test = [['hey', 'heyo'], ['hey2', 'heyo2']]
-        # test = []
-        # test = [[k,v for k, v in self.register.items()]]
-        # for k, v in self.register.items():
-        #     test.append([k.upper(), v])
-        # for row in test:
-        #     for x in row:
-        #         self.get_data(x)
-        # test.clear()
-
-        # self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for x in range(50)]
-
-        # self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for row in test for x in row]
 
     def get_data(self, data):
         for k, v in REGISTER.items():
