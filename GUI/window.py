@@ -73,7 +73,7 @@ class RunWindow(FloatLayout):
         self.debug_button = MDFillRoundFlatIconButton(text='Debug',
                                                       icon='android-debug-bridge',
                                                       size_hint=(None, None),
-                                                      pos_hint={'center_x': .85, 'center_y': 2.12})
+                                                      pos_hint={'center_x': .9, 'center_y': 2.12})
         self.refresh_button = MDFillRoundFlatIconButton(text='Refresh',
                                                         icon='refresh',
                                                         size_hint=(None, None),
