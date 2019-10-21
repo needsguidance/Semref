@@ -76,10 +76,7 @@ class MicroSim:
         self.program_counter = 0
         self.false_index = -1
 
-
-
-
-    def decode_instruction(self, instruction):
+    def execute_instruction(self, instruction):
         if re.match('^[0]+$', instruction):
             self.micro_instructions.append('NOP')
         else:

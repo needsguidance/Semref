@@ -1,26 +1,20 @@
 from pathlib import Path
+
 from kivy import Config
+
+from constants import REGISTER
 
 Config.set('graphics', 'width', '1024')
 Config.set('graphics', 'height', '650')
 Config.set('graphics', 'resizable', False)
-from kivymd.uix.button import MDFlatButton, MDRectangleFlatIconButton, MDFillRoundFlatIconButton
+from kivymd.uix.button import MDFillRoundFlatIconButton
 from kivy.app import App
-from kivy.core.window import Window
 from kivy.lang import Builder
-from kivy.properties import (BooleanProperty, ListProperty, ObjectProperty,
-                             StringProperty)
-from kivy.uix.behaviors import FocusBehavior
+from kivy.properties import (ListProperty)
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.button import Button
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.modalview import ModalView
-from kivy.uix.popup import Popup
-from kivy.uix.recycleboxlayout import RecycleBoxLayout
 from kivy.uix.recycleview import RecycleView
-from kivy.uix.recyclegridlayout import RecycleGridLayout
-from kivy.uix.recycleview.layout import LayoutSelectionBehavior
-from kivy.uix.recycleview.views import RecycleDataViewBehavior
 from kivymd.theming import ThemeManager
 from kivymd.toast import toast
 from kivymd.uix.filemanager import MDFileManager
@@ -66,6 +60,7 @@ class RunWindow(FloatLayout):
     def __init__(self, **kwargs):
         self.app = kwargs.pop('app')
         self.micro_sim = kwargs.pop('micro_sim')
+        self.register = kwargs.pop('registers')
         super(RunWindow, self).__init__(**kwargs)
         self.run_button = MDFillRoundFlatIconButton(text='Run',
                                                     icon='run',
@@ -85,9 +80,9 @@ class RunWindow(FloatLayout):
         self.add_widget(self.run_button)
         self.add_widget(self.debug_button)
         self.add_widget(self.refresh_button)
-        table1 = Table1()
+        self.table1 = Table1()
         table2 = Table2()
-        self.add_widget(table1)
+        self.add_widget(self.table1)
         self.add_widget(table2)
 
     def run_micro_instructions(self, instance):
@@ -100,6 +95,9 @@ class RunWindow(FloatLayout):
                     print(i)
         if self.micro_sim.is_running == False:
             toast("Infinite loop encountered. Program stopped")
+        registers = [[k, v] for k, v in REGISTER]
+        self.table1.data_list.clear()
+        self.table1.get_data(registers)
 
     def clear(self, instance):
         self.micro_sim.micro_clear()
@@ -115,13 +113,15 @@ class RunWindow(FloatLayout):
                     print(i)
         if self.micro_sim.is_running == False:
             toast("Infinite loop encountered. Program stopped")
-        
+
+
 class MainWindow(BoxLayout):
 
     def __init__(self, **kwargs):
         self.nav_drawer = kwargs.pop('nav_drawer')
         self.app = kwargs.pop('app')
         self.micro_sim = kwargs.pop('micro_sim')
+        self.register = kwargs.pop('registers')
         super().__init__(**kwargs)
         self.ids['left_actions'] = BoxLayout()
         self.orientation = 'vertical'
@@ -134,7 +134,7 @@ class MainWindow(BoxLayout):
                                   left_action_items=[['dots-vertical', lambda x: self.nav_drawer.toggle_nav_drawer()]]))
 
         self.add_widget(BoxLayout())  # Bumps up navigation bar to the top
-        self.add_widget(RunWindow(app=self.app, micro_sim=self.micro_sim))
+        self.add_widget(RunWindow(app=self.app, micro_sim=self.micro_sim, registers=self.register))
 
 
 class NavDrawer(MDNavigationDrawer):
@@ -192,64 +192,67 @@ class NavDrawer(MDNavigationDrawer):
 
     def run_micro_sim(self, file):
         self.micro_sim.read_obj_file(file)
-            
+
         table = Table1()
         i = 0
         for m in range(50):
             self.data.append(f'{RAM[i]} {RAM[i + 1]}')
             i += 2
-        
+
         table.get_data(self.data)
-        
+
         # print(self.micro_sim.micro_instructions)
 
 
 class Table1(RecycleView):
     data_list = ListProperty([])
 
-
     def __init__(self, **kwargs):
+        self.register = REGISTER
         super(Table1, self).__init__(**kwargs)
         self.viewclass = 'Label'
-        test = [['hey','heyo'],['hey2','heyo2']]
+        # test = [['hey', 'heyo'], ['hey2', 'heyo2']]
+        test = []
+        # test = [[k,v for k, v in self.register.items()]]
+        for k, v in self.register.items():
+            test.append([k.upper(), v])
         for row in test:
             for x in row:
                 self.get_data(x)
+        test.clear()
 
         # self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for x in range(50)]
 
         # self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for row in test for x in row]
-        
 
     def get_data(self, data):
-        self.data_list.append(data)
-        self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for x in self.data_list]
-        
-        
-        
-        
+        for k, v in REGISTER.items():
+            self.data_list.append(k.upper())
+            self.data_list.append(v)
+
+        # self.data_list.append(data)
+        self.data = [{"text": str(x), "color": (.1, .1, .1, 1)} for x in self.data_list]
+
+
 class Table2(RecycleView):
     data_list = ListProperty([])
 
     def __init__(self, **kwargs):
-        super(Table2, self).__init__(**kwargs)    
+        super(Table2, self).__init__(**kwargs)
         self.viewclass = 'Label'
-        test = [['hey3','heyo3'],['hey4','heyo4']]
+        test = [['hey3', 'heyo3'], ['hey4', 'heyo4']]
         for row in test:
             for x in row:
                 self.get_data(x)
         # self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for x in range(50)]
 
         # self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for row in test for x in row]
-        
 
     def get_data(self, data):
-        
+
         self.data_list.append(data)
-        self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for x in self.data_list]
-        
-        
-       
+        self.data = [{"text": str(x), "color": (.1, .1, .1, 1)} for x in self.data_list]
+
 
 class GUI(NavigationLayout):
 
@@ -258,7 +261,7 @@ class GUI(NavigationLayout):
         self.app = App.get_running_app()
         self.micro_sim = MicroSim()
         self.add_widget(NavDrawer(micro_sim=self.micro_sim))
-        self.add_widget(MainWindow(nav_drawer=self, app=self.app, micro_sim=self.micro_sim))
+        self.add_widget(MainWindow(nav_drawer=self, app=self.app, micro_sim=self.micro_sim, registers=REGISTER))
 
 
 class TestApp(App):
