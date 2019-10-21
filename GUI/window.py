@@ -2,7 +2,7 @@ from pathlib import Path
 from kivy import Config
 
 Config.set('graphics', 'resizable', False)
-from kivymd.uix.button import MDFlatButton
+from kivymd.uix.button import MDFlatButton, MDRectangleFlatIconButton, MDFillRoundFlatIconButton
 from kivy.app import App
 from kivy.core.window import Window
 from kivy.lang import Builder
@@ -65,17 +65,20 @@ class RunWindow(FloatLayout):
         self.app = kwargs.pop('app')
         self.micro_sim = kwargs.pop('micro_sim')
         super(RunWindow, self).__init__(**kwargs)
-        self.run_button = MDFlatButton(text='Run',
-                                       size_hint=(None, None),
-                                       pos_hint={'center_x': .7, 'center_y': 2.12},
-                                       on_release=self.run_micro_instructions)
-        self.debug_button = MDFlatButton(text='Debug',
-                                         size_hint=(None, None),
-                                         pos_hint={'center_x': .85, 'center_y': 2.12})
-        self.refresh_button = MDFlatButton(text='Refresh',
-                                       size_hint=(None, None),
-                                       pos_hint={'center_x': .5, 'center_y': 2.12},
-                                       on_release=self.refresh)
+        self.run_button = MDFillRoundFlatIconButton(text='Run',
+                                                    icon='run',
+                                                    size_hint=(None, None),
+                                                    pos_hint={'center_x': .7, 'center_y': 2.12},
+                                                    on_release=self.run_micro_instructions)
+        self.debug_button = MDFillRoundFlatIconButton(text='Debug',
+                                                      icon='android-debug-bridge',
+                                                      size_hint=(None, None),
+                                                      pos_hint={'center_x': .85, 'center_y': 2.12})
+        self.refresh_button = MDFillRoundFlatIconButton(text='Refresh',
+                                                        icon='refresh',
+                                                        size_hint=(None, None),
+                                                        pos_hint={'center_x': .5, 'center_y': 2.12},
+                                                        on_release=self.refresh)
         self.add_widget(self.run_button)
         self.add_widget(self.debug_button)
         self.add_widget(self.refresh_button)
@@ -90,6 +93,7 @@ class RunWindow(FloatLayout):
         else:
             self.micro_sim.run_micro_instructions()
         # toast(self.micro_sim.micro_instructions.__str__())
+
     def refresh(self, instance):
         self._rebuild()
 
@@ -110,12 +114,9 @@ class MainWindow(BoxLayout):
                                   elevation=10,
                                   ids=self.ids,
                                   left_action_items=[['dots-vertical', lambda x: self.nav_drawer.toggle_nav_drawer()]]))
-       
 
         self.add_widget(BoxLayout())  # Bumps up navigation bar to the top
         self.add_widget(RunWindow(app=self.app, micro_sim=self.micro_sim))
-        
-
 
 
 class NavDrawer(MDNavigationDrawer):
@@ -128,7 +129,7 @@ class NavDrawer(MDNavigationDrawer):
         self.manager = None
 
         self.add_widget(NavigationDrawerSubheader(text='Menu:'))
-        self.add_widget(NavigationDrawerIconButton(icon='checkbox-blank-circle',
+        self.add_widget(NavigationDrawerIconButton(icon='paperclip',
                                                    text='Load File',
                                                    on_release=self.file_manager_open))
 
@@ -173,48 +174,47 @@ class NavDrawer(MDNavigationDrawer):
     def run_micro_sim(self, file):
         self.micro_sim.read_obj_file(file)
         table = Table1()
-        data =[]
+        data = []
         i = 0
         for m in range(50):
             data.append(f'{RAM[i]} {RAM[i + 1]}')
             i += 2
-        
+
         table.get_data(data)
-        
+
         # print(self.micro_sim.micro_instructions)
+
 
 class Table1(RecycleView):
 
     def __init__(self, **kwargs):
-        super(Table1, self).__init__(**kwargs)        
+        super(Table1, self).__init__(**kwargs)
         self.viewclass = 'Label'
-        test = [['hey','heyo'],['hey2','heyo2']]
+        test = [['hey', 'heyo'], ['hey2', 'heyo2']]
         # self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for x in range(50)]
 
-        self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for row in test for x in row]
+        self.data = [{"text": str(x), "color": (.1, .1, .1, 1)} for row in test for x in row]
         print(self.data)
 
     def get_data(self, data):
-        self.data = [{"text": x,"color": (.1,.1,.1,1)} for x in data]
+        self.data = [{"text": x, "color": (.1, .1, .1, 1)} for x in data]
         print(self.data)
-        
+
+
 class Table2(RecycleView):
 
     def __init__(self, **kwargs):
-        super(Table2, self).__init__(**kwargs)        
+        super(Table2, self).__init__(**kwargs)
         self.viewclass = 'Label'
-        test = [['hey3','heyo3'],['hey4','heyo4']]
+        test = [['hey3', 'heyo3'], ['hey4', 'heyo4']]
         # self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for x in range(50)]
 
-        self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for row in test for x in row]
+        self.data = [{"text": str(x), "color": (.1, .1, .1, 1)} for row in test for x in row]
         print(self.data)
 
     def get_data(self, data):
-        self.data = [{"text": x,"color": (.1,.1,.1,1)} for x in data]
+        self.data = [{"text": x, "color": (.1, .1, .1, 1)} for x in data]
         print(self.data)
-       
-        
-
 
 
 class GUI(NavigationLayout):
