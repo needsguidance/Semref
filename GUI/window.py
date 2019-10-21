@@ -41,6 +41,10 @@ class RunWindow(FloatLayout):
             toast('Must load file first before running')
         else:
             self.micro_sim.run_micro_instructions()
+            for i in self.micro_sim.micro_instructions:
+                if i != 'NOP':
+                    print(i)
+            # print(self.micro_sim.micro_instructions)
         # toast(self.micro_sim.micro_instructions.__str__())
 
 

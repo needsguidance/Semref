@@ -1,6 +1,6 @@
 import re
 
-from constants import OPCODE
+from constants import OPCODE, FORMAT_1_OPCODE, FORMAT_2_OPCODE, FORMAT_3_OPCODE
 
 RAM = ['00' for i in range(4096)]
 
@@ -23,6 +23,8 @@ class MicroSim:
         self.is_ram_loaded = False
         self.micro_instructions = []
         self.decoded_micro_instructions = []
+        self.index = 0
+        self.is_running = True
 
     def read_obj_file(self, filename):
         file = open(filename, 'r')
@@ -40,16 +42,29 @@ class MicroSim:
         file.close()
 
     def run_micro_instructions(self):
-        index = 0
-        for i in range(int(len(RAM) / 2)):
-            binary_instruction = hex_to_binary(f'{RAM[index]}{RAM[index + 1]}')
+        while self.is_running:
+            binary_instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
             self.decode_instruction(binary_instruction)
-            index += 2
             # print(instruction)
 
     def decode_instruction(self, instruction):
         if re.match('^[0]+$', instruction):
-            print('nop')
+            self.micro_instructions.append('NOP')
         else:
             opcode = get_opcode_key(instruction[0:5])
-            print(opcode)
+            if opcode in FORMAT_1_OPCODE:
+                ra = int(instruction[5:8], 2)
+                rb = int(instruction[8:11], 2)
+                rc = int(instruction[11:14], 2)
+                if opcode == 'loadrind' or opcode == 'storerind' or opcode == 'grt':
+                    self.micro_instructions.append(f'{opcode.upper()} R{ra}, R{rb}')
+                else:
+                    self.micro_instructions.append(f'{opcode.upper()} R{ra}, R{rb}, R{rc}')
+            elif opcode in FORMAT_2_OPCODE:
+                ra = int(instruction[5:8], 2)
+                address_or_const = instruction[8:]
+                self.micro_instructions.append(f'{opcode.upper()} R{ra}, {address_or_const}')
+            elif opcode in FORMAT_3_OPCODE:
+                address = instruction[5:]
+
+                self.micro_instructions.append(f'{opcode.upper()} {address}')

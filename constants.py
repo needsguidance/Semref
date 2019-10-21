@@ -43,3 +43,44 @@ REGISTER = {
     'r6': f'{6:03b}',
     'r7': f'{7:03b}'
 }
+
+FORMAT_1_OPCODE = [
+    'loadrind',
+    'storerind',
+    'add',
+    'sub',
+    'and',
+    'or',
+    'xor',
+    'not',
+    'neg',
+    'shiftr',
+    'shiftl',
+    'rotar',
+    'rotal',
+    'jmprind',
+    'grt',
+    'grteq',
+    'eq',
+    'neq',
+    'nop',
+
+]
+
+FORMAT_2_OPCODE = [
+    'load',
+    'loadim',
+    'pop',
+    'store',
+    'push',
+    'addim',
+    'subim',
+    'loop'
+]
+
+FORMAT_3_OPCODE = [
+    'jmpaddr',
+    'jcondrin',
+    'jcondaddr',
+    'call'
+]
