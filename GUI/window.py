@@ -101,7 +101,7 @@ class RunWindow(FloatLayout):
                 for i in self.micro_sim.micro_instructions:
                     if i != 'NOP':
                         print(i)
-        registers = [[k, v.upper()] for k, v in self.register]
+        registers = [[k, v] for k, v in self.register]
         self.table1.data_list.clear()
         self.table1.get_data(registers)
 
@@ -229,9 +229,8 @@ class Table1(RecycleView):
     def get_data(self, data):
         for k, v in REGISTER.items():
             self.data_list.append(k.upper())
-            self.data_list.append(v)
+            self.data_list.append(v.upper())
 
-        # self.data_list.append(data)
         self.data = [{"text": str(x), "color": (.1, .1, .1, 1)} for x in self.data_list]
 
 
