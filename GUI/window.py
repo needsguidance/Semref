@@ -96,7 +96,7 @@ class RunWindow(FloatLayout):
             for i in self.micro_sim.micro_instructions:
                 if i != 'NOP':
                     print(i)
-        if self.micro_sim.is_running == False:
+        if not self.micro_sim.is_running:
             toast("Infinite loop encountered. Program stopped")
         registers = [[k, v] for k, v in REGISTER]
         self.table1.data_list.clear()
@@ -114,8 +114,11 @@ class RunWindow(FloatLayout):
             for i in self.micro_sim.micro_instructions:
                 if i != 'NOP':
                     print(i)
-        if self.micro_sim.is_running == False:
+        if not self.micro_sim.is_running:
             toast("Infinite loop encountered. Program stopped")
+        registers = [[k, v] for k, v in REGISTER]
+        self.table1.data_list.clear()
+        self.table1.get_data(registers)
 
 
 class MainWindow(BoxLayout):
