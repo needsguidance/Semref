@@ -111,6 +111,10 @@ class RunWindow(FloatLayout):
 
     def clear(self, instance):
         self.micro_sim.micro_clear()
+        self.reg_table.data_list.clear()
+        self.reg_table.get_data()
+        self.mem_table.data_list.clear()
+        self.mem_table.get_data()
 
         toast('Micro memory cleared! Load new data')
 

@@ -93,6 +93,8 @@ class MicroSim:
         self.cond = False
         REGISTER['sp'] = f'{0:02x}'
         self.prev_index = -1
+        for m in range(4096):
+            RAM[m] = '00'
 
     def execute_instruction(self, instruction):
         if re.match('^[0]+$', instruction):
