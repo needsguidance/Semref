@@ -90,10 +90,15 @@ class MicroSim:
         self.index = 0
         self.is_running = True
         self.cond = False
-        REGISTER['pc'] = f'{0:03x}'
-        REGISTER['sp'] = f'{0:03x}'
-        REGISTER['ir'] = f'{0:04x}'
         self.prev_index = -1
+
+        for k, v in REGISTER.items():
+            if k == 'pc' or k == 'sp':
+                REGISTER[k] = f'{0:03x}'
+            elif k == 'ir':
+                REGISTER[k] = f'{0:04x}'
+            else:
+                REGISTER[k] = f'{0:02x}'
 
     def execute_instruction(self, instruction):
         if re.match('^[0]+$', instruction):

@@ -26,7 +26,7 @@ from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
 from microprocessor_simulator import MicroSim
 
 Builder.load_string('''
-<register_table>:
+<RegisterTable>:
     id: data_list
     pos_hint:{'x': 0, 'center_y': 1.5}
     RecycleGridLayout:
@@ -80,7 +80,7 @@ class RunWindow(FloatLayout):
         self.add_widget(self.run_button)
         self.add_widget(self.debug_button)
         self.add_widget(self.refresh_button)
-        self.register_table = register_table()
+        self.register_table = RegisterTable()
         self.register_table.data_list.clear()
         self.register_table.get_data()
 
@@ -200,12 +200,11 @@ class NavDrawer(MDNavigationDrawer):
         self.micro_sim.read_obj_file(file)
 
 
-class register_table(RecycleView):
+class RegisterTable(RecycleView):
     data_list = ListProperty([])
 
     def __init__(self, **kwargs):
-        # self.register = REGISTER
-        super(register_table, self).__init__(**kwargs)
+        super(RegisterTable, self).__init__(**kwargs)
         self.viewclass = 'Label'
 
     def get_data(self):
