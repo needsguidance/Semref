@@ -101,10 +101,8 @@ class RunWindow(FloatLayout):
         self.mem_table.data_list.clear()
         self.mem_table.get_data()
         self.inst_table.data_list.clear()
-        self.inst_table.get_data()
-        self.reg_table.data_list.clear()
-        self.mem_table.data_list.clear()
-        self.inst_table.data_list.clear()
+        self.inst_table.get_data(self.micro_sim.index)
+
         self.add_widget(self.reg_table)
         self.add_widget(self.mem_table)
         self.add_widget(self.inst_table)
@@ -127,7 +125,7 @@ class RunWindow(FloatLayout):
         self.mem_table.data_list.clear()
         self.mem_table.get_data()
         self.inst_table.data_list.clear()
-        self.inst_table.get_data()
+        self.inst_table.get_data(self.micro_sim.index)
 
     def clear(self, instance):
         self.micro_sim.micro_clear()
@@ -136,7 +134,7 @@ class RunWindow(FloatLayout):
         self.mem_table.data_list.clear()
         self.mem_table.get_data()
         self.inst_table.data_list.clear()
-        self.inst_table.get_data()
+        self.inst_table.get_data(self.micro_sim.index)
 
         toast('Micro memory cleared! Load new data')
 
@@ -159,7 +157,7 @@ class RunWindow(FloatLayout):
         self.mem_table.data_list.clear()
         self.mem_table.get_data()
         self.inst_table.data_list.clear()
-        self.inst_table.get_data()
+        self.inst_table.get_data(self.micro_sim.index)
 
 
 class MainWindow(BoxLayout):
@@ -288,18 +286,15 @@ class instruction_table(RecycleView):
         self.viewclass = 'Label'
 
 
-    def get_data(self):
+    def get_data(self, address):
         self.data_list.append('ADDRESS')
         self.data_list.append('CONTENT')
         self.data_list.append('DISASSEMBLED INSTRUCTION')
-        i = 0
-        for m in range(50):
-            self.data_list.append('ADDRESS')
-            self.data_list.append('CONTENT')
-            self.data_list.append('DISASSEMBLED INSTRUCTION')
-
-            
-            i+= 2
+    
+        self.data_list.append((f'{address:02x}').upper())
+        self.data_list.append('CONTENT')
+        self.data_list.append('DISASSEMBLED INSTRUCTION')
+   
           
 
         self.data = [{"text": str(x.upper()), "color": (.1, .1, .1, 1)} for x in self.data_list]
