@@ -58,7 +58,7 @@ class MicroSim:
             f = open("output/debugger.txt", "w")
         else:
             f = open("output/debugger.txt", "a")
-
+        REGISTER['ir'] = f'{RAM[self.index]}{RAM[self.index + 1]}'
         binary_instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
         self.execute_instruction(binary_instruction)
         if self.prev_index == self.index:
@@ -91,6 +91,8 @@ class MicroSim:
         self.is_running = True
         self.cond = False
         self.prev_index = -1
+        for m in range(4096):
+            RAM[m] = '00'
 
         for k, v in REGISTER.items():
             if k == 'pc' or k == 'sp':

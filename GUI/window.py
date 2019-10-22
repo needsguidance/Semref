@@ -23,7 +23,7 @@ from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
                                          NavigationDrawerSubheader,
                                          NavigationLayout)
 
-from microprocessor_simulator import MicroSim
+from microprocessor_simulator import MicroSim, RAM
 
 Builder.load_string('''
 <RegisterTable>:
@@ -39,7 +39,7 @@ Builder.load_string('''
         orientation: 'vertical'
         
         
-<Table2>:
+<MemoryTable>:
     id: data_list
     pos_hint:{'x': 0.8, 'center_y': 1.5}
     RecycleGridLayout:
@@ -80,13 +80,15 @@ class RunWindow(FloatLayout):
         self.add_widget(self.run_button)
         self.add_widget(self.debug_button)
         self.add_widget(self.refresh_button)
-        self.register_table = RegisterTable()
-        self.register_table.data_list.clear()
-        self.register_table.get_data()
-
-        table2 = Table2()
-        self.add_widget(self.register_table)
-        self.add_widget(table2)
+        self.reg_table = RegisterTable()
+        self.mem_table = MemoryTable()
+        self.reg_table.data_list.clear()
+        self.reg_table.get_data()
+        self.mem_table.data_list.clear()
+        self.mem_table.get_data()
+        
+        self.add_widget(self.reg_table)
+        self.add_widget(self.mem_table)
 
     def run_micro_instructions(self, instance):
         if not self.micro_sim.is_running:
@@ -96,14 +98,23 @@ class RunWindow(FloatLayout):
                 toast('Must load file first before running')
             else:
                 self.micro_sim.run_micro_instructions()
+                toast('File executed successfully')
                 for i in self.micro_sim.micro_instructions:
                     if i != 'NOP':
                         print(i)
-        self.register_table.data_list.clear()
-        self.register_table.get_data()
+        
+        self.reg_table.data_list.clear()
+        self.reg_table.get_data()
+        self.mem_table.data_list.clear()
+        self.mem_table.get_data()
 
     def clear(self, instance):
         self.micro_sim.micro_clear()
+        self.reg_table.data_list.clear()
+        self.reg_table.get_data()
+        self.mem_table.data_list.clear()
+        self.mem_table.get_data()
+
         toast('Micro memory cleared! Load new data')
 
     def run_micro_instructions_step(self, instance):
@@ -115,11 +126,15 @@ class RunWindow(FloatLayout):
             else:
                 self.step_index += 1
                 self.micro_sim.run_micro_instructions_step(self.step_index)
+                toast('Runnin instruction in step-by-step mode. Step ' + str(self.step_index) + ' is running')
                 for i in self.micro_sim.micro_instructions:
                     if i != 'NOP':
                         print(i)
-        self.register_table.data_list.clear()
-        self.register_table.get_data()
+        
+        self.reg_table.data_list.clear()
+        self.reg_table.get_data()
+        self.mem_table.data_list.clear()
+        self.mem_table.get_data()
 
 
 class MainWindow(BoxLayout):
@@ -144,7 +159,6 @@ class MainWindow(BoxLayout):
 
 
 class NavDrawer(MDNavigationDrawer):
-    data = ListProperty([])
 
     def __init__(self, **kwargs):
         self.micro_sim = kwargs.pop('micro_sim')
@@ -215,24 +229,23 @@ class RegisterTable(RecycleView):
         self.data = [{"text": str(x.upper()), "color": (.1, .1, .1, 1)} for x in self.data_list]
 
 
-class Table2(RecycleView):
+class MemoryTable(RecycleView):
     data_list = ListProperty([])
 
     def __init__(self, **kwargs):
-        super(Table2, self).__init__(**kwargs)
+        super(MemoryTable, self).__init__(**kwargs)
         self.viewclass = 'Label'
-        test = [['hey3', 'heyo3'], ['hey4', 'heyo4']]
-        for row in test:
-            for x in row:
-                self.get_data(x)
-        # self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for x in range(50)]
 
-        # self.data = [{"text": str(x),"color": (.1,.1,.1,1)} for row in test for x in row]
 
-    def get_data(self, data):
+    def get_data(self):
+        i = 0
+        for m in range(50):
+            self.data_list.append(f'{RAM[i]}')
+            self.data_list.append(f'{RAM[i + 1]}')
+            i+= 2
+          
 
-        self.data_list.append(data)
-        self.data = [{"text": str(x), "color": (.1, .1, .1, 1)} for x in self.data_list]
+        self.data = [{"text": str(x.upper()), "color": (.1, .1, .1, 1)} for x in self.data_list]
 
 
 class GUI(NavigationLayout):
