@@ -279,8 +279,10 @@ class RegisterTable(RecycleView):
         self.viewclass = 'Label'
 
     def get_data(self):
-        _data_list = ['REGISTER', 'VALUE'] + self.data_list.copy()
+        _data_list = self.data_list.copy()
         self.data_list.clear()
+        self.data_list.append('REGISTER')
+        self.data_list.append('VALUE')
         _data = []
         for k, v in REGISTER.items():
             self.data_list.append(k)
@@ -288,7 +290,8 @@ class RegisterTable(RecycleView):
 
         i = 0
         for j in range(int(len(self.data_list) / 2)):
-            if _data_list and _data_list[i] == self.data_list[i] and _data_list[i + 1] != self.data_list[i + 1]:
+            if _data_list and len(_data_list) > 2 and _data_list[i] == self.data_list[i] and _data_list[i + 1] != \
+                    self.data_list[i + 1]:
                 _data.append({'text': self.data_list[i].upper(), 'color': (177 / 255, 62 / 255, 88 / 255, 1)})
                 _data.append({'text': self.data_list[i + 1].upper(), 'color': (177 / 255, 62 / 255, 88 / 255, 1)})
             else:
