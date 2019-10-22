@@ -26,7 +26,7 @@ from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
 from microprocessor_simulator import MicroSim, RAM
 
 Builder.load_string('''
-<register_table>:
+<RegisterTable>:
     id: data_list
     pos_hint:{'x': 0, 'center_y': 1.5}
     RecycleGridLayout:
@@ -39,7 +39,7 @@ Builder.load_string('''
         orientation: 'vertical'
         
         
-<memory_table>:
+<MemoryTable>:
     id: data_list
     pos_hint:{'x': 0.8, 'center_y': 1.5}
     RecycleGridLayout:
@@ -61,7 +61,6 @@ class RunWindow(FloatLayout):
         self.app = kwargs.pop('app')
         self.micro_sim = kwargs.pop('micro_sim')
         self.step_index = 0
-        self.register = kwargs.pop('registers')
         super(RunWindow, self).__init__(**kwargs)
         self.run_button = MDFillRoundFlatIconButton(text='Run',
                                                     icon='run',
@@ -81,8 +80,8 @@ class RunWindow(FloatLayout):
         self.add_widget(self.run_button)
         self.add_widget(self.debug_button)
         self.add_widget(self.refresh_button)
-        self.reg_table = register_table()
-        self.mem_table = memory_table()
+        self.reg_table = RegisterTable()
+        self.mem_table = MemoryTable()
         self.reg_table.data_list.clear()
         self.reg_table.get_data()
         self.mem_table.data_list.clear()
@@ -144,7 +143,6 @@ class MainWindow(BoxLayout):
         self.nav_drawer = kwargs.pop('nav_drawer')
         self.app = kwargs.pop('app')
         self.micro_sim = kwargs.pop('micro_sim')
-        self.register = kwargs.pop('registers')
         super().__init__(**kwargs)
         self.ids['left_actions'] = BoxLayout()
         self.orientation = 'vertical'
@@ -157,7 +155,7 @@ class MainWindow(BoxLayout):
                                   left_action_items=[['dots-vertical', lambda x: self.nav_drawer.toggle_nav_drawer()]]))
 
         self.add_widget(BoxLayout())  # Bumps up navigation bar to the top
-        self.add_widget(RunWindow(app=self.app, micro_sim=self.micro_sim, registers=self.register))
+        self.add_widget(RunWindow(app=self.app, micro_sim=self.micro_sim))
 
 
 class NavDrawer(MDNavigationDrawer):
@@ -216,12 +214,11 @@ class NavDrawer(MDNavigationDrawer):
         self.micro_sim.read_obj_file(file)
 
 
-class register_table(RecycleView):
+class RegisterTable(RecycleView):
     data_list = ListProperty([])
 
     def __init__(self, **kwargs):
-        # self.register = REGISTER
-        super(register_table, self).__init__(**kwargs)
+        super(RegisterTable, self).__init__(**kwargs)
         self.viewclass = 'Label'
 
     def get_data(self):
@@ -232,12 +229,12 @@ class register_table(RecycleView):
         self.data = [{"text": str(x.upper()), "color": (.1, .1, .1, 1)} for x in self.data_list]
 
 
-class memory_table(RecycleView):
+class MemoryTable(RecycleView):
     data_list = ListProperty([])
 
     def __init__(self, **kwargs):
         # self.register = REGISTER
-        super(memory_table, self).__init__(**kwargs)
+        super(MemoryTable, self).__init__(**kwargs)
         self.viewclass = 'Label'
 
 
@@ -259,7 +256,7 @@ class GUI(NavigationLayout):
         self.app = App.get_running_app()
         self.micro_sim = MicroSim()
         self.add_widget(NavDrawer(micro_sim=self.micro_sim))
-        self.add_widget(MainWindow(nav_drawer=self, app=self.app, micro_sim=self.micro_sim, registers=REGISTER))
+        self.add_widget(MainWindow(nav_drawer=self, app=self.app, micro_sim=self.micro_sim))
 
 
 class TestApp(App):
