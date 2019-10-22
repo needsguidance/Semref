@@ -20,7 +20,7 @@ def get_opcode_key(val):
 def convert_to_hex(num, bits):
     if not isinstance(num, int):
         raise ValueError("Invalid number type, num must be of type int.")
-    return f'{num:0{int(bits/4)}x}'
+    return f'{num:0{int(bits / 4)}x}'
 
 
 class MicroSim:
@@ -50,10 +50,10 @@ class MicroSim:
         lines.clear()
         file.close()
 
-    
+
 
     def disassembled_instruction(self):
-        
+
         instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
 
         opcode = get_opcode_key(instruction[0:5])
@@ -61,7 +61,7 @@ class MicroSim:
         register_b = ''
         register_c = ''
         dis_instruction = ''
-        
+
         if opcode in FORMAT_1_OPCODE:
 
             ra = f'R{int(instruction[5:8], 2)}'
@@ -76,7 +76,7 @@ class MicroSim:
             if register_c != ' R0':
                 dis_instruction = opcode + register_a + ',' + register_b + ',' + register_c
             else:
-                dis_instruction = opcode + register_a + ',' + register_b 
+                dis_instruction = opcode + register_a + ',' + register_b
 
         elif opcode in FORMAT_2_OPCODE:
 
@@ -94,9 +94,9 @@ class MicroSim:
         elif opcode in FORMAT_3_OPCODE:
             ra = f'R{int(instruction[5:8], 2)}'
             address = f'{int(instruction[5:], 2):02x}'
-            
+
             register_a = f' {ra}'
-            
+
             if register_a != ' R0':
                 dis_instruction = opcode + register_a + ', ' + address
             else:

@@ -99,14 +99,13 @@ class RunWindow(FloatLayout):
         self.reg_table = RegisterTable()
         self.mem_table = MemoryTable()
         self.inst_table = InstructionTable()
-        self.reg_table.data_list.clear()
         self.reg_table.get_data()
         self.mem_table.data_list.clear()
         self.mem_table.get_data()
         self.inst_table.data_list.clear()
         self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
         self.header = True
-    
+
 
 
         self.add_widget(self.reg_table)
@@ -129,7 +128,7 @@ class RunWindow(FloatLayout):
                         self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
                         self.first_inst = False
                     else:
-                     
+
                         self.micro_sim.prev_index = -1
 
                         while self.micro_sim.is_running:
@@ -140,9 +139,8 @@ class RunWindow(FloatLayout):
                                 self.micro_sim.is_running = False
                             else:
                                 self.micro_sim.prev_index = self.micro_sim.index
-                
 
-                self.reg_table.data_list.clear()
+
                 self.reg_table.get_data()
                 self.mem_table.data_list.clear()
                 self.mem_table.get_data()
@@ -151,7 +149,7 @@ class RunWindow(FloatLayout):
                 for i in self.micro_sim.micro_instructions:
                     if i != 'NOP':
                         print(i)
-        
+
 
 
     def clear(self, instance):
@@ -182,9 +180,8 @@ class RunWindow(FloatLayout):
                     self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
                     self.first_inst = False
                 else:
-                    
+
                     self.micro_sim.run_micro_instructions_step(self.step_index)
-                    self.reg_table.data_list.clear()
                     self.reg_table.get_data()
                     self.mem_table.data_list.clear()
                     self.mem_table.get_data()
@@ -194,8 +191,8 @@ class RunWindow(FloatLayout):
                 for i in self.micro_sim.micro_instructions:
                     if i != 'NOP':
                         print(i)
-        
-        
+
+
 
 class MainWindow(BoxLayout):
 
@@ -282,13 +279,27 @@ class RegisterTable(RecycleView):
         self.viewclass = 'Label'
 
     def get_data(self):
+        _data_list = self.data_list.copy()
+        self.data_list.clear()
         self.data_list.append('REGISTER')
         self.data_list.append('VALUE')
+        _data = []
         for k, v in REGISTER.items():
             self.data_list.append(k)
             self.data_list.append(v)
 
-        self.data = [{"text": str(x.upper()), "color": (.1, .1, .1, 1)} for x in self.data_list]
+        i = 0
+        for j in range(int(len(self.data_list) / 2)):
+            if _data_list and len(_data_list) > 2 and _data_list[i] == self.data_list[i] and _data_list[i + 1] != \
+                    self.data_list[i + 1]:
+                _data.append({'text': self.data_list[i].upper(), 'color': (177 / 255, 62 / 255, 88 / 255, 1)})
+                _data.append({'text': self.data_list[i + 1].upper(), 'color': (177 / 255, 62 / 255, 88 / 255, 1)})
+            else:
+                _data.append({'text': self.data_list[i].upper(), 'color': (.1, .1, .1, 1)})
+                _data.append({'text': self.data_list[i + 1].upper(), 'color': (.1, .1, .1, 1)})
+            i += 2
+
+        self.data = _data
 
 
 class MemoryTable(RecycleView):
@@ -327,15 +338,15 @@ class InstructionTable(RecycleView):
             self.data_list.append('ADDRESS')
             self.data_list.append('CONTENT')
             self.data_list.append('DISASSEMBLED INSTRUCTION')
-            
+
         else:
             self.data_list.append((f'{address:02x}').upper())
             self.data_list.append(f'{RAM[address]}')
             self.data_list.append(opcode.upper())
-  
-        
-   
-          
+
+
+
+
 
         self.data = [{"text": str(x.upper()), "color": (.1, .1, .1, 1)} for x in self.data_list]
 
