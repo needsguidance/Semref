@@ -30,6 +30,19 @@ Builder.load_string('''
     id: data_list
     pos_hint:{'x': 0, 'center_y': 1.5}
     RecycleGridLayout:
+        canvas.before:
+            Color: 
+                rgba: .75, .75, .75, 1
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        canvas:
+            Color:
+                rgba: .50, .50, .50, 1
+            Line:
+                width: 2.
+                rectangle: (self.x, self.y, self.width, self.height) 
+
         cols: 2
         default_size: None, dp(30)
         default_size_hint: 1, None
@@ -55,6 +68,18 @@ Builder.load_string('''
     id: data_list
     pos_hint:{'x': 0.75, 'center_y': 1.5}
     RecycleGridLayout:
+        canvas.before:
+            Color: 
+                rgba: .75, .75, .75, 1
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        canvas:
+            Color:
+                rgba: .50, .50, .50, 1
+            Line:
+                width: 2.
+                rectangle: (self.x, self.y, self.width, self.height) 
         cols: 2
         default_size: None, dp(30)
         default_size_hint: 1, None
@@ -318,7 +343,6 @@ class MemoryTable(RecycleView):
         super(MemoryTable, self).__init__(**kwargs)
         self.viewclass = 'Label'
 
-
     def get_data(self):
         self.data_list.append('MEMORY BYTE')
         self.data_list.append('MEMORY BYTE')
@@ -326,8 +350,7 @@ class MemoryTable(RecycleView):
         for m in range(50):
             self.data_list.append(f'{RAM[i]}')
             self.data_list.append(f'{RAM[i + 1]}')
-            i+= 2
-          
+            i += 2
 
         self.data = [{"text": str(x.upper()), "color": (.1, .1, .1, 1)} for x in self.data_list]
 
