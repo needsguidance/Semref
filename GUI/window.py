@@ -93,6 +93,12 @@ class RunWindow(FloatLayout):
                                                         size_hint=(None, None),
                                                         pos_hint={'center_x': .5, 'center_y': 2.12},
                                                         on_release=self.clear)
+        self.save_button = MDFillRoundFlatIconButton(text='Save File',
+                                                        icon='download',
+                                                        size_hint=(None, None),
+                                                        pos_hint={'center_x': .35, 'center_y': 2.12},
+                                                        on_release=self.save)
+        self.add_widget(self.save_button)
         self.add_widget(self.run_button)
         self.add_widget(self.debug_button)
         self.add_widget(self.refresh_button)
@@ -111,6 +117,9 @@ class RunWindow(FloatLayout):
         self.add_widget(self.reg_table)
         self.add_widget(self.inst_table)
         self.add_widget(self.mem_table)
+
+    def save(self, instance):
+        toast("Not Implemented yet. Will be ready on Sprint 3")
 
     def run_micro_instructions(self, instance):
         if not self.micro_sim.is_running:
@@ -333,7 +342,7 @@ class InstructionTable(RecycleView):
 
 
 
-    def get_data(self, address, header, opcode):
+    def get_data(self, address, header, instruction):
         if not header:
             self.data_list.append('ADDRESS')
             self.data_list.append('CONTENT')
@@ -342,7 +351,7 @@ class InstructionTable(RecycleView):
         else:
             self.data_list.append((f'{address:02x}').upper())
             self.data_list.append(f'{RAM[address]}')
-            self.data_list.append(opcode.upper())
+            self.data_list.append(instruction.upper())
 
 
 

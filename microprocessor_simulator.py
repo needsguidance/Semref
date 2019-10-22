@@ -122,7 +122,7 @@ class MicroSim:
         else:
             self.prev_index = self.index
 
-        f.write("\n\n Instruction: " + (f'{self.index:02x}').upper() + ":" + f'{RAM[self.index]}' + ":" + "INSTRUCTION")
+        f.write("\n\n Instruction: " + (f'{self.index:02x}').upper() + ":" + f'{RAM[self.index]}' + ":" + self.disassembled_instruction)
         f.write("\n\n Step " + str(step_index) + "\n\n")
         f.write("\n\n Register Content: \n\n")
         f.write(f'{REGISTER}')
@@ -132,6 +132,7 @@ class MicroSim:
             f.write(f'{RAM[i]} {RAM[i + 1]}' + '\n')
             i += 2
         f.close()
+    
 
     def micro_clear(self):
         self.is_ram_loaded = False
