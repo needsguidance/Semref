@@ -110,10 +110,7 @@ class MicroSim:
             self.execute_instruction(binary_instruction)
 
     def run_micro_instructions_step(self, step_index):
-        if self.index == 0:
-            f = open("output/debugger.txt", "w")
-        else:
-            f = open("output/debugger.txt", "a")
+      
         REGISTER['ir'] = f'{RAM[self.index]}{RAM[self.index + 1]}'
         binary_instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
         self.execute_instruction(binary_instruction)
@@ -122,17 +119,7 @@ class MicroSim:
         else:
             self.prev_index = self.index
 
-        f.write("\n\n Instruction: " + (f'{self.index:02x}').upper() + ":" + f'{RAM[self.index]}' + ":" + self.disassembled_instruction)
-        f.write("\n\n Step " + str(step_index) + "\n\n")
-        f.write("\n\n Register Content: \n\n")
-        f.write(f'{REGISTER}')
-        f.write("\n\n First 50 slots in memory: \n\n")
-        i = 0
-        for m in range(50):
-            f.write(f'{RAM[i]} {RAM[i + 1]}' + '\n')
-            i += 2
-        f.close()
-    
+       
 
     def micro_clear(self):
         self.is_ram_loaded = False
