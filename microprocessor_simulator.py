@@ -66,8 +66,8 @@ class MicroSim:
         else:
             self.prev_index = self.index
 
-        print("\n\n Instruction: " + str(self.index) + ":" + f'{RAM[self.index]}' + ":" + "INSTRUCTION")
-        f.write("\n\n Instruction: " + str(self.index) + ":" + f'{RAM[self.index]}' + ":" + "INSTRUCTION")
+        print("\n\n Instruction: " + (f'{self.index:02x}').upper() + ":" + f'{RAM[self.index]}' + ":" + "INSTRUCTION")
+        f.write("\n\n Instruction: " + (f'{self.index:02x}').upper() + ":" + f'{RAM[self.index]}' + ":" + "INSTRUCTION")
         print("\n\n Step " + str(step_index) + "\n\n")
         f.write("\n\n Step " + str(step_index) + "\n\n")
         print("\n\n Register Content: \n\n")
@@ -93,6 +93,8 @@ class MicroSim:
         self.cond = False
         REGISTER['sp'] = f'{0:02x}'
         self.prev_index = -1
+        for m in range(4096):
+            RAM[m] = '00'
 
     def execute_instruction(self, instruction):
         if re.match('^[0]+$', instruction):

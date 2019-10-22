@@ -1,6 +1,6 @@
 
 
- Instruction: 10:01:INSTRUCTION
+ Instruction: 0A:01:INSTRUCTION
 
  Step 1
 
@@ -64,7 +64,7 @@ A8 1A
 00 00
 
 
- Instruction: 12:02:INSTRUCTION
+ Instruction: 0C:02:INSTRUCTION
 
  Step 2
 
@@ -128,7 +128,7 @@ A8 1A
 00 00
 
 
- Instruction: 14:C9:INSTRUCTION
+ Instruction: 0E:C9:INSTRUCTION
 
  Step 3
 
@@ -192,7 +192,7 @@ A8 1A
 00 00
 
 
- Instruction: 16:A8:INSTRUCTION
+ Instruction: 10:A8:INSTRUCTION
 
  Step 4
 
@@ -256,7 +256,7 @@ A8 1A
 00 00
 
 
- Instruction: 22:19:INSTRUCTION
+ Instruction: 16:19:INSTRUCTION
 
  Step 5
 
@@ -320,7 +320,7 @@ A8 1A
 00 00
 
 
- Instruction: 24:0B:INSTRUCTION
+ Instruction: 18:0B:INSTRUCTION
 
  Step 6
 
@@ -329,6 +329,134 @@ A8 1A
  Register Content: 
 
 {'r0': '00', 'r1': '00', 'r2': '700', 'r3': '00', 'r4': '00', 'r5': '00', 'r6': '00', 'r7': '00', 'pc': '01a', 'sp': '000', 'ir': '1906'}
+
+ First 50 slots in memory: 
+
+A8 0A
+05 00
+07 00
+00 00
+00 0A
+01 02
+02 04
+C9 40
+A8 16
+1A 06
+A8 1A
+19 06
+0B 08
+A8 1A
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+
+
+ Instruction: 1A:A8:INSTRUCTION
+
+ Step 7
+
+
+
+ Register Content: 
+
+{'r0': '00', 'r1': '00', 'r2': '700', 'r3': '0a', 'r4': '00', 'r5': '00', 'r6': '00', 'r7': '00', 'pc': '01c', 'sp': '000', 'ir': '0B08'}
+
+ First 50 slots in memory: 
+
+A8 0A
+05 00
+07 00
+00 00
+00 0A
+01 02
+02 04
+C9 40
+A8 16
+1A 06
+A8 1A
+19 06
+0B 08
+A8 1A
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+00 00
+
+
+ Instruction: 1A:A8:INSTRUCTION
+
+ Step 8
+
+
+
+ Register Content: 
+
+{'r0': '00', 'r1': '00', 'r2': '700', 'r3': '0a', 'r4': '00', 'r5': '00', 'r6': '00', 'r7': '00', 'pc': '01c', 'sp': '000', 'ir': 'A81A'}
 
  First 50 slots in memory: 
 
