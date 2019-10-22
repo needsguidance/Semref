@@ -37,19 +37,33 @@ Builder.load_string('''
         size_hint_x: 0.2
         height: self.minimum_height
         orientation: 'vertical'
+
+<InstructionTable>:
+    id: data_list
+    pos_hint:{'x': 0.2, 'center_y': 1.5}
+    RecycleGridLayout:
+        cols: 3
+        default_size: None, dp(30)
+        default_size_hint: 1, None
+        size_hint_y: None
+        size_hint_x: 0.5
+        height: self.minimum_height
+        orientation: 'vertical'
         
         
 <MemoryTable>:
     id: data_list
-    pos_hint:{'x': 0.8, 'center_y': 1.5}
+    pos_hint:{'x': 0.75, 'center_y': 1.5}
     RecycleGridLayout:
         cols: 2
         default_size: None, dp(30)
         default_size_hint: 1, None
         size_hint_y: None
-        size_hint_x: 0.2
+        size_hint_x: 0.25
         height: self.minimum_height
         orientation: 'vertical'
+
+
 
 
 ''')
@@ -61,6 +75,8 @@ class RunWindow(FloatLayout):
         self.app = kwargs.pop('app')
         self.micro_sim = kwargs.pop('micro_sim')
         self.step_index = 0
+        self.header = False
+        self.first_inst = True
         super(RunWindow, self).__init__(**kwargs)
         self.run_button = MDFillRoundFlatIconButton(text='Run',
                                                     icon='run',
@@ -82,12 +98,19 @@ class RunWindow(FloatLayout):
         self.add_widget(self.refresh_button)
         self.reg_table = RegisterTable()
         self.mem_table = MemoryTable()
+        self.inst_table = InstructionTable()
         self.reg_table.data_list.clear()
         self.reg_table.get_data()
         self.mem_table.data_list.clear()
         self.mem_table.get_data()
-        
+        self.inst_table.data_list.clear()
+        self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
+        self.header = True
+    
+
+
         self.add_widget(self.reg_table)
+        self.add_widget(self.inst_table)
         self.add_widget(self.mem_table)
 
     def run_micro_instructions(self, instance):
@@ -97,23 +120,53 @@ class RunWindow(FloatLayout):
             if not self.micro_sim.is_ram_loaded:
                 toast('Must load file first before running')
             else:
-                self.micro_sim.run_micro_instructions()
+                for m in range(2):
+                    if self.first_inst:
+                        self.inst_table.data_list.clear()
+                        self.header = False
+                        self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
+                        self.header = True
+                        self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
+                        self.first_inst = False
+                    else:
+                     
+                        self.micro_sim.prev_index = -1
+
+                        while self.micro_sim.is_running:
+                            self.micro_sim.run_micro_instructions()
+                            self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
+
+                            if self.micro_sim.prev_index == self.micro_sim.index:
+                                self.micro_sim.is_running = False
+                            else:
+                                self.micro_sim.prev_index = self.micro_sim.index
+                
+
+                self.reg_table.data_list.clear()
+                self.reg_table.get_data()
+                self.mem_table.data_list.clear()
+                self.mem_table.get_data()
+
                 toast('File executed successfully')
                 for i in self.micro_sim.micro_instructions:
                     if i != 'NOP':
                         print(i)
         
-        self.reg_table.data_list.clear()
-        self.reg_table.get_data()
-        self.mem_table.data_list.clear()
-        self.mem_table.get_data()
+
 
     def clear(self, instance):
+        self.header = False
+        self.step_index = 0
         self.micro_sim.micro_clear()
         self.reg_table.data_list.clear()
         self.reg_table.get_data()
         self.mem_table.data_list.clear()
         self.mem_table.get_data()
+        self.inst_table.data_list.clear()
+        self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
+        self.header = True
+        self.first_inst = True
+
 
         toast('Micro memory cleared! Load new data')
 
@@ -125,17 +178,24 @@ class RunWindow(FloatLayout):
                 toast('Must load file first before running')
             else:
                 self.step_index += 1
-                self.micro_sim.run_micro_instructions_step(self.step_index)
+                if self.first_inst:
+                    self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
+                    self.first_inst = False
+                else:
+                    
+                    self.micro_sim.run_micro_instructions_step(self.step_index)
+                    self.reg_table.data_list.clear()
+                    self.reg_table.get_data()
+                    self.mem_table.data_list.clear()
+                    self.mem_table.get_data()
+                    self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
+
                 toast('Runnin instruction in step-by-step mode. Step ' + str(self.step_index) + ' is running')
                 for i in self.micro_sim.micro_instructions:
                     if i != 'NOP':
                         print(i)
         
-        self.reg_table.data_list.clear()
-        self.reg_table.get_data()
-        self.mem_table.data_list.clear()
-        self.mem_table.get_data()
-
+        
 
 class MainWindow(BoxLayout):
 
@@ -222,6 +282,8 @@ class RegisterTable(RecycleView):
         self.viewclass = 'Label'
 
     def get_data(self):
+        self.data_list.append('REGISTER')
+        self.data_list.append('VALUE')
         for k, v in REGISTER.items():
             self.data_list.append(k)
             self.data_list.append(v)
@@ -238,6 +300,8 @@ class MemoryTable(RecycleView):
 
 
     def get_data(self):
+        self.data_list.append('MEMORY BYTE')
+        self.data_list.append('MEMORY BYTE')
         i = 0
         for m in range(50):
             self.data_list.append(f'{RAM[i]}')
@@ -247,6 +311,33 @@ class MemoryTable(RecycleView):
 
         self.data = [{"text": str(x.upper()), "color": (.1, .1, .1, 1)} for x in self.data_list]
 
+class InstructionTable(RecycleView):
+    data_list = ListProperty([])
+
+    def __init__(self, **kwargs):
+        # self.register = REGISTER
+        super(InstructionTable, self).__init__(**kwargs)
+        self.viewclass = 'Label'
+
+
+
+
+    def get_data(self, address, header, opcode):
+        if not header:
+            self.data_list.append('ADDRESS')
+            self.data_list.append('CONTENT')
+            self.data_list.append('DISASSEMBLED INSTRUCTION')
+            
+        else:
+            self.data_list.append((f'{address:02x}').upper())
+            self.data_list.append(f'{RAM[address]}')
+            self.data_list.append(opcode.upper())
+  
+        
+   
+          
+
+        self.data = [{"text": str(x.upper()), "color": (.1, .1, .1, 1)} for x in self.data_list]
 
 class GUI(NavigationLayout):
 

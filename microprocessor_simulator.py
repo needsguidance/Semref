@@ -16,10 +16,11 @@ def get_opcode_key(val):
     return None
 
 
+
 def convert_to_hex(num, bits):
     if not isinstance(num, int):
         raise ValueError("Invalid number type, num must be of type int.")
-    return f'{num:0{bits/4}x}'
+    return f'{num:0{int(bits/4)}x}'
 
 
 class MicroSim:
@@ -33,6 +34,7 @@ class MicroSim:
         self.is_running = True
         self.cond = False
         self.prev_index = -1
+        self.counter = 0
 
     def read_obj_file(self, filename):
         file = open(filename, 'r')
@@ -48,16 +50,64 @@ class MicroSim:
         lines.clear()
         file.close()
 
+    
+
+    def disassembled_instruction(self):
+        
+        instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
+
+        opcode = get_opcode_key(instruction[0:5])
+        register_a = ''
+        register_b = ''
+        register_c = ''
+        dis_instruction = ''
+        
+        if opcode in FORMAT_1_OPCODE:
+
+            ra = f'R{int(instruction[5:8], 2)}'
+            rb = f'R{int(instruction[8:11], 2)}'
+            rc = f'R{int(instruction[11:14], 2)}'
+
+
+            register_a = f' {ra}'
+            register_b = f' {rb}'
+            register_c = f' {rc}'
+
+            if register_c != ' R0':
+                dis_instruction = opcode + register_a + ',' + register_b + ',' + register_c
+            else:
+                dis_instruction = opcode + register_a + ',' + register_b 
+
+        elif opcode in FORMAT_2_OPCODE:
+
+            ra = f'R{int(instruction[5:8], 2)}'
+            address_or_const = f'{int(instruction[8:], 2):02x}'
+
+            register_a = f' {ra}'
+
+            if register_a != ' R0':
+                dis_instruction = opcode + register_a + ', ' + address_or_const
+            else:
+                dis_instruction = opcode + ' ' + address_or_const
+
+
+        elif opcode in FORMAT_3_OPCODE:
+            ra = f'R{int(instruction[5:8], 2)}'
+            address = f'{int(instruction[5:], 2):02x}'
+            
+            register_a = f' {ra}'
+            
+            if register_a != ' R0':
+                dis_instruction = opcode + register_a + ', ' + address
+            else:
+                dis_instruction = opcode + ' ' + address
+
+        return dis_instruction
+
     def run_micro_instructions(self):
-        index = -1
-        while self.is_running:
             REGISTER['ir'] = f'{RAM[self.index]}{RAM[self.index + 1]}'
             binary_instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
             self.execute_instruction(binary_instruction)
-            if index == self.index:
-                self.is_running = False
-            else:
-                index = self.index
 
     def run_micro_instructions_step(self, step_index):
         if self.index == 0:
@@ -72,20 +122,14 @@ class MicroSim:
         else:
             self.prev_index = self.index
 
-        print("\n\n Instruction: " + str(self.index) + ":" + f'{RAM[self.index]}' + ":" + "INSTRUCTION")
-        f.write("\n\n Instruction: " + str(self.index) + ":" + f'{RAM[self.index]}' + ":" + "INSTRUCTION")
-        print("\n\n Step " + str(step_index) + "\n\n")
+        f.write("\n\n Instruction: " + (f'{self.index:02x}').upper() + ":" + f'{RAM[self.index]}' + ":" + "INSTRUCTION")
         f.write("\n\n Step " + str(step_index) + "\n\n")
-        print("\n\n Register Content: \n\n")
         f.write("\n\n Register Content: \n\n")
-        print(REGISTER)
         f.write(f'{REGISTER}')
-        print("\n\n First 50 slots in memory: \n\n")
         f.write("\n\n First 50 slots in memory: \n\n")
         i = 0
         for m in range(50):
             f.write(f'{RAM[i]} {RAM[i + 1]}' + '\n')
-
             i += 2
         f.close()
 
@@ -97,6 +141,7 @@ class MicroSim:
         self.is_running = True
         self.cond = False
         self.prev_index = -1
+        self.counter = 0
         for m in range(4096):
             RAM[m] = '00'
 
