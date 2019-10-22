@@ -82,7 +82,6 @@ class RunWindow(FloatLayout):
         self.add_widget(self.refresh_button)
         self.reg_table = RegisterTable()
         self.mem_table = MemoryTable()
-        self.reg_table.data_list.clear()
         self.reg_table.get_data()
         self.mem_table.data_list.clear()
         self.mem_table.get_data()
@@ -103,7 +102,6 @@ class RunWindow(FloatLayout):
                     if i != 'NOP':
                         print(i)
         
-        self.reg_table.data_list.clear()
         self.reg_table.get_data()
         self.mem_table.data_list.clear()
         self.mem_table.get_data()
@@ -131,7 +129,6 @@ class RunWindow(FloatLayout):
                     if i != 'NOP':
                         print(i)
         
-        self.reg_table.data_list.clear()
         self.reg_table.get_data()
         self.mem_table.data_list.clear()
         self.mem_table.get_data()
@@ -222,11 +219,24 @@ class RegisterTable(RecycleView):
         self.viewclass = 'Label'
 
     def get_data(self):
+        _data_list = self.data_list.copy()
+        self.data_list.clear()
+        _data = []
         for k, v in REGISTER.items():
             self.data_list.append(k)
             self.data_list.append(v)
 
-        self.data = [{"text": str(x.upper()), "color": (.1, .1, .1, 1)} for x in self.data_list]
+        i = 0
+        for j in range(int(len(self.data_list) / 2)):
+            if _data_list and _data_list[i] == self.data_list[i] and _data_list[i + 1] != self.data_list[i + 1]:
+                _data.append({'text': self.data_list[i].upper(), 'color': (177 / 255, 62 / 255, 88 / 255, 1)})
+                _data.append({'text': self.data_list[i + 1].upper(), 'color': (177 / 255, 62 / 255, 88 / 255, 1)})
+            else:
+                _data.append({'text': self.data_list[i].upper(), 'color': (.1, .1, .1, 1)})
+                _data.append({'text': self.data_list[i + 1].upper(), 'color': (.1, .1, .1, 1)})
+            i += 2
+
+        self.data = _data
 
 
 class MemoryTable(RecycleView):

@@ -19,7 +19,7 @@ def get_opcode_key(val):
 def convert_to_hex(num, bits):
     if not isinstance(num, int):
         raise ValueError("Invalid number type, num must be of type int.")
-    return f'{num:0{bits/4}x}'
+    return f'{num:0{int(bits / 4)}x}'
 
 
 class MicroSim:
