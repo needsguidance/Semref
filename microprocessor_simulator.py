@@ -16,6 +16,7 @@ def get_opcode_key(val):
     return None
 
 
+
 def convert_to_hex(num, bits):
     if not isinstance(num, int):
         raise ValueError("Invalid number type, num must be of type int.")
@@ -67,50 +68,12 @@ class MicroSim:
             rb = f'R{int(instruction[8:11], 2)}'
             rc = f'R{int(instruction[11:14], 2)}'
 
-            if ra == 'R1':
-                register_a = ' R1'
-            elif ra == 'R2':
-                register_a = ' R2'
-            elif ra == 'R3':
-                register_a = ' R3'
-            elif ra == 'R4':
-                register_a = ' R4'
-            elif ra == 'R5':
-                register_a = ' R5'
-            elif ra == 'R6':
-                register_a = ' R6'
-            elif ra == 'R7':
-                register_a = ' R7'
-            if rb == 'R1':
-                register_b = ' R1'
-            elif rb == 'R2': 
-                register_b = ' R2'
-            elif ra == 'R3':
-                register_b = ' R3'
-            elif rb == 'R4':
-                register_b = ' R4'
-            elif rb == 'R5':
-                register_b = ' R5'
-            elif rb == 'R6':
-                register_b = ' R6'
-            elif rb == 'R7':
-                register_b = ' R7'
-            if rc == 'R1':
-                register_c = ' R1'
-            elif rc == 'R2':
-                register_c = ' R2'
-            elif rc == 'R3':
-                register_c = ' R3'
-            elif rc == 'R4':
-                register_c = ' R4'
-            elif rc == 'R5':
-                register_c = ' R5'
-            elif rc == 'R6':
-                register_c = ' R6'
-            elif rc == 'R7':
-                register_c = ' R7'
 
-            if register_c:
+            register_a = f' {ra}'
+            register_b = f' {rb}'
+            register_c = f' {rc}'
+
+            if register_c != ' R0':
                 dis_instruction = opcode + register_a + ',' + register_b + ',' + register_c
             else:
                 dis_instruction = opcode + register_a + ',' + register_b 
@@ -120,22 +83,9 @@ class MicroSim:
             ra = f'R{int(instruction[5:8], 2)}'
             address_or_const = f'{int(instruction[8:], 2):02x}'
 
-            if ra == 'R1':
-                register_a = ' R1'
-            elif ra == 'R2':
-                register_a = ' R2'
-            elif ra == 'R3':
-                register_a = ' R3'
-            elif ra == 'R4':
-                register_a = ' R4'
-            elif ra == 'R5':
-                register_a = ' R5'
-            elif ra == 'R6':
-                register_a = ' R6'
-            elif ra == 'R7':
-                register_a = ' R7'
+            register_a = f' {ra}'
 
-            if register_a:
+            if register_a != ' R0':
                 dis_instruction = opcode + register_a + ', ' + address_or_const
             else:
                 dis_instruction = opcode + ' ' + address_or_const
@@ -144,22 +94,10 @@ class MicroSim:
         elif opcode in FORMAT_3_OPCODE:
             ra = f'R{int(instruction[5:8], 2)}'
             address = f'{int(instruction[5:], 2):02x}'
-            if ra == 'R1':
-                register_a = ' R1'
-            elif ra == 'R2':
-                register_a = ' R2'
-            elif ra == 'R3':
-                register_a = ' R3'
-            elif ra == 'R4':
-                register_a = ' R4'
-            elif ra == 'R5':
-                register_a = ' R5'
-            elif ra == 'R6':
-                register_a = ' R6'
-            elif ra == 'R7':
-                register_a = ' R7'
             
-            if register_a:
+            register_a = f' {ra}'
+            
+            if register_a != ' R0':
                 dis_instruction = opcode + register_a + ', ' + address
             else:
                 dis_instruction = opcode + ' ' + address

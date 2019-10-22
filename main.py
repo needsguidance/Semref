@@ -4,7 +4,7 @@ from GUI.window import TestApp
 
 
 def assembler():
-    read_files = False
+    read_files = True
     file = None
     i = 0
     while read_files:
