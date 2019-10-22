@@ -114,7 +114,7 @@ class RunWindow(FloatLayout):
         self.add_widget(self.mem_table)
 
     def run_micro_instructions(self, instance):
-        if not(self.micro_sim.is_running):
+        if not self.micro_sim.is_running:
             toast("Infinite loop encountered. Program stopped")
         else:
             if not self.micro_sim.is_ram_loaded:
@@ -171,7 +171,7 @@ class RunWindow(FloatLayout):
         toast('Micro memory cleared! Load new data')
 
     def run_micro_instructions_step(self, instance):
-        if not(self.micro_sim.is_running):
+        if not self.micro_sim.is_running:
             toast("Infinite loop encountered. Program stopped")
         else:
             if not self.micro_sim.is_ram_loaded:
@@ -295,7 +295,6 @@ class MemoryTable(RecycleView):
     data_list = ListProperty([])
 
     def __init__(self, **kwargs):
-        # self.register = REGISTER
         super(MemoryTable, self).__init__(**kwargs)
         self.viewclass = 'Label'
 
