@@ -30,6 +30,19 @@ Builder.load_string('''
     id: data_list
     pos_hint:{'x': 0, 'center_y': 1.5}
     RecycleGridLayout:
+        canvas.before:
+            Color: 
+                rgba: .75, .75, .75, 1
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        canvas:
+            Color:
+                rgba: .50, .50, .50, 1
+            Line:
+                width: 2.
+                rectangle: (self.x, self.y, self.width, self.height) 
+
         cols: 2
         default_size: None, dp(30)
         default_size_hint: 1, None
@@ -43,6 +56,18 @@ Builder.load_string('''
     id: data_list
     pos_hint:{'x': 0.8, 'center_y': 1.5}
     RecycleGridLayout:
+        canvas.before:
+            Color: 
+                rgba: .75, .75, .75, 1
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        canvas:
+            Color:
+                rgba: .50, .50, .50, 1
+            Line:
+                width: 2.
+                rectangle: (self.x, self.y, self.width, self.height) 
         cols: 2
         default_size: None, dp(30)
         default_size_hint: 1, None
@@ -85,7 +110,7 @@ class RunWindow(FloatLayout):
         self.reg_table.get_data()
         self.mem_table.data_list.clear()
         self.mem_table.get_data()
-        
+
         self.add_widget(self.reg_table)
         self.add_widget(self.mem_table)
 
@@ -101,7 +126,7 @@ class RunWindow(FloatLayout):
                 for i in self.micro_sim.micro_instructions:
                     if i != 'NOP':
                         print(i)
-        
+
         self.reg_table.get_data()
         self.mem_table.data_list.clear()
         self.mem_table.get_data()
@@ -128,7 +153,7 @@ class RunWindow(FloatLayout):
                 for i in self.micro_sim.micro_instructions:
                     if i != 'NOP':
                         print(i)
-        
+
         self.reg_table.get_data()
         self.mem_table.data_list.clear()
         self.mem_table.get_data()
@@ -246,14 +271,12 @@ class MemoryTable(RecycleView):
         super(MemoryTable, self).__init__(**kwargs)
         self.viewclass = 'Label'
 
-
     def get_data(self):
         i = 0
         for m in range(50):
             self.data_list.append(f'{RAM[i]}')
             self.data_list.append(f'{RAM[i + 1]}')
-            i+= 2
-          
+            i += 2
 
         self.data = [{"text": str(x.upper()), "color": (.1, .1, .1, 1)} for x in self.data_list]
 
