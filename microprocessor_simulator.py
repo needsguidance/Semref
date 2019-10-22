@@ -27,6 +27,7 @@ class MicroSim:
         self.is_running = True
         self.cond = False
         self.prev_index = -1
+        self.counter = 0
 
     def read_obj_file(self, filename):
         file = open(filename, 'r')
@@ -42,22 +43,22 @@ class MicroSim:
         lines.clear()
         file.close()
 
+    def disassembled_instruction_opcode(self):
+        print(self.index)
+        binary_instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
+        return get_opcode_key(binary_instruction[0:5])
+
     def run_micro_instructions(self):
-        index = -1
-        while self.is_running:
             REGISTER['ir'] = f'{RAM[self.index]}{RAM[self.index + 1]}'
             binary_instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
             self.execute_instruction(binary_instruction)
-            if index == self.index:
-                self.is_running = False
-            else:
-                index = self.index
 
     def run_micro_instructions_step(self, step_index):
         if self.index == 0:
             f = open("output/debugger.txt", "w")
         else:
             f = open("output/debugger.txt", "a")
+        print("is running??")
         REGISTER['ir'] = f'{RAM[self.index]}{RAM[self.index + 1]}'
         binary_instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
         self.execute_instruction(binary_instruction)
@@ -66,20 +67,14 @@ class MicroSim:
         else:
             self.prev_index = self.index
 
-        print("\n\n Instruction: " + (f'{self.index:02x}').upper() + ":" + f'{RAM[self.index]}' + ":" + "INSTRUCTION")
         f.write("\n\n Instruction: " + (f'{self.index:02x}').upper() + ":" + f'{RAM[self.index]}' + ":" + "INSTRUCTION")
-        print("\n\n Step " + str(step_index) + "\n\n")
         f.write("\n\n Step " + str(step_index) + "\n\n")
-        print("\n\n Register Content: \n\n")
         f.write("\n\n Register Content: \n\n")
-        print(REGISTER)
         f.write(f'{REGISTER}')
-        print("\n\n First 50 slots in memory: \n\n")
         f.write("\n\n First 50 slots in memory: \n\n")
         i = 0
         for m in range(50):
             f.write(f'{RAM[i]} {RAM[i + 1]}' + '\n')
-
             i += 2
         f.close()
 
@@ -91,6 +86,7 @@ class MicroSim:
         self.is_running = True
         self.cond = False
         self.prev_index = -1
+        self.counter = 0
         for m in range(4096):
             RAM[m] = '00'
 
