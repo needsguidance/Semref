@@ -61,7 +61,6 @@ class RunWindow(FloatLayout):
         self.app = kwargs.pop('app')
         self.micro_sim = kwargs.pop('micro_sim')
         self.step_index = 0
-        self.register = kwargs.pop('registers')
         super(RunWindow, self).__init__(**kwargs)
         self.run_button = MDFillRoundFlatIconButton(text='Run',
                                                     icon='run',
@@ -129,7 +128,6 @@ class MainWindow(BoxLayout):
         self.nav_drawer = kwargs.pop('nav_drawer')
         self.app = kwargs.pop('app')
         self.micro_sim = kwargs.pop('micro_sim')
-        self.register = kwargs.pop('registers')
         super().__init__(**kwargs)
         self.ids['left_actions'] = BoxLayout()
         self.orientation = 'vertical'
@@ -142,7 +140,7 @@ class MainWindow(BoxLayout):
                                   left_action_items=[['dots-vertical', lambda x: self.nav_drawer.toggle_nav_drawer()]]))
 
         self.add_widget(BoxLayout())  # Bumps up navigation bar to the top
-        self.add_widget(RunWindow(app=self.app, micro_sim=self.micro_sim, registers=self.register))
+        self.add_widget(RunWindow(app=self.app, micro_sim=self.micro_sim))
 
 
 class NavDrawer(MDNavigationDrawer):
@@ -245,7 +243,7 @@ class GUI(NavigationLayout):
         self.app = App.get_running_app()
         self.micro_sim = MicroSim()
         self.add_widget(NavDrawer(micro_sim=self.micro_sim))
-        self.add_widget(MainWindow(nav_drawer=self, app=self.app, micro_sim=self.micro_sim, registers=REGISTER))
+        self.add_widget(MainWindow(nav_drawer=self, app=self.app, micro_sim=self.micro_sim))
 
 
 class TestApp(App):

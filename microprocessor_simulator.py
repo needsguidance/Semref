@@ -78,7 +78,6 @@ class MicroSim:
         f.write("\n\n First 50 slots in memory: \n\n")
         i = 0
         for m in range(50):
-            print(f'{RAM[i]} {RAM[i + 1]}')
             f.write(f'{RAM[i]} {RAM[i + 1]}' + '\n')
 
             i += 2
@@ -91,7 +90,9 @@ class MicroSim:
         self.index = 0
         self.is_running = True
         self.cond = False
-        REGISTER['sp'] = f'{0:02x}'
+        REGISTER['pc'] = f'{0:03x}'
+        REGISTER['sp'] = f'{0:03x}'
+        REGISTER['ir'] = f'{0:04x}'
         self.prev_index = -1
 
     def execute_instruction(self, instruction):
