@@ -16,6 +16,12 @@ def get_opcode_key(val):
     return None
 
 
+def convert_to_hex(num, bits):
+    if not isinstance(num, int):
+        raise ValueError("Invalid number type, num must be of type int.")
+    return f'{num:0{bits/4}x}'
+
+
 class MicroSim:
 
     def __init__(self, *args, **kwargs):
@@ -120,30 +126,31 @@ class MicroSim:
                 elif opcode == 'grt':
                     self.cond = REGISTER[ra.lower()] > REGISTER[rb.lower()]
                 elif opcode == 'add':
-                    REGISTER[ra.lower()] = f'{int(REGISTER[rb.lower()], 16) + int(REGISTER[rc.lower()], 16):02x}'
+                    REGISTER[ra.lower()] = convert_to_hex(int(REGISTER[rb.lower()], 16) + int(REGISTER[rc.lower()], 16),
+                                                          8)
                 elif opcode == 'sub':
-                    REGISTER[ra.lower()] = f'{REGISTER[rb.lower()] - REGISTER[rc.lower()]:02x}'
+                    REGISTER[ra.lower()] = convert_to_hex(REGISTER[rb.lower()] - REGISTER[rc.lower()], 8)
                 elif opcode == 'and':
-                    REGISTER[ra.lower()] = f'{REGISTER[rb.lower()] * REGISTER[rc.lower()]:02x}'
+                    REGISTER[ra.lower()] = convert_to_hex(REGISTER[rb.lower()] * REGISTER[rc.lower()], 8)
                 elif opcode == 'or':
-                    REGISTER[ra.lower()] = f'{REGISTER[rb.lower()] + REGISTER[rc.lower()]:02x}'
+                    REGISTER[ra.lower()] = convert_to_hex(REGISTER[rb.lower()] + REGISTER[rc.lower()], 8)
                 elif opcode == 'xor':
                     _xor = REGISTER[rb.lower()] + REGISTER[rc.lower()] - 2 * REGISTER[rb.lower()] * REGISTER[rc.lower()]
-                    REGISTER[ra.lower()] = f'{_xor:02x}'
+                    REGISTER[ra.lower()] = convert_to_hex(_xor, 8)
                 elif opcode == 'not':
-                    REGISTER[ra.lower()] = f'{self.bit_not(hex_to_binary(REGISTER[rb.lower()])):02x}'
+                    REGISTER[ra.lower()] = convert_to_hex(self.bit_not(hex_to_binary(REGISTER[rb.lower()])), 8)
                 elif opcode == 'neg':
-                    REGISTER[ra.lower()] = f'{(-1) * REGISTER[rb.lower()]:02x}'
+                    REGISTER[ra.lower()] = convert_to_hex((-1) * REGISTER[rb.lower()], 8)
                 elif opcode == 'shiftr':
-                    REGISTER[ra.lower()] = f'{REGISTER[rb.lower()] >> REGISTER[rc.lower()]:02x}'
+                    REGISTER[ra.lower()] = convert_to_hex(REGISTER[rb.lower()] >> REGISTER[rc.lower()], 8)
                 elif opcode == 'shiftl':
-                    REGISTER[ra.lower()] = f'{REGISTER[rb.lower()] << REGISTER[rc.lower()]:02x}'
+                    REGISTER[ra.lower()] = convert_to_hex(REGISTER[rb.lower()] << REGISTER[rc.lower()], 8)
                 elif opcode == 'rotar':
                     _rotar = self.rotr(int(REGISTER[rb.lower()], 16), int(REGISTER[rc.lower()], 16))
-                    REGISTER[ra.lower()] = f'{_rotar:02x}'
+                    REGISTER[ra.lower()] = convert_to_hex(_rotar, 8)
                 elif opcode == 'rotal':
                     _rotl = self.rotl(int(REGISTER[rb.lower()], 16), int(REGISTER[rc.lower()], 16))
-                    REGISTER[ra.lower()] = f'{_rotl:02x}'
+                    REGISTER[ra.lower()] = convert_to_hex(_rotl, 8)
                 elif opcode == 'jmprind':
                     self.program_counter = int(REGISTER[ra.lower()], 16)
                 elif opcode == 'grteq':
@@ -155,48 +162,49 @@ class MicroSim:
                 elif opcode == 'nop':
                     # Do nothing
                     pass
-                else:
-                    self.micro_instructions.append(f'{opcode.upper()} {ra}, {rb}, {rc}')
                 self.index += 2
-                REGISTER['pc'] = f"{int(REGISTER['pc'], 16) + 2:03x}"
+                REGISTER['pc'] = convert_to_hex(int(REGISTER['pc'], 16) + 2, 12)
             elif opcode in FORMAT_2_OPCODE:
                 ra = f'R{int(instruction[5:8], 2)}'
                 address_or_const = int(instruction[8:], 2)
                 if opcode == 'load' or 'loadim':
-                    REGISTER[ra.lower()] = f'{int(RAM[address_or_const] + RAM[address_or_const + 1], 16):02x}'
+                    REGISTER[ra.lower()] = convert_to_hex(
+                        int(RAM[address_or_const] + RAM[address_or_const + 1], 16), 8)
                 elif opcode == 'store':
                     RAM[self.index] = REGISTER[ra.lower()]
                 elif opcode == 'addim':
                     _addim = int(REGISTER[ra], 16) + int(RAM[address_or_const] + RAM[address_or_const + 1], 16)
-                    REGISTER[ra] = f'{_addim:02x}'
+                    REGISTER[ra] = convert_to_hex(_addim, 8)
                 elif opcode == 'subim':
                     _subim = int(REGISTER[ra], 16) - int(RAM[address_or_const] + RAM[address_or_const + 1], 16)
-                    REGISTER[ra] = f'{_subim:02x}'
+                    REGISTER[ra] = convert_to_hex(_subim, 8)
                 elif opcode == 'pop':
                     REGISTER[ra.lower()] = RAM[REGISTER['sp']]
-                    REGISTER['sp'] = f"{int(REGISTER['sp'], 16) + 1:03x}"
+                    REGISTER['sp'] = convert_to_hex(int(REGISTER['sp'], 16) + 1, 12)
                 elif opcode == 'push':
-                    REGISTER['sp'] = f"{int(REGISTER['sp'], 16) - 1:03x}"
+                    REGISTER['sp'] = convert_to_hex(int(REGISTER['sp'], 16) - 1, 12)
                     RAM[REGISTER['sp']] = REGISTER[ra.lower()]
                 elif opcode == 'loop':
                     reg_ra = int(REGISTER[ra.lower()], 16) - 1
-                    REGISTER[ra.lower()] = f'{reg_ra:02x}'
+                    REGISTER[ra.lower()] = convert_to_hex(reg_ra, 8)
                     if reg_ra != 0:
-                        REGISTER['sp'] = f'{address_or_const:03x}'
+                        REGISTER['sp'] = convert_to_hex(address_or_const, 12)
                 self.index += 2
-                REGISTER['pc'] = f"{int(REGISTER['pc'], 16) + 2:03x}"
+                REGISTER['pc'] = convert_to_hex(int(REGISTER['pc'], 16) + 2, 12)
             elif opcode in FORMAT_3_OPCODE:
                 ra = f'R{int(instruction[5:8], 2)}'
                 address = int(instruction[5:], 2)
                 if opcode == 'jmpaddr':
                     self.index = address
-                    REGISTER['pc'] = f'{address + 2:03x}'
+                    REGISTER['pc'] = convert_to_hex(address, 12)
                 elif opcode == 'jcondrin':
-                    REGISTER['pc'] = REGISTER[ra.lower()] if self.cond else f"{int(REGISTER['pc'], 16) + 2:03x}"
+                    REGISTER['pc'] = REGISTER[ra.lower()] if self.cond else convert_to_hex(int(REGISTER['pc'], 16) + 2,
+                                                                                           12)
                 elif opcode == 'jcondaddr':
-                    REGISTER['pc'] = f'{address:03x}' if self.cond else f"{int(REGISTER['pc'], 16) + 2:03x}"
+                    REGISTER['pc'] = convert_to_hex(address, 3) if self.cond else convert_to_hex(
+                        int(REGISTER['pc'], 16) + 2, 12)
                 elif opcode == 'call':
-                    REGISTER['sp'] = f"{int(REGISTER['sp'], 16) - 2:03x}"
+                    REGISTER['sp'] = convert_to_hex(int(REGISTER['sp'], 16), 12)
                     RAM[REGISTER['sp']] = REGISTER['pc']
                     REGISTER['pc'] = f'{address + 2:03x}'
             elif opcode == 'return':
