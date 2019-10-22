@@ -43,8 +43,9 @@ class MicroSim:
         lines.clear()
         file.close()
 
-    def disassembled_instruction_opcode(self):
-        print(self.index)
+    
+
+    def disassembled_instruction(self):
         binary_instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
         return get_opcode_key(binary_instruction[0:5])
 
@@ -58,7 +59,6 @@ class MicroSim:
             f = open("output/debugger.txt", "w")
         else:
             f = open("output/debugger.txt", "a")
-        print("is running??")
         REGISTER['ir'] = f'{RAM[self.index]}{RAM[self.index + 1]}'
         binary_instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
         self.execute_instruction(binary_instruction)

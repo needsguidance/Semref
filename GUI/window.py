@@ -76,6 +76,7 @@ class RunWindow(FloatLayout):
         self.micro_sim = kwargs.pop('micro_sim')
         self.step_index = 0
         self.header = False
+        self.first_inst = True
         super(RunWindow, self).__init__(**kwargs)
         self.run_button = MDFillRoundFlatIconButton(text='Run',
                                                     icon='run',
@@ -103,8 +104,10 @@ class RunWindow(FloatLayout):
         self.mem_table.data_list.clear()
         self.mem_table.get_data()
         self.inst_table.data_list.clear()
-        self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction_opcode())
+        self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
         self.header = True
+    
+
 
         self.add_widget(self.reg_table)
         self.add_widget(self.inst_table)
@@ -117,21 +120,26 @@ class RunWindow(FloatLayout):
             if not self.micro_sim.is_ram_loaded:
                 toast('Must load file first before running')
             else:
-                self.header = False
-                self.inst_table.data_list.clear()
-                self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction_opcode())
-                self.header = True
-                
-                self.micro_sim.prev_index = -1
-
-                while self.micro_sim.is_running:
-                    self.micro_sim.run_micro_instructions()
-                    self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction_opcode())
-
-                    if self.micro_sim.prev_index == self.micro_sim.index:
-                        self.micro_sim.is_running = False
+                for m in range(2):
+                    if self.first_inst:
+                        self.inst_table.data_list.clear()
+                        self.header = False
+                        self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
+                        self.header = True
+                        self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
+                        self.first_inst = False
                     else:
-                        self.micro_sim.prev_index = self.micro_sim.index
+                     
+                        self.micro_sim.prev_index = -1
+
+                        while self.micro_sim.is_running:
+                            self.micro_sim.run_micro_instructions()
+                            self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
+
+                            if self.micro_sim.prev_index == self.micro_sim.index:
+                                self.micro_sim.is_running = False
+                            else:
+                                self.micro_sim.prev_index = self.micro_sim.index
                 
 
                 self.reg_table.data_list.clear()
@@ -155,8 +163,9 @@ class RunWindow(FloatLayout):
         self.mem_table.data_list.clear()
         self.mem_table.get_data()
         self.inst_table.data_list.clear()
-        self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction_opcode())
+        self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
         self.header = True
+        self.first_inst = True
 
 
         toast('Micro memory cleared! Load new data')
@@ -169,12 +178,17 @@ class RunWindow(FloatLayout):
                 toast('Must load file first before running')
             else:
                 self.step_index += 1
-                self.micro_sim.run_micro_instructions_step(self.step_index)
-                self.reg_table.data_list.clear()
-                self.reg_table.get_data()
-                self.mem_table.data_list.clear()
-                self.mem_table.get_data()
-                self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction_opcode())
+                if self.first_inst:
+                    self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
+                    self.first_inst = False
+                else:
+                    
+                    self.micro_sim.run_micro_instructions_step(self.step_index)
+                    self.reg_table.data_list.clear()
+                    self.reg_table.get_data()
+                    self.mem_table.data_list.clear()
+                    self.mem_table.get_data()
+                    self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
 
                 toast('Runnin instruction in step-by-step mode. Step ' + str(self.step_index) + ' is running')
                 for i in self.micro_sim.micro_instructions:
