@@ -135,90 +135,90 @@ Builder.load_string('''
         Rectangle:
             pos: 50, 60
             size: 205, 200
-        Color:
-            rgb: self.off_color
         # A
+        Color:
+            rgb: self.on_color
         Rectangle:
             pos: 70, 230
             size: 60, 10
+        # B   
         Color:
-            rgb: self.off_color
-        #     B
+            rgb: self.on_color
         Rectangle:
             pos: 130, 160
             size: 10, 70   
+        # C
         Color:
-            rgb: self.off_color
-         #     C
+            rgb: self.on_color
         Rectangle:
             pos: 130, 80
-            size: 10, 70   
+            size: 10, 70 
+        # D
         Color:
             rgb: self.off_color
-        # D
         Rectangle:
             pos: 70, 70
             size: 60, 10
+        # E
         Color:
             rgb: self.off_color
-         #     F
         Rectangle:
             pos: 60, 80
             size: 10, 70       
+        # F
         Color:
             rgb: self.off_color
-        Color:
-            rgb: self.off_color
-        #     E
         Rectangle:
             pos: 60, 160
             size: 10, 70   
             
-        #     G
+        # G
+        Color:
+            rgb: self.off_color
         Rectangle:
             pos: 70, 150
             size: 60, 10
-#     Right Number
+# ############    Right Number ############
+        # A
         Color:
             rgb: self.off_color
-        # A
         Rectangle:
             pos: 175, 230
             size: 60, 10
+        # B
         Color:
             rgb: self.off_color
-        #     B
         Rectangle:
             pos: 235, 160
             size: 10, 70   
+        # C
         Color:
             rgb: self.off_color
-         #     C
         Rectangle:
             pos: 235, 80
             size: 10, 70   
+        # D
         Color:
             rgb: self.off_color
-        # D
         Rectangle:
             pos: 175, 70
             size: 60, 10
+        # E
         Color:
             rgb: self.off_color
-         #     F
         Rectangle:
             pos: 165, 80
             size: 10, 70       
+        # F
         Color:
             rgb: self.off_color
-        Color:
-            rgb: self.off_color
-        #     E
         Rectangle:
             pos: 165, 160
             size: 10, 70   
             
         #     G
+        Color:
+            rgb: self.off_color
         Rectangle:
             pos: 175, 150
             size: 60, 10
@@ -562,7 +562,9 @@ class TrafficLights(Widget):
 
 
 class SevenSegmentDisplay(Widget):
-    off_color = ListProperty([1, 1, 1])
+    off_color = ListProperty([.41, .41, .41])
+    on_color = ListProperty([1, 0, 0])
+
     # TODO: Implement logic for display.
     # leftA
     # leftB
