@@ -1,5 +1,5 @@
 from pathlib import Path
-
+import secrets
 from kivy import Config
 
 from constants import REGISTER
@@ -10,6 +10,8 @@ Config.set('graphics', 'resizable', False)
 from kivymd.uix.button import MDFillRoundFlatIconButton
 from kivy.app import App
 from kivy.lang import Builder
+from kivy.uix.widget import Widget
+from kivy.uix.label import Label
 from kivy.properties import (ListProperty)
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
@@ -88,8 +90,43 @@ Builder.load_string('''
         height: self.minimum_height
         orientation: 'vertical'
 
-
-
+<TrafficLights>
+    canvas.before:
+        Color:
+            rgb: 0,0,0
+        Rectangle:
+            pos: 50, 60
+            size: 85, 106
+        Color:
+            rgb: self.red_1
+        Ellipse:
+            pos: 100, 130
+            size: 25, 25
+        Color:
+            rgb: self.yellow_1
+        Ellipse:
+            pos: 100, 100
+            size: 25, 25
+        Color:
+            rgb: self.green_1
+        Ellipse:
+            pos: 100, 70
+            size: 25, 25
+        Color:
+            rgb: self.red_2
+        Ellipse:
+            pos: 60, 130
+            size: 25, 25
+        Color:
+            rgb: self.yellow_2
+        Ellipse:
+            pos: 60, 100
+            size: 25, 25
+        Color:
+            rgb: self.green_2
+        Ellipse:
+            pos: 60, 70
+            size: 25, 25
 
 ''')
 
@@ -133,18 +170,26 @@ class RunWindow(FloatLayout):
         self.reg_table.get_data()
         self.mem_table.data_list.clear()
         self.mem_table.get_data()
+        self.light = TrafficLights()
         self.inst_table.data_list.clear()
         self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
         self.header = True
-
+        print(RAM[4085])
+        RAM[4085] = '80'
+        self.light.change_color(self.micro_sim.traffic_lights_binary())
+        
 
 
         self.add_widget(self.reg_table)
         self.add_widget(self.inst_table)
         self.add_widget(self.mem_table)
+        self.add_widget(self.light)
 
     def save(self, instance):
         toast("Not Implemented yet. Will be ready on Sprint 3")
+        RAM[4085] = secrets.token_hex(1)
+        self.light.change_color(self.micro_sim.traffic_lights_binary())
+        
 
     def run_micro_instructions(self, instance):
         if not self.micro_sim.is_running:
@@ -370,17 +415,60 @@ class InstructionTable(RecycleView):
             self.data_list.append('ADDRESS')
             self.data_list.append('CONTENT')
             self.data_list.append('DISASSEMBLED INSTRUCTION')
-
         else:
             self.data_list.append((f'{address:02x}').upper())
             self.data_list.append(f'{RAM[address]}')
             self.data_list.append(instruction.upper())
-
-
-
-
-
         self.data = [{"text": str(x.upper()), "color": (.1, .1, .1, 1)} for x in self.data_list]
+
+
+class TrafficLights(Widget):
+    red_1 = ListProperty([1,0,0])
+    red_2 = ListProperty([1,0,0])
+    yellow_1 = ListProperty([1,1,0])
+    yellow_2 = ListProperty([1,1,0])
+    green_1 = ListProperty([0,1,0])
+    green_2 = ListProperty([0,1,0])
+    
+    def __init__(self, **kwargs):
+        super(TrafficLights, self).__init__(**kwargs)
+
+    def change_color(self, binary):
+        print(binary)
+        for bit in range(len(binary)):
+            if bit == 0:
+                if binary[bit] == '0':
+                    self.red_1 = (0,0,0)
+                    print(bit)
+                else:
+                    self.red_1 = (1,0,0)
+            elif bit == 1:
+                if binary[bit] == '0':
+                    self.yellow_1 = (0,0,0)
+                else:
+                    self.yellow_1 = (1,1,0)
+            elif bit == 2:
+                if binary[bit] == '0':
+                    self.green_1 = (0,0,0)
+                else:
+                    self.green_1 = (0,1,0)
+            elif bit == 3:
+                if binary[bit] == '0':
+                    self.red_2 = (0,0,0)
+                else:
+                    self.red_2 = (1,0,0)
+            elif bit == 4:
+                if binary[bit] == '0':
+                    self.yellow_2 = (0,0,0)
+                else:
+                    self.yellow_2 = (1,1,0)
+            elif bit == 5:
+                if binary[bit] == '0':
+                    self.green_2 = (0,0,0)
+                else:
+                    self.green_2 = (0,1,0)
+        
+
 
 class GUI(NavigationLayout):
 
