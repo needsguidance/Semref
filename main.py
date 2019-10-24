@@ -29,7 +29,7 @@ def assembler():
             read_files = not read_files
             i = 0
 
-
+# TODO: Validate if micro_sim is necessary
 def micro_sim():
     read_files = False
     i = 0

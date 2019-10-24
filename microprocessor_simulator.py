@@ -29,6 +29,7 @@ class MicroSim:
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.is_ram_loaded = False
+        # TODO: Verify if micro_instructions & decoded_mirco_instructions are necessary
         self.micro_instructions = []
         self.decoded_micro_instructions = []
         self.index = 0
@@ -123,8 +124,10 @@ class MicroSim:
     def traffic_lights_binary(self):
         
         return hex_to_binary(f'{RAM[0]}')
+    # TODO CFBOY: implement correct RAM localization.
+    def seven_segment_binary(self):
 
-        
+        return hex_to_binary(f'{RAM[1]}')
 
     def micro_clear(self):
         self.is_ram_loaded = False
@@ -148,6 +151,7 @@ class MicroSim:
 
     def execute_instruction(self, instruction):
         if re.match('^[0]+$', instruction):
+            # TODO verify if is necessary
             self.micro_instructions.append('NOP')
         else:
 
