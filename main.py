@@ -1,6 +1,7 @@
 from assembler import Assembler, RAM, verify_ram_content, hexify_ram_content
 from microprocessor_simulator import MicroSim
 from GUI.window import TestApp
+import traceback
 
 
 def assembler():
@@ -22,7 +23,7 @@ def assembler():
                 i += 2
             f.close()
         except (AssertionError, FileNotFoundError, ValueError, MemoryError, KeyError, SyntaxError) as e:
-            print(e)
+            print(traceback.format_exc())
         keep_reading = str(input('\nInput another file? (Y/N): '))
         if keep_reading.lower() != 'y':
             read_files = not read_files
