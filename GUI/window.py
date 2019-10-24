@@ -95,8 +95,48 @@ Builder.load_string('''
         Color:
             rgb: 0,0,0
         Rectangle:
+            pos: 0, 0
+            size: 302, 252
+        Color:
+            rgb: .7,.7,.7
+        Rectangle:
+            pos: 2, 2
+            size: 298, 248
+        Color:
+            rgb: 0,0,0
+        Rectangle:
+            pos: 4, 4
+            size: 293, 243
+        Color:
+            rgb: 1,1,1
+        Rectangle:
+            pos: 6, 6
+            size: 289, 239
+        Color:
+            rgb: 0,0,0
+        Rectangle:
             pos: 50, 60
             size: 85, 106
+        Color:
+            rgb: .5,.5,.5
+        Rectangle:
+            pos: 98, 128
+            size: 29, 29
+        Rectangle:
+            pos: 98, 98
+            size: 29, 29
+        Rectangle:
+            pos: 98, 68
+            size: 29, 29
+        Rectangle:
+            pos: 58, 128
+            size: 29, 29
+        Rectangle:
+            pos: 58, 98
+            size: 29, 29
+        Rectangle:
+            pos: 58, 68
+            size: 29, 29
         Color:
             rgb: self.red_1
         Ellipse:
@@ -174,8 +214,7 @@ class RunWindow(FloatLayout):
         self.inst_table.data_list.clear()
         self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
         self.header = True
-        print(RAM[4085])
-        RAM[4085] = '80'
+
         self.light.change_color(self.micro_sim.traffic_lights_binary())
         
 
@@ -219,7 +258,7 @@ class RunWindow(FloatLayout):
                             else:
                                 self.micro_sim.prev_index = self.micro_sim.index
 
-
+                self.light.change_color(self.micro_sim.traffic_lights_binary())
                 self.reg_table.get_data()
                 self.mem_table.data_list.clear()
                 self.mem_table.get_data()
@@ -243,6 +282,7 @@ class RunWindow(FloatLayout):
         self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
         self.header = True
         self.first_inst = True
+        self.light.change_color(self.micro_sim.traffic_lights_binary())
 
 
         toast('Micro memory cleared! Load new data')
@@ -265,6 +305,7 @@ class RunWindow(FloatLayout):
                     self.mem_table.data_list.clear()
                     self.mem_table.get_data()
                     self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
+                    self.light.change_color(self.micro_sim.traffic_lights_binary())
 
                 toast('Runnin instruction in step-by-step mode. Step ' + str(self.step_index) + ' is running')
                 for i in self.micro_sim.micro_instructions:

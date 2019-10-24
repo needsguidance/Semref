@@ -6,8 +6,8 @@ from constants import OPCODE, FORMAT_1_OPCODE, FORMAT_2_OPCODE, FORMAT_3_OPCODE,
 RAM = ['00' for i in range(4096)]
 
 
-def hex_to_binary(hex_instruction):
-    return f'{int(hex_instruction, 16):016b}'
+def hex_to_binary(hex_num):
+    return f'{int(hex_num, 16):0{len(hex_num) * 4}b}'
 
 
 def get_opcode_key(val):
@@ -122,7 +122,7 @@ class MicroSim:
 
     def traffic_lights_binary(self):
         
-        return hex_to_binary(f'{RAM[4085]}')
+        return hex_to_binary(f'{RAM[0]}')
 
         
 

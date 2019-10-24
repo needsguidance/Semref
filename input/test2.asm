@@ -1,15 +1,16 @@
-org 2 3
-JMPADDR start
-
-valor1 db 5
-valor2 db 7
-
+    org 0
+    JMPADDR start
+a   db A
+b   db B
+suma db 0
+resta db 0
+start:
+    LOADIM R1, 5
+    LOADIM R2, F
+    ADD R3, R1, R2
+    STORE R3, suma
+    SUB R3, R1, R2
+    STORE R3, resta
+    AND R3, R1, R2
 fin:
     JMPADDR fin
-
-start:
-    LOAD R1, valor1
-    LOAD R2, valor2
-    ADD  R1, R2
-    JMPADDR fin
-
