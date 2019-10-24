@@ -98,7 +98,7 @@ Builder.load_string('''
             pos: 0, 0
             size: 302, 252
         Color:
-            rgb: .7,.7,.7
+            rgb: .8,.8,.8
         Rectangle:
             pos: 2, 2
             size: 298, 248
@@ -112,6 +112,11 @@ Builder.load_string('''
         Rectangle:
             pos: 6, 6
             size: 289, 239
+        Color:
+            rgb: 1,.8,0
+        Rectangle:
+            pos: 45, 55
+            size: 95, 115
         Color:
             rgb: 0,0,0
         Rectangle:
