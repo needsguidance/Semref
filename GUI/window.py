@@ -26,6 +26,11 @@ from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
                                          NavigationLayout)
 
 from microprocessor_simulator import MicroSim, RAM
+from queue import Queue
+from constants import HEX_KEYBOARD
+import polling
+from time import sleep
+from asyncio import Lock
 
 Builder.load_string('''
 <RegisterTable>:
@@ -103,6 +108,18 @@ class HexKeyboard(GridLayout):
         self.cols = 4
         self.size_hint = (0.5, 0.5)
         self.pos_hint = {'x': 0.05, 'y': 0.2}
+        self.queue = Queue(maxsize=10)
+        self.hex_keyboard_event = Lock()
+        # polling.poll(
+        #     lambda: self.is_ram_ready,
+        #     step=0.2,
+        #     poll_forever=True
+        # )
+        # polling.poll(
+        #     lambda: self.write_ram,
+        #     poll_forever=True,
+        #     step=0.2
+        #     )
 
         for i in range(16):
             if i > 9:
@@ -111,7 +128,43 @@ class HexKeyboard(GridLayout):
                                          on_release=self.hex_key_press))
 
     def hex_key_press(self, instance):
-        print(hex_to_binary(instance.text))
+        pass
+        # await self.hex_keyboard_event.acquire():
+        #     try:
+        #         print('In a lock')
+        #     finally:
+        #         self.hex_keyboard_event.release()
+        # async with self.hex_keyboard_event:
+        #     if not self.queue.full():
+        #         self.queue.put(hex_to_binary(instance.text))
+        #         await self.is_ram_ready()
+        #     else:
+        #         print('Queue is full')
+
+    
+    async def is_ram_ready(self):
+        """
+        Verifies LSB of the port the keyboard is listening on.
+        0 -> Ready to read keyboard input
+        1 -> Must wait until ready
+        """
+        print('Verifying RAM is ready')
+        binary = hex_to_binary(RAM[HEX_KEYBOARD])
+        print(f'RAM content: {binary}')
+        if binary[:-1] != 0:
+            return False
+            # self.is_ram_ready()
+        return self.write_ram()
+        
+    
+    async def write_ram(self):
+        if not self.queue.empty():
+            print('Writing RAM')
+            print(f'from queue: {self.queue.get()}')
+            sleep(1)
+            return True
+        print('Queue is empty')
+        return False
 
 
 class RunWindow(FloatLayout):

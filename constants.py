@@ -5,6 +5,15 @@ def convert_to_hex(num, bits):
 
 
 def hex_to_binary(hex_num):
+    """
+    Converts hexadecimal number to binary
+    
+    Arguments:
+        hex_num {str} -- hexadecimal number to be converted to decimal
+    
+    Returns:
+        [str] -- Returns the binary representation of the given hexadecimal number
+    """
     return f'{int(hex_num, 16):0{len(hex_num) * 4}b}'
 
 

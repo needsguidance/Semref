@@ -91,12 +91,12 @@ class MicroSim:
         return dis_instruction
 
     def run_micro_instructions(self):
-        REGISTER['ir'] = f'{RAM[self.index]}{RAM[self.index + 1]}'
-        binary_instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
-        self.execute_instruction(binary_instruction)
+            REGISTER['ir'] = f'{RAM[self.index]}{RAM[self.index + 1]}'
+            binary_instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
+            self.execute_instruction(binary_instruction)
 
     def run_micro_instructions_step(self, step_index):
-
+      
         REGISTER['ir'] = f'{RAM[self.index]}{RAM[self.index + 1]}'
         binary_instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
         self.execute_instruction(binary_instruction)
