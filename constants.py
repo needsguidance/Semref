@@ -1,3 +1,13 @@
+def convert_to_hex(num, bits):
+    if not isinstance(num, int):
+        raise ValueError("Invalid number type, num must be of type int.")
+    return f'{num:0{int(bits / 4)}x}'
+
+
+def hex_to_binary(hex_num):
+    return f'{int(hex_num, 16):0{len(hex_num) * 4}b}'
+
+
 OPCODE = {
     'load': f'{0:05b}',
     'loadim': f'{1:05b}',
@@ -87,3 +97,5 @@ FORMAT_3_OPCODE = [
     'jcondaddr',
     'call'
 ]
+
+HEX_KEYBOARD = 4087

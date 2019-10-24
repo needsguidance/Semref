@@ -1,13 +1,15 @@
 from pathlib import Path
 
 from kivy import Config
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.label import Label
 
-from constants import REGISTER
+from constants import REGISTER, hex_to_binary
 
 Config.set('graphics', 'width', '1024')
 Config.set('graphics', 'height', '650')
 Config.set('graphics', 'resizable', False)
-from kivymd.uix.button import MDFillRoundFlatIconButton
+from kivymd.uix.button import MDFillRoundFlatIconButton, MDFlatButton
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.properties import (ListProperty)
@@ -94,6 +96,24 @@ Builder.load_string('''
 ''')
 
 
+class HexKeyboard(GridLayout):
+
+    def __init__(self, **kwargs):
+        super(HexKeyboard, self).__init__(**kwargs)
+        self.cols = 4
+        self.size_hint = (0.5, 0.5)
+        self.pos_hint = {'x': 0.05, 'y': 0.2}
+
+        for i in range(16):
+            if i > 9:
+                i = str(chr(i + 55))
+            self.add_widget(MDFlatButton(text=f'{i}',
+                                         on_release=self.hex_key_press))
+
+    def hex_key_press(self, instance):
+        print(hex_to_binary(instance.text))
+
+
 class RunWindow(FloatLayout):
 
     def __init__(self, **kwargs):
@@ -119,14 +139,11 @@ class RunWindow(FloatLayout):
                                                         pos_hint={'center_x': .5, 'center_y': 2.12},
                                                         on_release=self.clear)
         self.save_button = MDFillRoundFlatIconButton(text='Save File',
-                                                        icon='download',
-                                                        size_hint=(None, None),
-                                                        pos_hint={'center_x': .35, 'center_y': 2.12},
-                                                        on_release=self.save)
-        self.add_widget(self.save_button)
-        self.add_widget(self.run_button)
-        self.add_widget(self.debug_button)
-        self.add_widget(self.refresh_button)
+                                                     icon='download',
+                                                     size_hint=(None, None),
+                                                     pos_hint={'center_x': .35, 'center_y': 2.12},
+                                                     on_release=self.save)
+
         self.reg_table = RegisterTable()
         self.mem_table = MemoryTable()
         self.inst_table = InstructionTable()
@@ -136,12 +153,22 @@ class RunWindow(FloatLayout):
         self.inst_table.data_list.clear()
         self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
         self.header = True
+        self.hex_keyboard_label = Label(text='HEX KEYBOARD',
+                                        font_size=20,
+                                        color=(0, 0, 0, 1),
+                                        # size_hint=(1, 0.17),
+                                        pos_hint={'x': -0.28, 'y': 0.25})
+        self.hex_keyboard_layout = HexKeyboard()
 
-
-
+        self.add_widget(self.save_button)
+        self.add_widget(self.run_button)
+        self.add_widget(self.debug_button)
+        self.add_widget(self.refresh_button)
         self.add_widget(self.reg_table)
         self.add_widget(self.inst_table)
         self.add_widget(self.mem_table)
+        self.add_widget(self.hex_keyboard_layout)
+        self.add_widget(self.hex_keyboard_label)
 
     def save(self, instance):
         toast("Not Implemented yet. Will be ready on Sprint 3")
@@ -157,9 +184,11 @@ class RunWindow(FloatLayout):
                     if self.first_inst:
                         self.inst_table.data_list.clear()
                         self.header = False
-                        self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
+                        self.inst_table.get_data(self.micro_sim.index, self.header,
+                                                 self.micro_sim.disassembled_instruction())
                         self.header = True
-                        self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
+                        self.inst_table.get_data(self.micro_sim.index, self.header,
+                                                 self.micro_sim.disassembled_instruction())
                         self.first_inst = False
                     else:
 
@@ -167,13 +196,13 @@ class RunWindow(FloatLayout):
 
                         while self.micro_sim.is_running:
                             self.micro_sim.run_micro_instructions()
-                            self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
+                            self.inst_table.get_data(self.micro_sim.index, self.header,
+                                                     self.micro_sim.disassembled_instruction())
 
                             if self.micro_sim.prev_index == self.micro_sim.index:
                                 self.micro_sim.is_running = False
                             else:
                                 self.micro_sim.prev_index = self.micro_sim.index
-
 
                 self.reg_table.get_data()
                 self.mem_table.data_list.clear()
@@ -183,8 +212,6 @@ class RunWindow(FloatLayout):
                 for i in self.micro_sim.micro_instructions:
                     if i != 'NOP':
                         print(i)
-
-
 
     def clear(self, instance):
         self.header = False
@@ -199,7 +226,6 @@ class RunWindow(FloatLayout):
         self.header = True
         self.first_inst = True
 
-
         toast('Micro memory cleared! Load new data')
 
     def run_micro_instructions_step(self, instance):
@@ -211,7 +237,8 @@ class RunWindow(FloatLayout):
             else:
                 self.step_index += 1
                 if self.first_inst:
-                    self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
+                    self.inst_table.get_data(self.micro_sim.index, self.header,
+                                             self.micro_sim.disassembled_instruction())
                     self.first_inst = False
                 else:
 
@@ -219,13 +246,13 @@ class RunWindow(FloatLayout):
                     self.reg_table.get_data()
                     self.mem_table.data_list.clear()
                     self.mem_table.get_data()
-                    self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
+                    self.inst_table.get_data(self.micro_sim.index, self.header,
+                                             self.micro_sim.disassembled_instruction())
 
                 toast('Runnin instruction in step-by-step mode. Step ' + str(self.step_index) + ' is running')
                 for i in self.micro_sim.micro_instructions:
                     if i != 'NOP':
                         print(i)
-
 
 
 class MainWindow(BoxLayout):
@@ -354,6 +381,7 @@ class MemoryTable(RecycleView):
 
         self.data = [{"text": str(x.upper()), "color": (.1, .1, .1, 1)} for x in self.data_list]
 
+
 class InstructionTable(RecycleView):
     data_list = ListProperty([])
 
@@ -361,9 +389,6 @@ class InstructionTable(RecycleView):
         # self.register = REGISTER
         super(InstructionTable, self).__init__(**kwargs)
         self.viewclass = 'Label'
-
-
-
 
     def get_data(self, address, header, instruction):
         if not header:
@@ -376,11 +401,8 @@ class InstructionTable(RecycleView):
             self.data_list.append(f'{RAM[address]}')
             self.data_list.append(instruction.upper())
 
-
-
-
-
         self.data = [{"text": str(x.upper()), "color": (.1, .1, .1, 1)} for x in self.data_list]
+
 
 class GUI(NavigationLayout):
 
