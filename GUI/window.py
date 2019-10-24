@@ -1,5 +1,4 @@
 from pathlib import Path
-import secrets
 from kivy import Config
 
 from constants import REGISTER
@@ -26,6 +25,9 @@ from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
                                          NavigationLayout)
 
 from microprocessor_simulator import MicroSim, RAM
+
+import threading, time
+
 
 Builder.load_string('''
 <RegisterTable>:
@@ -231,8 +233,9 @@ class RunWindow(FloatLayout):
 
     def save(self, instance):
         toast("Not Implemented yet. Will be ready on Sprint 3")
-        RAM[4085] = secrets.token_hex(1)
+        RAM[0]= 'FF'
         self.light.change_color(self.micro_sim.traffic_lights_binary())
+
         
 
     def run_micro_instructions(self, instance):
@@ -478,41 +481,43 @@ class TrafficLights(Widget):
     
     def __init__(self, **kwargs):
         super(TrafficLights, self).__init__(**kwargs)
+    
 
     def change_color(self, binary):
         print(binary)
         for bit in range(len(binary)):
             if bit == 0:
                 if binary[bit] == '0':
-                    self.red_1 = (0,0,0)
-                    print(bit)
-                else:
-                    self.red_1 = (1,0,0)
-            elif bit == 1:
-                if binary[bit] == '0':
-                    self.yellow_1 = (0,0,0)
-                else:
-                    self.yellow_1 = (1,1,0)
-            elif bit == 2:
-                if binary[bit] == '0':
-                    self.green_1 = (0,0,0)
-                else:
-                    self.green_1 = (0,1,0)
-            elif bit == 3:
-                if binary[bit] == '0':
                     self.red_2 = (0,0,0)
                 else:
                     self.red_2 = (1,0,0)
-            elif bit == 4:
+            elif bit == 1:
                 if binary[bit] == '0':
                     self.yellow_2 = (0,0,0)
                 else:
                     self.yellow_2 = (1,1,0)
-            elif bit == 5:
+            elif bit == 2:
                 if binary[bit] == '0':
                     self.green_2 = (0,0,0)
                 else:
                     self.green_2 = (0,1,0)
+            
+            
+            elif bit == 3:
+                if binary[bit] == '0':
+                    self.red_1 = (0,0,0)
+                else:
+                    self.red_1 = (1,0,0)
+            elif bit == 4:
+                if binary[bit] == '0':
+                    self.yellow_1 = (0,0,0)
+                else:
+                    self.yellow_1 = (1,1,0)
+            elif bit == 5:
+                if binary[bit] == '0':
+                    self.green_1 = (0,0,0)
+                else:
+                    self.green_1 = (0,1,0)
         
 
 
