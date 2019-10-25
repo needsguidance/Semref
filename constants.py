@@ -1,4 +1,10 @@
 def convert_to_hex(num, bits):
+    """
+    Converts number to hexadecimal
+    :param num: int
+    :param bits: int
+    :return: str
+    """
     if not isinstance(num, int):
         raise ValueError("Invalid number type, num must be of type int.")
     return f'{num:0{int(bits / 4)}x}'
@@ -7,12 +13,8 @@ def convert_to_hex(num, bits):
 def hex_to_binary(hex_num):
     """
     Converts hexadecimal number to binary
-    
-    Arguments:
-        hex_num {str} -- hexadecimal number to be converted to decimal
-    
-    Returns:
-        [str] -- Returns the binary representation of the given hexadecimal number
+    :param hex_num: str
+    :return: str
     """
     return f'{int(hex_num, 16):0{len(hex_num) * 4}b}'
 
@@ -107,4 +109,4 @@ FORMAT_3_OPCODE = [
     'call'
 ]
 
-HEX_KEYBOARD = 4087
+HEX_KEYBOARD = 0

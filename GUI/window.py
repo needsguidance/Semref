@@ -1,10 +1,13 @@
 from pathlib import Path
+from threading import Lock, Thread, Semaphore, Condition
 
 from kivy import Config
+from kivy.graphics.context_instructions import Color
+from kivy.graphics.vertex_instructions import Rectangle, Line
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 
-from constants import REGISTER, hex_to_binary
+from constants import REGISTER, hex_to_binary, convert_to_hex
 
 Config.set('graphics', 'width', '1024')
 Config.set('graphics', 'height', '650')
@@ -28,9 +31,7 @@ from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
 from microprocessor_simulator import MicroSim, RAM
 from queue import Queue
 from constants import HEX_KEYBOARD
-import polling
 from time import sleep
-from asyncio import Lock
 
 Builder.load_string('''
 <RegisterTable>:
@@ -104,22 +105,71 @@ Builder.load_string('''
 class HexKeyboard(GridLayout):
 
     def __init__(self, **kwargs):
+        self.mem_table = kwargs.pop('mem_table')
         super(HexKeyboard, self).__init__(**kwargs)
         self.cols = 4
-        self.size_hint = (0.5, 0.5)
-        self.pos_hint = {'x': 0.05, 'y': 0.2}
+        self.size_hint = (0.4, 0.4)
+        self.pos_hint = {'x': 0.30, 'y': 0.35}
         self.queue = Queue(maxsize=10)
-        self.hex_keyboard_event = Lock()
-        # polling.poll(
-        #     lambda: self.is_ram_ready,
-        #     step=0.2,
-        #     poll_forever=True
-        # )
-        # polling.poll(
-        #     lambda: self.write_ram,
-        #     poll_forever=True,
-        #     step=0.2
-        #     )
+        self.lock = Lock()
+        self.semaphore = Semaphore()
+        self.condition = Condition()
+
+        with self.canvas.before:
+            Color(0, 0, 0, 1)
+            Rectangle(pos=(306, 75), size=(355, 202))
+
+        with self.canvas:
+            Color(.75, .75, .75, 1)
+            Rectangle(pos=(307, 76), size=(353, 200))
+
+            Color(0, 0, 0, 1)
+            Line(rectangle=(307, 183, 87, 35), width=0.3)
+
+            Color(0, 0, 0, 1)
+            Line(rectangle=(396, 183, 87, 35), width=0.3)
+
+            Color(0, 0, 0, 1)
+            Line(rectangle=(485, 183, 87, 35), width=0.3)
+
+            Color(0, 0, 0, 1)
+            Line(rectangle=(574, 183, 87, 35), width=0.3)
+
+            Color(0, 0, 0, 1)
+            Line(rectangle=(307, 148, 87, 35), width=0.3)
+
+            Color(0, 0, 0, 1)
+            Line(rectangle=(396, 148, 87, 35), width=0.3)
+
+            Color(0, 0, 0, 1)
+            Line(rectangle=(485, 148, 87, 35), width=0.3)
+
+            Color(0, 0, 0, 1)
+            Line(rectangle=(574, 148, 87, 35), width=0.3)
+
+            Color(0, 0, 0, 1)
+            Line(rectangle=(307, 113, 87, 35), width=0.3)
+
+            Color(0, 0, 0, 1)
+            Line(rectangle=(396, 113, 87, 35), width=0.3)
+
+            Color(0, 0, 0, 1)
+            Line(rectangle=(485, 113, 87, 35), width=0.3)
+
+            Color(0, 0, 0, 1)
+            Line(rectangle=(574, 113, 87, 35), width=0.3)
+
+            Color(0, 0, 0, 1)
+            Line(rectangle=(307, 78, 87, 35), width=0.3)
+
+            Color(0, 0, 0, 1)
+            Line(rectangle=(396, 78, 87, 35), width=0.3)
+
+            Color(0, 0, 0, 1)
+            Line(rectangle=(485, 78, 87, 35), width=0.3)
+
+            Color(0, 0, 0, 1)
+            Line(rectangle=(574, 78, 87, 35), width=0.3)
 
         for i in range(16):
             if i > 9:
@@ -128,43 +178,34 @@ class HexKeyboard(GridLayout):
                                          on_release=self.hex_key_press))
 
     def hex_key_press(self, instance):
-        pass
-        # await self.hex_keyboard_event.acquire():
-        #     try:
-        #         print('In a lock')
-        #     finally:
-        #         self.hex_keyboard_event.release()
-        # async with self.hex_keyboard_event:
-        #     if not self.queue.full():
-        #         self.queue.put(hex_to_binary(instance.text))
-        #         await self.is_ram_ready()
-        #     else:
-        #         print('Queue is full')
+        """
+        On hex keyboard press, a thread verifies if RAM is ready to be written. Uses a shared queue to enqueue pressed
+        keys that are to be written to RAM.
+        :param instance: obj
+        """
+        thread = Thread(target=self.is_ram_ready)
+        if not self.queue.full():
+            self.queue.put(hex_to_binary(instance.text))
+            thread.start()
 
-    
-    async def is_ram_ready(self):
+    def is_ram_ready(self):
         """
-        Verifies LSB of the port the keyboard is listening on.
-        0 -> Ready to read keyboard input
-        1 -> Must wait until ready
+        Utilizes semaphores and monitors to prevent threads from writing to RAM at the same time. Current thread is
+        allowed to write to RAM if the LSB is 0, otherwise it must wait.
         """
-        print('Verifying RAM is ready')
-        binary = hex_to_binary(RAM[HEX_KEYBOARD])
-        print(f'RAM content: {binary}')
-        if binary[:-1] != 0:
-            return False
-            # self.is_ram_ready()
-        return self.write_ram()
-        
-    
-    async def write_ram(self):
-        if not self.queue.empty():
-            print('Writing RAM')
-            print(f'from queue: {self.queue.get()}')
+        with self.semaphore:
+            binary = hex_to_binary(RAM[HEX_KEYBOARD])
+            if binary[-1] != 0:
+                self.condition.acquire()
+            self.write_ram()
+
+    def write_ram(self):
+        with self.lock:
+            RAM[HEX_KEYBOARD] = convert_to_hex(int(f'{self.queue.get()}0001', 2), 8)
+            self.mem_table.data_list.clear()
+            self.mem_table.get_data()
             sleep(1)
-            return True
-        print('Queue is empty')
-        return False
+            self.condition.release()
 
 
 class RunWindow(FloatLayout):
@@ -210,8 +251,8 @@ class RunWindow(FloatLayout):
                                         font_size=20,
                                         color=(0, 0, 0, 1),
                                         # size_hint=(1, 0.17),
-                                        pos_hint={'x': -0.28, 'y': 0.25})
-        self.hex_keyboard_layout = HexKeyboard()
+                                        pos_hint={'x': -0.025, 'y': 0.35})
+        self.hex_keyboard_layout = HexKeyboard(mem_table=self.mem_table)
 
         self.add_widget(self.save_button)
         self.add_widget(self.run_button)
