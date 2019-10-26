@@ -1,7 +1,9 @@
 from pathlib import Path
 from kivy import Config
-
+from functools import partial
+import time
 from constants import REGISTER
+import secrets
 
 Config.set('graphics', 'width', '1024')
 Config.set('graphics', 'height', '650')
@@ -9,6 +11,7 @@ Config.set('graphics', 'resizable', False)
 from kivymd.uix.button import MDFillRoundFlatIconButton
 from kivy.app import App
 from kivy.lang import Builder
+from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.uix.label import Label
 from kivy.properties import (ListProperty)
@@ -26,7 +29,6 @@ from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
 
 from microprocessor_simulator import MicroSim, RAM
 
-import threading, time
 
 
 Builder.load_string('''
@@ -223,6 +225,10 @@ class RunWindow(FloatLayout):
         self.header = True
 
         self.light.change_color(self.micro_sim.traffic_lights_binary())
+        self.event_on = Clock.schedule_interval(self.light.intermittent_off,  0.5)
+        self.event_off = Clock.schedule_interval(self.light.intermittent_on,  0.3)
+        self.event_on.cancel()
+        self.event_off.cancel()
         
 
 
@@ -233,8 +239,6 @@ class RunWindow(FloatLayout):
 
     def save(self, instance):
         toast("Not Implemented yet. Will be ready on Sprint 3")
-        RAM[0]= 'FF'
-        self.light.change_color(self.micro_sim.traffic_lights_binary())
 
         
 
@@ -266,7 +270,11 @@ class RunWindow(FloatLayout):
                             else:
                                 self.micro_sim.prev_index = self.micro_sim.index
 
+                self.event_on.cancel()
+                self.event_off.cancel()
                 self.light.change_color(self.micro_sim.traffic_lights_binary())
+                self.event_on()
+                self.event_off()
                 self.reg_table.get_data()
                 self.mem_table.data_list.clear()
                 self.mem_table.get_data()
@@ -290,7 +298,10 @@ class RunWindow(FloatLayout):
         self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
         self.header = True
         self.first_inst = True
+        self.event_on.cancel()
+        self.event_off.cancel()
         self.light.change_color(self.micro_sim.traffic_lights_binary())
+
 
 
         toast('Micro memory cleared! Load new data')
@@ -313,7 +324,11 @@ class RunWindow(FloatLayout):
                     self.mem_table.data_list.clear()
                     self.mem_table.get_data()
                     self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
+                    self.event_on.cancel()
+                    self.event_off.cancel()
                     self.light.change_color(self.micro_sim.traffic_lights_binary())
+                    self.event_on()
+                    self.event_off()
 
                 toast('Runnin instruction in step-by-step mode. Step ' + str(self.step_index) + ' is running')
                 for i in self.micro_sim.micro_instructions:
@@ -481,11 +496,53 @@ class TrafficLights(Widget):
     
     def __init__(self, **kwargs):
         super(TrafficLights, self).__init__(**kwargs)
+        self.control_bit_1 = 6
+        self.control_bit_2 = 7
+        self.binary = ''
+        
     
+    def intermittent_off(self, dt):
+
+        if self.binary[self.control_bit_1] == '1':
+            if self.binary[0] == '1':
+ 
+                self.red_2 = (0,0,0)
+            if self.binary[1] == '1':
+                self.yellow_2 = (0,0,0)
+            if self.binary[2] == '1':
+                self.green_2 = (0,0,0)
+
+        if self.binary[self.control_bit_2] == '1':
+            if self.binary[3] == '1':
+                self.red_1 = (0,0,0)
+            if self.binary[4] == '1':
+                self.yellow_1 = (0,0,0)
+            if self.binary[5] == '1':
+                self.green_1 = (0,0,0)
+
+    def intermittent_on(self, dt):
+
+        if self.binary[self.control_bit_1] == '1':
+            if self.binary[0] == '1':
+                self.red_2 = (1,0,0)
+            if self.binary[1] == '1':
+                self.yellow_2 = (1,1,0)
+            if self.binary[2] == '1':
+                self.green_2 = (0,1,0)
+        if self.binary[self.control_bit_2] == '1':
+            if self.binary[3] == '1':
+                self.red_1 = (1,0,0)
+            if self.binary[4] == '1':
+                self.yellow_1 = (1,1,0)
+            if self.binary[5] == '1':
+                self.green_1 = (0,1,0)
+
 
     def change_color(self, binary):
-        print(binary)
+
+        self.binary = binary
         for bit in range(len(binary)):
+                
             if bit == 0:
                 if binary[bit] == '0':
                     self.red_2 = (0,0,0)
