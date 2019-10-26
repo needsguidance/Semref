@@ -96,22 +96,22 @@ Builder.load_string('''
             rgb: 0,0,0
         Rectangle:
             pos: 0, 0
-            size: 302, 252
+            size: 402, 252
         Color:
             rgb: .7,.7,.7
         Rectangle:
             pos: 2, 2
-            size: 298, 248
+            size: 398, 248
         Color:
             rgb: 0,0,0
         Rectangle:
             pos: 4, 4
-            size: 293, 243
+            size: 393, 243
         Color:
             rgb: 1,1,1
         Rectangle:
             pos: 6, 6
-            size: 289, 239
+            size: 389, 239
         Color:
             rgb: 0,0,0
         Rectangle:
@@ -173,94 +173,94 @@ Builder.load_string('''
         Color:
             rgb: 0,0,0
         Rectangle:
-            pos: 50, 60
-            size: 205, 200
+            pos: 140, 25
+            size: 210, 180
         # A
         Color:
             rgb: self.leftA
         Rectangle:
-            pos: 70, 230
+            pos: 160, 190
             size: 60, 10
         # B   
         Color:
             rgb: self.leftB
         Rectangle:
-            pos: 130, 160
+            pos: 220, 120
             size: 10, 70   
         # C
         Color:
             rgb: self.leftC
         Rectangle:
-            pos: 130, 80
+            pos: 220, 40
             size: 10, 70 
         # D
         Color:
             rgb: self.leftD
         Rectangle:
-            pos: 70, 70
+            pos: 160, 30
             size: 60, 10
         # E
         Color:
             rgb: self.leftE
         Rectangle:
-            pos: 60, 80
+            pos: 150, 40
             size: 10, 70       
         # F
         Color:
             rgb: self.leftF
         Rectangle:
-            pos: 60, 160
+            pos: 150, 120
             size: 10, 70   
             
         # G
         Color:
             rgb: self.leftG
         Rectangle:
-            pos: 70, 150
+            pos: 160, 110
             size: 60, 10
 # ############    Right Number ############
         # A
         Color:
             rgb: self.rightA
         Rectangle:
-            pos: 175, 230
+            pos: 270, 195
             size: 60, 10
         # B
         Color:
             rgb: self.rightB
         Rectangle:
-            pos: 235, 160
+            pos: 330, 125
             size: 10, 70   
         # C
         Color:
             rgb: self.rightC
         Rectangle:
-            pos: 235, 80
+            pos: 330, 45
             size: 10, 70   
         # D
         Color:
             rgb: self.rightD
         Rectangle:
-            pos: 175, 70
+            pos: 270, 35
             size: 60, 10
         # E
         Color:
             rgb: self.rightE
         Rectangle:
-            pos: 165, 80
+            pos: 260, 45
             size: 10, 70       
         # F
         Color:
             rgb: self.rightF
         Rectangle:
-            pos: 165, 160
+            pos: 260, 125
             size: 10, 70   
             
         #     G
         Color:
             rgb: self.rightG
         Rectangle:
-            pos: 175, 150
+            pos: 270, 115
             size: 60, 10
 
 ''')
@@ -316,7 +316,7 @@ class RunWindow(FloatLayout):
         self.add_widget(self.reg_table)
         self.add_widget(self.inst_table)
         self.add_widget(self.mem_table)
-        # self.add_widget(self.light)
+        self.add_widget(self.light)
         self.add_widget(self.seven_segment_display)
 
     def save(self, instance):
@@ -367,8 +367,6 @@ class RunWindow(FloatLayout):
                 for i in self.micro_sim.micro_instructions:
                     if i != 'NOP':
                         print(i)
-
-
 
     def clear(self, instance):
         self.header = False
@@ -609,107 +607,104 @@ class TrafficLights(Widget):
 
 
 class SevenSegmentDisplay(Widget):
-    off_color = ListProperty([.41, .41, .41])
-    on_color = ListProperty([1, 0, 0])
 
-    rightA = off_color
-    rightB = off_color
-    rightC = off_color
-    rightD = off_color
-    rightE = off_color
-    rightF = off_color
-    rightG = off_color
+    rightA = ListProperty([.41, .41, .41])
+    rightB = ListProperty([.41, .41, .41])
+    rightC = ListProperty([.41, .41, .41])
+    rightD = ListProperty([.41, .41, .41])
+    rightE = ListProperty([.41, .41, .41])
+    rightF = ListProperty([.41, .41, .41])
+    rightG = ListProperty([.41, .41, .41])
 
-    leftA = off_color
-    leftB = off_color
-    leftC = off_color
-    leftD = off_color
-    leftE = off_color
-    leftF = off_color
-    leftG = off_color
+    leftA = ListProperty([.41, .41, .41])
+    leftB = ListProperty([.41, .41, .41])
+    leftC = ListProperty([.41, .41, .41])
+    leftD = ListProperty([.41, .41, .41])
+    leftE = ListProperty([.41, .41, .41])
+    leftF = ListProperty([.41, .41, .41])
+    leftG = ListProperty([.41, .41, .41])
 
     def __init__(self, **kwargs):
         super(SevenSegmentDisplay, self).__init__(**kwargs)
 
     def activate_segments(self, binary):
         print(binary)
-        control_bit = binary[len(binary) - 1]
-        if control_bit == 0:
-            for bit in range(len(binary) - 1):
+        control_bit = int(binary[len(binary) - 1])
+        for bit in range(len(binary) - 1):
+            if control_bit == 0:
                 if bit == 0:
                     if binary[bit] == '0':
-                        self.rightA = self.off_color
+                        self.leftA = (.41, .41, .41)
                         print(bit)
                     else:
-                        self.rightA = self.on_color
+                        self.leftA = (1, 0, 0)
                 elif bit == 1:
                     if binary[bit] == '0':
-                        self.rightB = self.off_color
+                        self.leftB = (.41, .41, .41)
                     else:
-                        self.rightB = self.on_color
+                        self.leftB = (1, 0, 0)
                 elif bit == 2:
                     if binary[bit] == '0':
-                        self.rightC = self.off_color
+                        self.leftC = (.41, .41, .41)
                     else:
-                        self.rightC = self.on_color
+                        self.leftC = (1, 0, 0)
                 elif bit == 3:
                     if binary[bit] == '0':
-                        self.rightD = self.off_color
+                        self.leftD = (.41, .41, .41)
                     else:
-                        self.rightD = self.on_color
+                        self.leftD = (1, 0, 0)
                 elif bit == 4:
                     if binary[bit] == '0':
-                        self.rightE = self.off_color
+                        self.leftE = (.41, .41, .41)
                     else:
-                        self.rightE = self.on_color
+                        self.leftE = (1, 0, 0)
                 elif bit == 5:
                     if binary[bit] == '0':
-                        self.rightF = self.off_color
+                        self.leftF = (.41, .41, .41)
                     else:
-                        self.rightF = self.on_color
+                        self.leftF = (1, 0, 0)
                 elif bit == 6:
                     if binary[bit] == '0':
-                        self.rightG = self.off_color
+                        self.leftG = (.41, .41, .41)
                     else:
-                        self.rightG = self.on_color
-        else:
-            for bit in range(len(binary) - 1):
+                        self.leftG = (1, 0, 0)
+            elif control_bit == 1:
                 if bit == 0:
                     if binary[bit] == '0':
-                        self.leftA = self.off_color
+                        self.rightA = (.41, .41, .41)
                         print(bit)
                     else:
-                        self.leftA = self.on_color
+                        self.rightA = (1, 0, 0)
                 elif bit == 1:
                     if binary[bit] == '0':
-                        self.leftB = self.off_color
+                        self.rightB = (.41, .41, .41)
                     else:
-                        self.leftB = self.on_color
+                        self.rightB = (1, 0, 0)
                 elif bit == 2:
                     if binary[bit] == '0':
-                        self.leftC = self.off_color
+                        self.rightC = (.41, .41, .41)
                     else:
-                        self.leftC = self.on_color
+                        self.rightC = (1, 0, 0)
                 elif bit == 3:
                     if binary[bit] == '0':
-                        self.leftD = self.off_color
+                        self.rightD = (.41, .41, .41)
                     else:
-                        self.leftD = self.on_color
+                        self.rightD = (1, 0, 0)
                 elif bit == 4:
                     if binary[bit] == '0':
-                        self.leftE = self.off_color
+                        self.rightE = (.41, .41, .41)
                     else:
-                        self.leftE = self.on_color
+                        self.rightE = (1, 0, 0)
                 elif bit == 5:
                     if binary[bit] == '0':
-                        self.leftF = self.off_color
+                        self.rightF = (.41, .41, .41)
                     else:
-                        self.leftF = self.on_color
+                        self.rightF = (1, 0, 0)
                 elif bit == 6:
                     if binary[bit] == '0':
-                        self.leftG = self.off_color
+                        self.rightG = (.41, .41, .41)
                     else:
-                        self.leftG = self.on_color
+                        self.rightG = (1, 0, 0)
 
     def __init__(self, **kwargs):
         super(SevenSegmentDisplay, self).__init__(**kwargs)
