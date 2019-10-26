@@ -23,7 +23,7 @@ def assembler():
                 i += 2
             f.close()
         except (AssertionError, FileNotFoundError, ValueError, MemoryError, KeyError, SyntaxError) as e:
-            print(traceback.format_exc())
+            print(e)
         keep_reading = str(input('\nInput another file? (Y/N): '))
         if keep_reading.lower() != 'y':
             read_files = not read_files

@@ -1,9 +1,8 @@
 from pathlib import Path
 from kivy import Config
-from functools import partial
-import time
+
 from constants import REGISTER
-import secrets
+
 
 Config.set('graphics', 'width', '1024')
 Config.set('graphics', 'height', '650')
@@ -225,10 +224,16 @@ class RunWindow(FloatLayout):
         self.header = True
 
         self.light.change_color(self.micro_sim.traffic_lights_binary())
+
+        #Create variable of scheduling instance so that it can be turned on and off, 
+        #to avoid repeat of the same thread
         self.event_on = Clock.schedule_interval(self.light.intermittent_off,  0.5)
         self.event_off = Clock.schedule_interval(self.light.intermittent_on,  0.3)
+        
+        #Since the instancing of the events actually starts the scheduling, needs to be canceled right away
         self.event_on.cancel()
         self.event_off.cancel()
+        
         
 
 
@@ -269,12 +274,16 @@ class RunWindow(FloatLayout):
                                 self.micro_sim.is_running = False
                             else:
                                 self.micro_sim.prev_index = self.micro_sim.index
-
+                
+                #Cancels last scheduling thread 
                 self.event_on.cancel()
                 self.event_off.cancel()
+                #Updates colors
                 self.light.change_color(self.micro_sim.traffic_lights_binary())
+                #Begins new scheduling thread
                 self.event_on()
                 self.event_off()
+                
                 self.reg_table.get_data()
                 self.mem_table.data_list.clear()
                 self.mem_table.get_data()
@@ -298,6 +307,8 @@ class RunWindow(FloatLayout):
         self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
         self.header = True
         self.first_inst = True
+
+        #Cancels last scheduling thread for clean event
         self.event_on.cancel()
         self.event_off.cancel()
         self.light.change_color(self.micro_sim.traffic_lights_binary())
@@ -324,9 +335,12 @@ class RunWindow(FloatLayout):
                     self.mem_table.data_list.clear()
                     self.mem_table.get_data()
                     self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
+                    #Cancels last scheduling thread 
                     self.event_on.cancel()
                     self.event_off.cancel()
+                    #Updates colors
                     self.light.change_color(self.micro_sim.traffic_lights_binary())
+                    #Begins new scheduling thread
                     self.event_on()
                     self.event_off()
 
@@ -467,7 +481,6 @@ class InstructionTable(RecycleView):
     data_list = ListProperty([])
 
     def __init__(self, **kwargs):
-        # self.register = REGISTER
         super(InstructionTable, self).__init__(**kwargs)
         self.viewclass = 'Label'
 
@@ -496,13 +509,15 @@ class TrafficLights(Widget):
     
     def __init__(self, **kwargs):
         super(TrafficLights, self).__init__(**kwargs)
-        self.control_bit_1 = 6
+        #Index of last bits of the byte used as Input for traffic lights
+        self.control_bit_1 = 6 
         self.control_bit_2 = 7
-        self.binary = ''
+        self.binary = '' #variable needed for intermittent function
         
-    
+    #Scheduler calls method to turn off all lights
+    #Parameter dt is the scheduling time
     def intermittent_off(self, dt):
-
+        #First traffic light
         if self.binary[self.control_bit_1] == '1':
             if self.binary[0] == '1':
  
@@ -511,7 +526,7 @@ class TrafficLights(Widget):
                 self.yellow_2 = (0,0,0)
             if self.binary[2] == '1':
                 self.green_2 = (0,0,0)
-
+        #Second traffic ligth
         if self.binary[self.control_bit_2] == '1':
             if self.binary[3] == '1':
                 self.red_1 = (0,0,0)
@@ -520,8 +535,11 @@ class TrafficLights(Widget):
             if self.binary[5] == '1':
                 self.green_1 = (0,0,0)
 
+    #Scheduler calls method to turn on all lights
+    #Parameter dt is the scheduling time
     def intermittent_on(self, dt):
 
+        #First traffic light
         if self.binary[self.control_bit_1] == '1':
             if self.binary[0] == '1':
                 self.red_2 = (1,0,0)
@@ -529,6 +547,7 @@ class TrafficLights(Widget):
                 self.yellow_2 = (1,1,0)
             if self.binary[2] == '1':
                 self.green_2 = (0,1,0)
+        #Second traffic ligth
         if self.binary[self.control_bit_2] == '1':
             if self.binary[3] == '1':
                 self.red_1 = (1,0,0)
@@ -537,12 +556,14 @@ class TrafficLights(Widget):
             if self.binary[5] == '1':
                 self.green_1 = (0,1,0)
 
-
+    #Iterates through the binary at the Input location (RAM) to determine which are 1s and which are 0s
+    #Then, changes colors accordingly.
     def change_color(self, binary):
 
         self.binary = binary
         for bit in range(len(binary)):
-                
+
+            #First traffic ligth    
             if bit == 0:
                 if binary[bit] == '0':
                     self.red_2 = (0,0,0)
@@ -559,7 +580,7 @@ class TrafficLights(Widget):
                 else:
                     self.green_2 = (0,1,0)
             
-            
+            #Second traffic ligth
             elif bit == 3:
                 if binary[bit] == '0':
                     self.red_1 = (0,0,0)
