@@ -133,7 +133,7 @@ class Assembler:
                         instruction == 'subim' or instruction == 'loop':
                     ra = REGISTER[re.sub(r'[^\w\s]', '', inst[1]).lower()]
                     address = f'{int(inst[2], 16):08b}' if inst[2] not in VARIABLES else VARIABLES[inst[2]]
-                    binary = opcode + ra + str(address)
+                    binary = opcode + ra + address
                 elif instruction == 'call':
                     address = f'{int(inst[2], 16):011b}' if inst[2] not in VARIABLES else VARIABLES[inst[2]]
                     binary = opcode + address
