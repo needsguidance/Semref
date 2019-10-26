@@ -12,6 +12,7 @@ from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.widget import Widget
 from kivy.uix.label import Label
+from kivy.uix.button import Button
 from kivy.properties import (ListProperty)
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
@@ -64,8 +65,8 @@ Builder.load_string('''
         size_hint_x: 0.5
         height: self.minimum_height
         orientation: 'vertical'
-        
-        
+
+
 <MemoryTable>:
     id: data_list
     pos_hint:{'x': 0.75, 'center_y': 1.5}
@@ -166,7 +167,46 @@ Builder.load_string('''
             rgb: self.green_2
         Ellipse:
             pos: 60, 70
-            size: 25, 25
+            size: 25, 25 
+
+<ASCIIGrid> 
+    canvas.before:
+        Color:  
+            rgb: 0,0,0 
+        Rectangle: 
+            pos: 300,150
+            size: 365,50   
+        Color: 
+            rgb: 1,1,1 
+        Rectangle: 
+            pos: 305,155
+            size: 40,40 
+        Rectangle: 
+            pos: 350,155 
+            size: 40,40 
+        Rectangle: 
+            pos: 395,155
+            size: 40,40 
+        Rectangle: 
+            pos: 440,155 
+            size: 40,40 
+        Rectangle: 
+            pos: 485,155 
+            size: 40,40 
+        Rectangle: 
+            pos: 530,155 
+            size: 40,40 
+        Rectangle: 
+            pos: 575,155 
+            size: 40,40 
+        Rectangle: 
+            pos: 620,155 
+            size: 40,40  
+
+
+
+
+
 
 ''')
 
@@ -196,14 +236,33 @@ class RunWindow(FloatLayout):
                                                         pos_hint={'center_x': .5, 'center_y': 2.12},
                                                         on_release=self.clear)
         self.save_button = MDFillRoundFlatIconButton(text='Save File',
-                                                        icon='download',
-                                                        size_hint=(None, None),
-                                                        pos_hint={'center_x': .35, 'center_y': 2.12},
-                                                        on_release=self.save)
+                                                     icon='download',
+                                                     size_hint=(None, None),
+                                                     pos_hint={'center_x': .35, 'center_y': 2.12},
+                                                     on_release=self.save)
+
+        self.ascii_label_1 = Label(text='[color=000000]' + chr(int(RAM[4088], 16)) + '[/color]', pos=(-187, 29),
+                                   font_size=40, markup=True)
+        self.ascii_label_2 = Label(text='[color=000000]' + chr(int(RAM[4089], 16)) + '[/color]', pos=(-146, 29),
+                                   font_size=40, markup=True)
+        self.ascii_label_3 = Label(text='[color=000000]' + chr(int(RAM[4090], 16)) + '[/color]', pos=(-100, 29),
+                                   font_size=40, markup=True)
+        self.ascii_label_4 = Label(text='[color=000000]' + chr(int(RAM[4091], 16)) + '[/color]', pos=(-54, 29),
+                                   font_size=40, markup=True)
+        self.ascii_label_5 = Label(text='[color=000000]' + chr(int(RAM[4092], 16)) + '[/color]', pos=(-8, 29),
+                                   font_size=40, markup=True)
+        self.ascii_label_6 = Label(text='[color=000000]' + chr(int(RAM[4093], 16)) + '[/color]', pos=(38, 29),
+                                   font_size=40, markup=True)
+        self.ascii_label_7 = Label(text='[color=000000]' + chr(int(RAM[4094], 16)) + '[/color]', pos=(84, 29),
+                                   font_size=40, markup=True)
+        self.ascii_label_8 = Label(text='[color=000000]' + chr(int(RAM[4095], 16)) + '[/color]', pos=(130, 29),
+                                   font_size=40, markup=True)
+
         self.add_widget(self.save_button)
         self.add_widget(self.run_button)
         self.add_widget(self.debug_button)
         self.add_widget(self.refresh_button)
+        self.ascii = ASCIIGrid()
         self.reg_table = RegisterTable()
         self.mem_table = MemoryTable()
         self.inst_table = InstructionTable()
@@ -216,19 +275,26 @@ class RunWindow(FloatLayout):
         self.header = True
 
         self.light.change_color(self.micro_sim.traffic_lights_binary())
-        
-
 
         self.add_widget(self.reg_table)
         self.add_widget(self.inst_table)
         self.add_widget(self.mem_table)
         self.add_widget(self.light)
 
+        self.add_widget(self.ascii)
+        self.add_widget(self.ascii_label_1)
+        self.add_widget(self.ascii_label_2)
+        self.add_widget(self.ascii_label_3)
+        self.add_widget(self.ascii_label_4)
+        self.add_widget(self.ascii_label_5)
+        self.add_widget(self.ascii_label_6)
+        self.add_widget(self.ascii_label_7)
+        self.add_widget(self.ascii_label_8)
+
     def save(self, instance):
         toast("Not Implemented yet. Will be ready on Sprint 3")
         RAM[4085] = secrets.token_hex(1)
         self.light.change_color(self.micro_sim.traffic_lights_binary())
-        
 
     def run_micro_instructions(self, instance):
         if not self.micro_sim.is_running:
@@ -241,9 +307,11 @@ class RunWindow(FloatLayout):
                     if self.first_inst:
                         self.inst_table.data_list.clear()
                         self.header = False
-                        self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
+                        self.inst_table.get_data(self.micro_sim.index, self.header,
+                                                 self.micro_sim.disassembled_instruction())
                         self.header = True
-                        self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
+                        self.inst_table.get_data(self.micro_sim.index, self.header,
+                                                 self.micro_sim.disassembled_instruction())
                         self.first_inst = False
                     else:
 
@@ -251,7 +319,8 @@ class RunWindow(FloatLayout):
 
                         while self.micro_sim.is_running:
                             self.micro_sim.run_micro_instructions()
-                            self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
+                            self.inst_table.get_data(self.micro_sim.index, self.header,
+                                                     self.micro_sim.disassembled_instruction())
 
                             if self.micro_sim.prev_index == self.micro_sim.index:
                                 self.micro_sim.is_running = False
@@ -262,13 +331,12 @@ class RunWindow(FloatLayout):
                 self.reg_table.get_data()
                 self.mem_table.data_list.clear()
                 self.mem_table.get_data()
+                self.update_grid()
 
                 toast('File executed successfully')
                 for i in self.micro_sim.micro_instructions:
                     if i != 'NOP':
                         print(i)
-
-
 
     def clear(self, instance):
         self.header = False
@@ -283,7 +351,7 @@ class RunWindow(FloatLayout):
         self.header = True
         self.first_inst = True
         self.light.change_color(self.micro_sim.traffic_lights_binary())
-
+        self.update_grid()
 
         toast('Micro memory cleared! Load new data')
 
@@ -296,22 +364,35 @@ class RunWindow(FloatLayout):
             else:
                 self.step_index += 1
                 if self.first_inst:
-                    self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
+                    self.inst_table.get_data(self.micro_sim.index, self.header,
+                                             self.micro_sim.disassembled_instruction())
                     self.first_inst = False
+                    self.update_grid()
                 else:
 
                     self.micro_sim.run_micro_instructions_step(self.step_index)
                     self.reg_table.get_data()
                     self.mem_table.data_list.clear()
                     self.mem_table.get_data()
-                    self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
+                    self.inst_table.get_data(self.micro_sim.index, self.header,
+                                             self.micro_sim.disassembled_instruction())
                     self.light.change_color(self.micro_sim.traffic_lights_binary())
+                    self.update_grid()
 
                 toast('Runnin instruction in step-by-step mode. Step ' + str(self.step_index) + ' is running')
                 for i in self.micro_sim.micro_instructions:
                     if i != 'NOP':
                         print(i)
 
+    def update_grid(self):
+        self.ascii_label_1.text = '[color=000000]' + chr(int(RAM[4088], 16)) + '[/color]'
+        self.ascii_label_2.text = '[color=000000]' + chr(int(RAM[4089], 16)) + '[/color]'
+        self.ascii_label_3.text = '[color=000000]' + chr(int(RAM[4090], 16)) + '[/color]'
+        self.ascii_label_4.text = '[color=000000]' + chr(int(RAM[4091], 16)) + '[/color]'
+        self.ascii_label_5.text = '[color=000000]' + chr(int(RAM[4092], 16)) + '[/color]'
+        self.ascii_label_6.text = '[color=000000]' + chr(int(RAM[4093], 16)) + '[/color]'
+        self.ascii_label_7.text = '[color=000000]' + chr(int(RAM[4094], 16)) + '[/color]'
+        self.ascii_label_8.text = '[color=000000]' + chr(int(RAM[4095], 16)) + '[/color]'
 
 
 class MainWindow(BoxLayout):
@@ -440,6 +521,7 @@ class MemoryTable(RecycleView):
 
         self.data = [{"text": str(x.upper()), "color": (.1, .1, .1, 1)} for x in self.data_list]
 
+
 class InstructionTable(RecycleView):
     data_list = ListProperty([])
 
@@ -447,9 +529,6 @@ class InstructionTable(RecycleView):
         # self.register = REGISTER
         super(InstructionTable, self).__init__(**kwargs)
         self.viewclass = 'Label'
-
-
-
 
     def get_data(self, address, header, instruction):
         if not header:
@@ -464,13 +543,13 @@ class InstructionTable(RecycleView):
 
 
 class TrafficLights(Widget):
-    red_1 = ListProperty([1,0,0])
-    red_2 = ListProperty([1,0,0])
-    yellow_1 = ListProperty([1,1,0])
-    yellow_2 = ListProperty([1,1,0])
-    green_1 = ListProperty([0,1,0])
-    green_2 = ListProperty([0,1,0])
-    
+    red_1 = ListProperty([1, 0, 0])
+    red_2 = ListProperty([1, 0, 0])
+    yellow_1 = ListProperty([1, 1, 0])
+    yellow_2 = ListProperty([1, 1, 0])
+    green_1 = ListProperty([0, 1, 0])
+    green_2 = ListProperty([0, 1, 0])
+
     def __init__(self, **kwargs):
         super(TrafficLights, self).__init__(**kwargs)
 
@@ -479,36 +558,41 @@ class TrafficLights(Widget):
         for bit in range(len(binary)):
             if bit == 0:
                 if binary[bit] == '0':
-                    self.red_1 = (0,0,0)
+                    self.red_1 = (0, 0, 0)
                     print(bit)
                 else:
-                    self.red_1 = (1,0,0)
+                    self.red_1 = (1, 0, 0)
             elif bit == 1:
                 if binary[bit] == '0':
-                    self.yellow_1 = (0,0,0)
+                    self.yellow_1 = (0, 0, 0)
                 else:
-                    self.yellow_1 = (1,1,0)
+                    self.yellow_1 = (1, 1, 0)
             elif bit == 2:
                 if binary[bit] == '0':
-                    self.green_1 = (0,0,0)
+                    self.green_1 = (0, 0, 0)
                 else:
-                    self.green_1 = (0,1,0)
+                    self.green_1 = (0, 1, 0)
             elif bit == 3:
                 if binary[bit] == '0':
-                    self.red_2 = (0,0,0)
+                    self.red_2 = (0, 0, 0)
                 else:
-                    self.red_2 = (1,0,0)
+                    self.red_2 = (1, 0, 0)
             elif bit == 4:
                 if binary[bit] == '0':
-                    self.yellow_2 = (0,0,0)
+                    self.yellow_2 = (0, 0, 0)
                 else:
-                    self.yellow_2 = (1,1,0)
+                    self.yellow_2 = (1, 1, 0)
             elif bit == 5:
                 if binary[bit] == '0':
-                    self.green_2 = (0,0,0)
+                    self.green_2 = (0, 0, 0)
                 else:
-                    self.green_2 = (0,1,0)
-        
+                    self.green_2 = (0, 1, 0)
+
+
+class ASCIIGrid(Widget):
+
+    def __init__(self, **kwargs):
+        super(ASCIIGrid, self).__init__(**kwargs)
 
 
 class GUI(NavigationLayout):
