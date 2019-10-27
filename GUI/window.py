@@ -828,21 +828,16 @@ class SevenSegmentDisplay(Widget):
     rightF = ListProperty([.41, .41, .41])
     rightG = ListProperty([.41, .41, .41])
 
-    def __init__(self, **kwargs):
-        super(SevenSegmentDisplay, self).__init__(**kwargs)
-
     # Iterates through the binary at the Input location (RAM) to determine which are 1s and which are 0s
     # Then, activate segments accordingly.
     def activate_segments(self, binary):
-        print(binary)
-        control_bit = int(binary[len(binary) - 1])
+        control_bit = int(binary[-1])
         for bit in range(len(binary) - 1):
             if control_bit == 0:
                 # if control_bit == 1 then activate the seven left segments depending of the bit.
                 if bit == 0:
                     if binary[bit] == '0':
                         self.leftA = (.41, .41, .41)
-                        print(bit)
                     else:
                         self.leftA = (1, 0, 0)
                 elif bit == 1:
@@ -880,7 +875,6 @@ class SevenSegmentDisplay(Widget):
                 if bit == 0:
                     if binary[bit] == '0':
                         self.rightA = (.41, .41, .41)
-                        print(bit)
                     else:
                         self.rightA = (1, 0, 0)
                 elif bit == 1:
@@ -913,9 +907,6 @@ class SevenSegmentDisplay(Widget):
                         self.rightG = (.41, .41, .41)
                     else:
                         self.rightG = (1, 0, 0)
-
-    def __init__(self, **kwargs):
-        super(SevenSegmentDisplay, self).__init__(**kwargs)
 
 
 class GUI(NavigationLayout):
