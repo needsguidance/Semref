@@ -92,12 +92,12 @@ class MicroSim:
         return dis_instruction
 
     def run_micro_instructions(self):
-            REGISTER['ir'] = f'{RAM[self.index]}{RAM[self.index + 1]}'
-            binary_instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
-            self.execute_instruction(binary_instruction)
+        REGISTER['ir'] = f'{RAM[self.index]}{RAM[self.index + 1]}'
+        binary_instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
+        self.execute_instruction(binary_instruction)
 
     def run_micro_instructions_step(self, step_index):
-      
+
         REGISTER['ir'] = f'{RAM[self.index]}{RAM[self.index + 1]}'
         binary_instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
         self.execute_instruction(binary_instruction)
@@ -109,7 +109,7 @@ class MicroSim:
     def traffic_lights_binary(self):
 
         return hex_to_binary(f'{RAM[0]}')
-    # TODO CFBOY: implement correct RAM localization.
+
     def seven_segment_binary(self):
 
         return hex_to_binary(f'{RAM[1]}')

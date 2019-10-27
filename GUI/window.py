@@ -460,11 +460,6 @@ class RunWindow(FloatLayout):
 
     def save(self, instance):
         toast("Not Implemented yet. Will be ready on Sprint 3")
-        RAM[4085] = secrets.token_hex(1)
-        self.light.change_color(self.micro_sim.traffic_lights_binary())
-        # TODO CFBOY: For debugging purpose.
-        RAM[1] = secrets.token_hex(1)
-        self.seven_segment_display.activate_segments(self.micro_sim.seven_segment_binary())
 
     def run_micro_instructions(self, instance):
         if not self.micro_sim.is_running:
@@ -480,7 +475,8 @@ class RunWindow(FloatLayout):
                         self.inst_table.get_data(self.micro_sim.index, self.header,
                                                  self.micro_sim.disassembled_instruction())
                         self.header = True
-                        self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
+                        self.inst_table.get_data(self.micro_sim.index, self.header,
+                                                 self.micro_sim.disassembled_instruction())
                         self.first_inst = False
                     else:
 
@@ -504,7 +500,7 @@ class RunWindow(FloatLayout):
                 # Begins new scheduling thread
                 self.event_on()
                 self.event_off()
-
+                self.seven_segment_display.activate_segments(self.micro_sim.seven_segment_binary())
                 self.reg_table.get_data()
                 self.mem_table.data_list.clear()
                 self.mem_table.get_data()
@@ -531,7 +527,7 @@ class RunWindow(FloatLayout):
         self.event_on.cancel()
         self.event_off.cancel()
         self.light.change_color(self.micro_sim.traffic_lights_binary())
-
+        self.seven_segment_display.activate_segments(self.micro_sim.seven_segment_binary())
         toast('Micro memory cleared! Load new data')
 
     def run_micro_instructions_step(self, instance):
@@ -562,7 +558,7 @@ class RunWindow(FloatLayout):
                     # Begins new scheduling thread
                     self.event_on()
                     self.event_off()
-
+                    self.seven_segment_display.activate_segments(self.micro_sim.seven_segment_binary())
                 toast('Runnin instruction in step-by-step mode. Step ' + str(self.step_index) + ' is running')
                 for i in self.micro_sim.micro_instructions:
                     if i != 'NOP':
@@ -813,8 +809,8 @@ class TrafficLights(Widget):
                 else:
                     self.green_1 = (0, 1, 0)
 
-class SevenSegmentDisplay(Widget):
 
+class SevenSegmentDisplay(Widget):
     rightA = ListProperty([.41, .41, .41])
     rightB = ListProperty([.41, .41, .41])
     rightC = ListProperty([.41, .41, .41])
