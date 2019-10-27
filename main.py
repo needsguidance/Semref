@@ -3,6 +3,7 @@ from microprocessor_simulator import MicroSim
 from GUI.window import TestApp
 
 
+
 def assembler():
     read_files = True
     file = None

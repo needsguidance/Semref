@@ -1,12 +1,13 @@
 import re
 
+
 from constants import OPCODE, FORMAT_1_OPCODE, FORMAT_2_OPCODE, FORMAT_3_OPCODE, REGISTER
 
 RAM = ['00' for i in range(4096)]
 
 
-def hex_to_binary(hex_instruction):
-    return f'{int(hex_instruction, 16):016b}'
+def hex_to_binary(hex_num):
+    return f'{int(hex_num, 16):0{len(hex_num) * 4}b}'
 
 
 def get_opcode_key(val):
@@ -119,7 +120,11 @@ class MicroSim:
         else:
             self.prev_index = self.index
 
-       
+    def traffic_lights_binary(self):
+        
+        return hex_to_binary(f'{RAM[0]}')
+
+        
 
     def micro_clear(self):
         self.is_ram_loaded = False
