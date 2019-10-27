@@ -811,13 +811,6 @@ class TrafficLights(Widget):
 
 
 class SevenSegmentDisplay(Widget):
-    rightA = ListProperty([.41, .41, .41])
-    rightB = ListProperty([.41, .41, .41])
-    rightC = ListProperty([.41, .41, .41])
-    rightD = ListProperty([.41, .41, .41])
-    rightE = ListProperty([.41, .41, .41])
-    rightF = ListProperty([.41, .41, .41])
-    rightG = ListProperty([.41, .41, .41])
 
     leftA = ListProperty([.41, .41, .41])
     leftB = ListProperty([.41, .41, .41])
@@ -827,14 +820,25 @@ class SevenSegmentDisplay(Widget):
     leftF = ListProperty([.41, .41, .41])
     leftG = ListProperty([.41, .41, .41])
 
+    rightA = ListProperty([.41, .41, .41])
+    rightB = ListProperty([.41, .41, .41])
+    rightC = ListProperty([.41, .41, .41])
+    rightD = ListProperty([.41, .41, .41])
+    rightE = ListProperty([.41, .41, .41])
+    rightF = ListProperty([.41, .41, .41])
+    rightG = ListProperty([.41, .41, .41])
+
     def __init__(self, **kwargs):
         super(SevenSegmentDisplay, self).__init__(**kwargs)
 
+    # Iterates through the binary at the Input location (RAM) to determine which are 1s and which are 0s
+    # Then, activate segments accordingly.
     def activate_segments(self, binary):
         print(binary)
         control_bit = int(binary[len(binary) - 1])
         for bit in range(len(binary) - 1):
             if control_bit == 0:
+                # if control_bit == 1 then activate the seven left segments depending of the bit.
                 if bit == 0:
                     if binary[bit] == '0':
                         self.leftA = (.41, .41, .41)
@@ -872,6 +876,7 @@ class SevenSegmentDisplay(Widget):
                     else:
                         self.leftG = (1, 0, 0)
             elif control_bit == 1:
+                # if control_bit == 1 then activate the seven right segments depending of the bit.
                 if bit == 0:
                     if binary[bit] == '0':
                         self.rightA = (.41, .41, .41)
