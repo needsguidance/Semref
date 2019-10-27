@@ -357,7 +357,7 @@ class RunWindow(FloatLayout):
                 self.reg_table.get_data()
                 self.mem_table.data_list.clear()
                 self.mem_table.get_data()
-                self.update_grid()
+                self.update_ascii_grid()
 
                 toast('File executed successfully')
                 for i in self.micro_sim.micro_instructions:
@@ -381,7 +381,7 @@ class RunWindow(FloatLayout):
         self.event_on.cancel()
         self.event_off.cancel()
         self.light.change_color(self.micro_sim.traffic_lights_binary())
-        self.update_grid()
+        self.update_ascii_grid()
 
 
         toast('Micro memory cleared! Load new data')
@@ -398,7 +398,7 @@ class RunWindow(FloatLayout):
                     self.inst_table.get_data(self.micro_sim.index, self.header,
                                              self.micro_sim.disassembled_instruction())
                     self.first_inst = False
-                    self.update_grid()
+                    self.update_ascii_grid()
                 else:
 
                     self.micro_sim.run_micro_instructions_step(self.step_index)
@@ -416,14 +416,14 @@ class RunWindow(FloatLayout):
                     #Begins new scheduling thread
                     self.event_on()
                     self.event_off()
-                    self.update_grid()
+                    self.update_ascii_grid()
 
                 toast('Runnin instruction in step-by-step mode. Step ' + str(self.step_index) + ' is running')
                 for i in self.micro_sim.micro_instructions:
                     if i != 'NOP':
                         print(i)
 
-    def update_grid(self):
+    def update_ascii_grid(self):
         self.ascii_label_1.text = '[color=000000]' + chr(int(RAM[4088], 16)) + '[/color]'
         self.ascii_label_2.text = '[color=000000]' + chr(int(RAM[4089], 16)) + '[/color]'
         self.ascii_label_3.text = '[color=000000]' + chr(int(RAM[4090], 16)) + '[/color]'
