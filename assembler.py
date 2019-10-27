@@ -36,7 +36,7 @@ def verify_ram_content():
 
 def hexify_ram_content():
     for i in range(4096):
-        RAM[i] = f'{int(RAM[i], 16):02X}'
+        RAM[i] = f'{int(RAM[i], 2):02X}'
 
 
 class Assembler:
@@ -64,7 +64,7 @@ class Assembler:
 
     def store_instructions_in_ram(self):
         for instruction in self.micro_instr:
-            print(instruction)
+            
             source = instruction.split()
             contains_label = [s for s in source if ':' in s]
             if contains_label:
@@ -89,11 +89,8 @@ class Assembler:
                     self.p_counter = int(org_address, 16)
                 else:
                     if source[0].lower() in OPCODE:
-                        if source[1] == 'db':
-                            raise KeyError(source[0] + ' Is not a valid variable name; it is assigned as a keyword')
-                        else:
-                            # Assign instruction to proper memory location
-                            self.convert_instruction_to_binary(source)
+                        # Assign instruction to proper memory location
+                        self.convert_instruction_to_binary(source)
 
                     else:
                         if source[0].lower() == 'const':
@@ -106,7 +103,7 @@ class Assembler:
 
                         elif len(source) == 3:
                             VARIABLES[source[0]] = f'{self.p_counter:08b}'
-                            RAM[self.p_counter] = f'{int(source[2],16):08b}'
+                            RAM[self.p_counter] = f'{int(source[2]):08b}'
                         else:
                             raise SyntaxError(f"'{instruction}' not a valid instruction")
 
@@ -136,7 +133,7 @@ class Assembler:
                         instruction == 'subim' or instruction == 'loop':
                     ra = REGISTER[re.sub(r'[^\w\s]', '', inst[1]).lower()]
                     address = f'{int(inst[2], 16):08b}' if inst[2] not in VARIABLES else VARIABLES[inst[2]]
-                    binary = opcode + ra + str(address)
+                    binary = opcode + ra + address
                 elif instruction == 'call':
                     address = f'{int(inst[2], 16):011b}' if inst[2] not in VARIABLES else VARIABLES[inst[2]]
                     binary = opcode + address
