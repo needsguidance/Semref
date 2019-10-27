@@ -1,13 +1,8 @@
 import re
 
-
-from constants import OPCODE, FORMAT_1_OPCODE, FORMAT_2_OPCODE, FORMAT_3_OPCODE, REGISTER
+from constants import OPCODE, FORMAT_1_OPCODE, FORMAT_2_OPCODE, FORMAT_3_OPCODE, REGISTER, convert_to_hex, hex_to_binary
 
 RAM = ['00' for i in range(4096)]
-
-
-def hex_to_binary(hex_num):
-    return f'{int(hex_num, 16):0{len(hex_num) * 4}b}'
 
 
 def get_opcode_key(val):
@@ -15,13 +10,6 @@ def get_opcode_key(val):
         if val == value:
             return key
     return None
-
-
-
-def convert_to_hex(num, bits):
-    if not isinstance(num, int):
-        raise ValueError("Invalid number type, num must be of type int.")
-    return f'{num:0{int(bits / 4)}x}'
 
 
 class MicroSim:
@@ -52,8 +40,6 @@ class MicroSim:
         lines.clear()
         file.close()
 
-
-
     def disassembled_instruction(self):
 
         instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
@@ -69,7 +55,6 @@ class MicroSim:
             ra = f'R{int(instruction[5:8], 2)}'
             rb = f'R{int(instruction[8:11], 2)}'
             rc = f'R{int(instruction[11:14], 2)}'
-
 
             register_a = f' {ra}'
             register_b = f' {rb}'
@@ -122,7 +107,7 @@ class MicroSim:
             self.prev_index = self.index
 
     def traffic_lights_binary(self):
-        
+
         return hex_to_binary(f'{RAM[0]}')
     # TODO CFBOY: implement correct RAM localization.
     def seven_segment_binary(self):
