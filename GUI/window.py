@@ -187,95 +187,95 @@ Builder.load_string('''
         Color:
             rgb: 0,0,0
         Rectangle:
-            pos: 140, 25
-            size: 210, 180
+            pos: 140, 50
+            size: 150, 130
         # A
         Color:
             rgb: self.leftA
         Rectangle:
-            pos: 160, 190
-            size: 60, 10
+            pos: 160, 160
+            size: 40, 10
         # B   
         Color:
             rgb: self.leftB
         Rectangle:
-            pos: 220, 120
-            size: 10, 70   
+            pos: 200, 120
+            size: 10, 40   
         # C
         Color:
             rgb: self.leftC
         Rectangle:
-            pos: 220, 40
-            size: 10, 70 
+            pos: 200, 70
+            size: 10, 40 
         # D
         Color:
             rgb: self.leftD
         Rectangle:
-            pos: 160, 30
-            size: 60, 10
+            pos: 160, 60
+            size: 40, 10
         # E
         Color:
             rgb: self.leftE
         Rectangle:
-            pos: 150, 40
-            size: 10, 70       
+            pos: 150, 70
+            size: 10, 40       
         # F
         Color:
             rgb: self.leftF
         Rectangle:
             pos: 150, 120
-            size: 10, 70   
-            
+            size: 10, 40   
+
         # G
         Color:
             rgb: self.leftG
         Rectangle:
             pos: 160, 110
-            size: 60, 10
+            size: 40, 10
 # ############    Right Number ############
-        # A
+       # A
         Color:
             rgb: self.rightA
         Rectangle:
-            pos: 270, 195
-            size: 60, 10
-        # B
+            pos: 230, 160
+            size: 40, 10
+        # B   
         Color:
             rgb: self.rightB
         Rectangle:
-            pos: 330, 125
-            size: 10, 70   
+            pos: 270, 120
+            size: 10, 40   
         # C
         Color:
             rgb: self.rightC
         Rectangle:
-            pos: 330, 45
-            size: 10, 70   
+            pos: 270, 70
+            size: 10, 40 
         # D
         Color:
             rgb: self.rightD
         Rectangle:
-            pos: 270, 35
-            size: 60, 10
+            pos: 230, 60
+            size: 40, 10
         # E
         Color:
             rgb: self.rightE
         Rectangle:
-            pos: 260, 45
-            size: 10, 70       
+            pos: 220, 70
+            size: 10, 40       
         # F
         Color:
             rgb: self.rightF
         Rectangle:
-            pos: 260, 125
-            size: 10, 70   
-            
-        #     G
+            pos: 220, 120
+            size: 10, 40   
+
+        # G
         Color:
             rgb: self.rightG
         Rectangle:
-            pos: 270, 115
-            size: 60, 10
+            pos: 230, 110
+            size: 40, 10
 
 ''')
 
