@@ -9,12 +9,16 @@ from kivy.uix.label import Label
 
 from constants import REGISTER, hex_to_binary, convert_to_hex
 
+
 Config.set('graphics', 'width', '1024')
 Config.set('graphics', 'height', '650')
 Config.set('graphics', 'resizable', False)
 from kivymd.uix.button import MDFillRoundFlatIconButton, MDFlatButton
 from kivy.app import App
 from kivy.lang import Builder
+from kivy.clock import Clock
+from kivy.uix.widget import Widget
+from kivy.uix.label import Label
 from kivy.properties import (ListProperty)
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
@@ -32,6 +36,8 @@ from microprocessor_simulator import MicroSim, RAM
 from queue import Queue
 from constants import HEX_KEYBOARD
 from time import sleep
+
+
 
 Builder.load_string('''
 <RegisterTable>:
@@ -96,8 +102,88 @@ Builder.load_string('''
         height: self.minimum_height
         orientation: 'vertical'
 
-
-
+<TrafficLights>
+    canvas.before:
+        Color:
+            rgb: 0,0,0
+        Rectangle:
+            pos: 0, 0
+            size: 302, 252
+        Color:
+            rgb: .8,.8,.8
+        Rectangle:
+            pos: 2, 2
+            size: 298, 248
+        Color:
+            rgb: 0,0,0
+        Rectangle:
+            pos: 4, 4
+            size: 293, 243
+        Color:
+            rgb: 1,1,1
+        Rectangle:
+            pos: 6, 6
+            size: 289, 239
+        Color:
+            rgb: 1,.8,0
+        Rectangle:
+            pos: 45, 55
+            size: 95, 115
+        Color:
+            rgb: 0,0,0
+        Rectangle:
+            pos: 50, 60
+            size: 85, 106
+        Color:
+            rgb: .5,.5,.5
+        Rectangle:
+            pos: 98, 128
+            size: 29, 29
+        Rectangle:
+            pos: 98, 98
+            size: 29, 29
+        Rectangle:
+            pos: 98, 68
+            size: 29, 29
+        Rectangle:
+            pos: 58, 128
+            size: 29, 29
+        Rectangle:
+            pos: 58, 98
+            size: 29, 29
+        Rectangle:
+            pos: 58, 68
+            size: 29, 29
+        Color:
+            rgb: self.red_1
+        Ellipse:
+            pos: 100, 130
+            size: 25, 25
+        Color:
+            rgb: self.yellow_1
+        Ellipse:
+            pos: 100, 100
+            size: 25, 25
+        Color:
+            rgb: self.green_1
+        Ellipse:
+            pos: 100, 70
+            size: 25, 25
+        Color:
+            rgb: self.red_2
+        Ellipse:
+            pos: 60, 130
+            size: 25, 25
+        Color:
+            rgb: self.yellow_2
+        Ellipse:
+            pos: 60, 100
+            size: 25, 25
+        Color:
+            rgb: self.green_2
+        Ellipse:
+            pos: 60, 70
+            size: 25, 25
 
 ''')
 
@@ -244,6 +330,7 @@ class RunWindow(FloatLayout):
         self.reg_table.get_data()
         self.mem_table.data_list.clear()
         self.mem_table.get_data()
+        self.light = TrafficLights()
         self.inst_table.data_list.clear()
         self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
         self.header = True
@@ -254,6 +341,19 @@ class RunWindow(FloatLayout):
                                         pos_hint={'x': -0.025, 'y': 0.35})
         self.hex_keyboard_layout = HexKeyboard(mem_table=self.mem_table)
 
+        self.light.change_color(self.micro_sim.traffic_lights_binary())
+
+        #Create variable of scheduling instance so that it can be turned on and off,
+        #to avoid repeat of the same thread
+        self.event_on = Clock.schedule_interval(self.light.intermittent_off,  0.5)
+        self.event_off = Clock.schedule_interval(self.light.intermittent_on,  0.3)
+
+        #Since the instancing of the events actually starts the scheduling, needs to be canceled right away
+        self.event_on.cancel()
+        self.event_off.cancel()
+
+
+
         self.add_widget(self.save_button)
         self.add_widget(self.run_button)
         self.add_widget(self.debug_button)
@@ -261,11 +361,14 @@ class RunWindow(FloatLayout):
         self.add_widget(self.reg_table)
         self.add_widget(self.inst_table)
         self.add_widget(self.mem_table)
+        self.add_widget(self.light)
         self.add_widget(self.hex_keyboard_layout)
         self.add_widget(self.hex_keyboard_label)
 
     def save(self, instance):
         toast("Not Implemented yet. Will be ready on Sprint 3")
+
+
 
     def run_micro_instructions(self, instance):
         if not self.micro_sim.is_running:
@@ -298,6 +401,15 @@ class RunWindow(FloatLayout):
                             else:
                                 self.micro_sim.prev_index = self.micro_sim.index
 
+                #Cancels last scheduling thread
+                self.event_on.cancel()
+                self.event_off.cancel()
+                #Updates colors
+                self.light.change_color(self.micro_sim.traffic_lights_binary())
+                #Begins new scheduling thread
+                self.event_on()
+                self.event_off()
+
                 self.reg_table.get_data()
                 self.mem_table.data_list.clear()
                 self.mem_table.get_data()
@@ -320,6 +432,13 @@ class RunWindow(FloatLayout):
         self.header = True
         self.first_inst = True
 
+        #Cancels last scheduling thread for clean event
+        self.event_on.cancel()
+        self.event_off.cancel()
+        self.light.change_color(self.micro_sim.traffic_lights_binary())
+
+
+
         toast('Micro memory cleared! Load new data')
 
     def run_micro_instructions_step(self, instance):
@@ -340,8 +459,15 @@ class RunWindow(FloatLayout):
                     self.reg_table.get_data()
                     self.mem_table.data_list.clear()
                     self.mem_table.get_data()
-                    self.inst_table.get_data(self.micro_sim.index, self.header,
-                                             self.micro_sim.disassembled_instruction())
+                    self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
+                    #Cancels last scheduling thread
+                    self.event_on.cancel()
+                    self.event_off.cancel()
+                    #Updates colors
+                    self.light.change_color(self.micro_sim.traffic_lights_binary())
+                    #Begins new scheduling thread
+                    self.event_on()
+                    self.event_off()
 
                 toast('Runnin instruction in step-by-step mode. Step ' + str(self.step_index) + ' is running')
                 for i in self.micro_sim.micro_instructions:
@@ -480,7 +606,6 @@ class InstructionTable(RecycleView):
     data_list = ListProperty([])
 
     def __init__(self, **kwargs):
-        # self.register = REGISTER
         super(InstructionTable, self).__init__(**kwargs)
         self.viewclass = 'Label'
 
@@ -489,13 +614,113 @@ class InstructionTable(RecycleView):
             self.data_list.append('ADDRESS')
             self.data_list.append('CONTENT')
             self.data_list.append('DISASSEMBLED INSTRUCTION')
-
         else:
             self.data_list.append((f'{address:02x}').upper())
             self.data_list.append(f'{RAM[address]}')
             self.data_list.append(instruction.upper())
 
         self.data = [{"text": str(x.upper()), "color": (.1, .1, .1, 1)} for x in self.data_list]
+
+
+class TrafficLights(Widget):
+    red_1 = ListProperty([1,0,0])
+    red_2 = ListProperty([1,0,0])
+    yellow_1 = ListProperty([1,1,0])
+    yellow_2 = ListProperty([1,1,0])
+    green_1 = ListProperty([0,1,0])
+    green_2 = ListProperty([0,1,0])
+
+    def __init__(self, **kwargs):
+        super(TrafficLights, self).__init__(**kwargs)
+        #Index of last bits of the byte used as Input for traffic lights
+        self.control_bit_1 = 6
+        self.control_bit_2 = 7
+        self.binary = '' #variable needed for intermittent function
+
+    #Scheduler calls method to turn off all lights
+    #Parameter dt is the scheduling time
+    def intermittent_off(self, dt):
+        #First traffic light
+        if self.binary[self.control_bit_1] == '1':
+            if self.binary[0] == '1':
+
+                self.red_2 = (0,0,0)
+            if self.binary[1] == '1':
+                self.yellow_2 = (0,0,0)
+            if self.binary[2] == '1':
+                self.green_2 = (0,0,0)
+        #Second traffic ligth
+        if self.binary[self.control_bit_2] == '1':
+            if self.binary[3] == '1':
+                self.red_1 = (0,0,0)
+            if self.binary[4] == '1':
+                self.yellow_1 = (0,0,0)
+            if self.binary[5] == '1':
+                self.green_1 = (0,0,0)
+
+    #Scheduler calls method to turn on all lights
+    #Parameter dt is the scheduling time
+    def intermittent_on(self, dt):
+
+        #First traffic light
+        if self.binary[self.control_bit_1] == '1':
+            if self.binary[0] == '1':
+                self.red_2 = (1,0,0)
+            if self.binary[1] == '1':
+                self.yellow_2 = (1,1,0)
+            if self.binary[2] == '1':
+                self.green_2 = (0,1,0)
+        #Second traffic ligth
+        if self.binary[self.control_bit_2] == '1':
+            if self.binary[3] == '1':
+                self.red_1 = (1,0,0)
+            if self.binary[4] == '1':
+                self.yellow_1 = (1,1,0)
+            if self.binary[5] == '1':
+                self.green_1 = (0,1,0)
+
+    #Iterates through the binary at the Input location (RAM) to determine which are 1s and which are 0s
+    #Then, changes colors accordingly.
+    def change_color(self, binary):
+
+        self.binary = binary
+        for bit in range(len(binary)):
+
+            #First traffic ligth
+            if bit == 0:
+                if binary[bit] == '0':
+                    self.red_2 = (0,0,0)
+                else:
+                    self.red_2 = (1,0,0)
+            elif bit == 1:
+                if binary[bit] == '0':
+                    self.yellow_2 = (0,0,0)
+                else:
+                    self.yellow_2 = (1,1,0)
+            elif bit == 2:
+                if binary[bit] == '0':
+                    self.green_2 = (0,0,0)
+                else:
+                    self.green_2 = (0,1,0)
+
+            #Second traffic ligth
+            elif bit == 3:
+                if binary[bit] == '0':
+                    self.red_1 = (0,0,0)
+                else:
+                    self.red_1 = (1,0,0)
+            elif bit == 4:
+                if binary[bit] == '0':
+                    self.yellow_1 = (0,0,0)
+                else:
+                    self.yellow_1 = (1,1,0)
+            elif bit == 5:
+                if binary[bit] == '0':
+                    self.green_1 = (0,0,0)
+                else:
+                    self.green_1 = (0,1,0)
+
+
 
 
 class GUI(NavigationLayout):

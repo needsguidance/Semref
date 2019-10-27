@@ -64,6 +64,7 @@ class Assembler:
 
     def store_instructions_in_ram(self):
         for instruction in self.micro_instr:
+            
             source = instruction.split()
             contains_label = [s for s in source if ':' in s]
             if contains_label:

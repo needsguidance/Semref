@@ -105,6 +105,12 @@ class MicroSim:
         else:
             self.prev_index = self.index
 
+    def traffic_lights_binary(self):
+
+        return hex_to_binary(f'{RAM[0]}')
+
+
+
     def micro_clear(self):
         self.is_ram_loaded = False
         self.micro_instructions = []
