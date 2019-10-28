@@ -1,3 +1,4 @@
+import secrets
 from pathlib import Path
 from threading import Lock, Thread, Semaphore, Condition
 
@@ -180,6 +181,101 @@ Builder.load_string('''
         Ellipse:
             pos: 60, 70
             size: 25, 25
+            
+<SevenSegmentDisplay>
+    canvas.before:
+        Color:
+            rgb: 0,0,0
+        Rectangle:
+            pos: 140, 50
+            size: 150, 130
+        # A
+        Color:
+            rgb: self.leftA
+        Rectangle:
+            pos: 160, 160
+            size: 40, 10
+        # B   
+        Color:
+            rgb: self.leftB
+        Rectangle:
+            pos: 200, 120
+            size: 10, 40   
+        # C
+        Color:
+            rgb: self.leftC
+        Rectangle:
+            pos: 200, 70
+            size: 10, 40 
+        # D
+        Color:
+            rgb: self.leftD
+        Rectangle:
+            pos: 160, 60
+            size: 40, 10
+        # E
+        Color:
+            rgb: self.leftE
+        Rectangle:
+            pos: 150, 70
+            size: 10, 40       
+        # F
+        Color:
+            rgb: self.leftF
+        Rectangle:
+            pos: 150, 120
+            size: 10, 40   
+
+        # G
+        Color:
+            rgb: self.leftG
+        Rectangle:
+            pos: 160, 110
+            size: 40, 10
+# ############    Right Number ############
+       # A
+        Color:
+            rgb: self.rightA
+        Rectangle:
+            pos: 230, 160
+            size: 40, 10
+        # B   
+        Color:
+            rgb: self.rightB
+        Rectangle:
+            pos: 270, 120
+            size: 10, 40   
+        # C
+        Color:
+            rgb: self.rightC
+        Rectangle:
+            pos: 270, 70
+            size: 10, 40 
+        # D
+        Color:
+            rgb: self.rightD
+        Rectangle:
+            pos: 230, 60
+            size: 40, 10
+        # E
+        Color:
+            rgb: self.rightE
+        Rectangle:
+            pos: 220, 70
+            size: 10, 40       
+        # F
+        Color:
+            rgb: self.rightF
+        Rectangle:
+            pos: 220, 120
+            size: 10, 40   
+
+        # G
+        Color:
+            rgb: self.rightG
+        Rectangle:
+            pos: 230, 110
+            size: 40, 10
 
 ''')
 
@@ -327,6 +423,7 @@ class RunWindow(FloatLayout):
         self.mem_table.data_list.clear()
         self.mem_table.get_data()
         self.light = TrafficLights()
+        self.seven_segment_display = SevenSegmentDisplay()
         self.inst_table.data_list.clear()
         self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
         self.header = True
@@ -338,6 +435,7 @@ class RunWindow(FloatLayout):
         self.hex_keyboard_layout = HexKeyboard(mem_table=self.mem_table)
 
         self.light.change_color(self.micro_sim.traffic_lights_binary())
+        self.seven_segment_display.activate_segments(self.micro_sim.seven_segment_binary())
 
         # Create variable of scheduling instance so that it can be turned on and off,
         # to avoid repeat of the same thread
@@ -358,6 +456,7 @@ class RunWindow(FloatLayout):
         self.add_widget(self.light)
         self.add_widget(self.hex_keyboard_layout)
         self.add_widget(self.hex_keyboard_label)
+        self.add_widget(self.seven_segment_display)
 
     def save(self, instance):
         toast("Not Implemented yet. Will be ready on Sprint 3")
@@ -401,7 +500,7 @@ class RunWindow(FloatLayout):
                 # Begins new scheduling thread
                 self.event_on()
                 self.event_off()
-
+                self.seven_segment_display.activate_segments(self.micro_sim.seven_segment_binary())
                 self.reg_table.get_data()
                 self.mem_table.data_list.clear()
                 self.mem_table.get_data()
@@ -428,7 +527,7 @@ class RunWindow(FloatLayout):
         self.event_on.cancel()
         self.event_off.cancel()
         self.light.change_color(self.micro_sim.traffic_lights_binary())
-
+        self.seven_segment_display.activate_segments(self.micro_sim.seven_segment_binary())
         toast('Micro memory cleared! Load new data')
 
     def run_micro_instructions_step(self, instance):
@@ -459,7 +558,7 @@ class RunWindow(FloatLayout):
                     # Begins new scheduling thread
                     self.event_on()
                     self.event_off()
-
+                    self.seven_segment_display.activate_segments(self.micro_sim.seven_segment_binary())
                 toast('Runnin instruction in step-by-step mode. Step ' + str(self.step_index) + ' is running')
                 for i in self.micro_sim.micro_instructions:
                     if i != 'NOP':
@@ -709,6 +808,105 @@ class TrafficLights(Widget):
                     self.green_1 = (0, 0, 0)
                 else:
                     self.green_1 = (0, 1, 0)
+
+
+class SevenSegmentDisplay(Widget):
+
+    leftA = ListProperty([.41, .41, .41])
+    leftB = ListProperty([.41, .41, .41])
+    leftC = ListProperty([.41, .41, .41])
+    leftD = ListProperty([.41, .41, .41])
+    leftE = ListProperty([.41, .41, .41])
+    leftF = ListProperty([.41, .41, .41])
+    leftG = ListProperty([.41, .41, .41])
+
+    rightA = ListProperty([.41, .41, .41])
+    rightB = ListProperty([.41, .41, .41])
+    rightC = ListProperty([.41, .41, .41])
+    rightD = ListProperty([.41, .41, .41])
+    rightE = ListProperty([.41, .41, .41])
+    rightF = ListProperty([.41, .41, .41])
+    rightG = ListProperty([.41, .41, .41])
+
+    # Iterates through the binary at the Input location (RAM) to determine which are 1s and which are 0s
+    # Then, activate segments accordingly.
+    def activate_segments(self, binary):
+        control_bit = int(binary[-1])
+        for bit in range(len(binary) - 1):
+            if control_bit == 0:
+                # if control_bit == 1 then activate the seven left segments depending of the bit.
+                if bit == 0:
+                    if binary[bit] == '0':
+                        self.leftA = (.41, .41, .41)
+                    else:
+                        self.leftA = (1, 0, 0)
+                elif bit == 1:
+                    if binary[bit] == '0':
+                        self.leftB = (.41, .41, .41)
+                    else:
+                        self.leftB = (1, 0, 0)
+                elif bit == 2:
+                    if binary[bit] == '0':
+                        self.leftC = (.41, .41, .41)
+                    else:
+                        self.leftC = (1, 0, 0)
+                elif bit == 3:
+                    if binary[bit] == '0':
+                        self.leftD = (.41, .41, .41)
+                    else:
+                        self.leftD = (1, 0, 0)
+                elif bit == 4:
+                    if binary[bit] == '0':
+                        self.leftE = (.41, .41, .41)
+                    else:
+                        self.leftE = (1, 0, 0)
+                elif bit == 5:
+                    if binary[bit] == '0':
+                        self.leftF = (.41, .41, .41)
+                    else:
+                        self.leftF = (1, 0, 0)
+                elif bit == 6:
+                    if binary[bit] == '0':
+                        self.leftG = (.41, .41, .41)
+                    else:
+                        self.leftG = (1, 0, 0)
+            elif control_bit == 1:
+                # if control_bit == 1 then activate the seven right segments depending of the bit.
+                if bit == 0:
+                    if binary[bit] == '0':
+                        self.rightA = (.41, .41, .41)
+                    else:
+                        self.rightA = (1, 0, 0)
+                elif bit == 1:
+                    if binary[bit] == '0':
+                        self.rightB = (.41, .41, .41)
+                    else:
+                        self.rightB = (1, 0, 0)
+                elif bit == 2:
+                    if binary[bit] == '0':
+                        self.rightC = (.41, .41, .41)
+                    else:
+                        self.rightC = (1, 0, 0)
+                elif bit == 3:
+                    if binary[bit] == '0':
+                        self.rightD = (.41, .41, .41)
+                    else:
+                        self.rightD = (1, 0, 0)
+                elif bit == 4:
+                    if binary[bit] == '0':
+                        self.rightE = (.41, .41, .41)
+                    else:
+                        self.rightE = (1, 0, 0)
+                elif bit == 5:
+                    if binary[bit] == '0':
+                        self.rightF = (.41, .41, .41)
+                    else:
+                        self.rightF = (1, 0, 0)
+                elif bit == 6:
+                    if binary[bit] == '0':
+                        self.rightG = (.41, .41, .41)
+                    else:
+                        self.rightG = (1, 0, 0)
 
 
 class GUI(NavigationLayout):
