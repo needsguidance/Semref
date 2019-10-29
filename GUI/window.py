@@ -1,13 +1,18 @@
+import secrets
 from pathlib import Path
+from threading import Lock, Thread, Semaphore, Condition
+
 from kivy import Config
+from kivy.graphics.context_instructions import Color
+from kivy.graphics.vertex_instructions import Rectangle, Line
+from kivy.uix.gridlayout import GridLayout
 
-from constants import REGISTER
-
+from constants import REGISTER, hex_to_binary, convert_to_hex
 
 Config.set('graphics', 'width', '1024')
 Config.set('graphics', 'height', '650')
 Config.set('graphics', 'resizable', False)
-from kivymd.uix.button import MDFillRoundFlatIconButton
+from kivymd.uix.button import MDFillRoundFlatIconButton, MDFlatButton
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.clock import Clock
@@ -27,8 +32,9 @@ from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
                                          NavigationLayout)
 
 from microprocessor_simulator import MicroSim, RAM
-
-
+from queue import Queue
+from constants import HEX_KEYBOARD
+from time import sleep
 
 Builder.load_string('''
 <RegisterTable>:
@@ -209,13 +215,209 @@ Builder.load_string('''
         Rectangle: 
             pos: 620,155 
             size: 40,40  
+            
+<SevenSegmentDisplay>
+    canvas.before:
+        Color:
+            rgb: 0,0,0
+        Rectangle:
+            pos: 140, 50
+            size: 150, 130
+        # A
+        Color:
+            rgb: self.leftA
+        Rectangle:
+            pos: 160, 160
+            size: 40, 10
+        # B   
+        Color:
+            rgb: self.leftB
+        Rectangle:
+            pos: 200, 120
+            size: 10, 40   
+        # C
+        Color:
+            rgb: self.leftC
+        Rectangle:
+            pos: 200, 70
+            size: 10, 40 
+        # D
+        Color:
+            rgb: self.leftD
+        Rectangle:
+            pos: 160, 60
+            size: 40, 10
+        # E
+        Color:
+            rgb: self.leftE
+        Rectangle:
+            pos: 150, 70
+            size: 10, 40       
+        # F
+        Color:
+            rgb: self.leftF
+        Rectangle:
+            pos: 150, 120
+            size: 10, 40   
 
+        # G
+        Color:
+            rgb: self.leftG
+        Rectangle:
+            pos: 160, 110
+            size: 40, 10
+# ############    Right Number ############
+       # A
+        Color:
+            rgb: self.rightA
+        Rectangle:
+            pos: 230, 160
+            size: 40, 10
+        # B   
+        Color:
+            rgb: self.rightB
+        Rectangle:
+            pos: 270, 120
+            size: 10, 40   
+        # C
+        Color:
+            rgb: self.rightC
+        Rectangle:
+            pos: 270, 70
+            size: 10, 40 
+        # D
+        Color:
+            rgb: self.rightD
+        Rectangle:
+            pos: 230, 60
+            size: 40, 10
+        # E
+        Color:
+            rgb: self.rightE
+        Rectangle:
+            pos: 220, 70
+            size: 10, 40       
+        # F
+        Color:
+            rgb: self.rightF
+        Rectangle:
+            pos: 220, 120
+            size: 10, 40   
 
-
-
-
+        # G
+        Color:
+            rgb: self.rightG
+        Rectangle:
+            pos: 230, 110
+            size: 40, 10
 
 ''')
+
+
+class HexKeyboard(GridLayout):
+
+    def __init__(self, **kwargs):
+        self.mem_table = kwargs.pop('mem_table')
+        super(HexKeyboard, self).__init__(**kwargs)
+        self.cols = 4
+        self.size_hint = (0.4, 0.4)
+        self.pos_hint = {'x': 0.30, 'y': 0.35}
+        self.queue = Queue(maxsize=10)
+        self.lock = Lock()
+        self.semaphore = Semaphore()
+        self.condition = Condition()
+
+        with self.canvas.before:
+            Color(0, 0, 0, 1)
+            Rectangle(pos=(306, 75), size=(355, 202))
+
+        with self.canvas:
+            Color(.75, .75, .75, 1)
+            Rectangle(pos=(307, 76), size=(353, 200))
+
+            Color(0, 0, 0, 1)
+            Line(rectangle=(307, 183, 87, 35), width=0.3)
+
+            Color(0, 0, 0, 1)
+            Line(rectangle=(396, 183, 87, 35), width=0.3)
+
+            Color(0, 0, 0, 1)
+            Line(rectangle=(485, 183, 87, 35), width=0.3)
+
+            Color(0, 0, 0, 1)
+            Line(rectangle=(574, 183, 87, 35), width=0.3)
+
+            Color(0, 0, 0, 1)
+            Line(rectangle=(307, 148, 87, 35), width=0.3)
+
+            Color(0, 0, 0, 1)
+            Line(rectangle=(396, 148, 87, 35), width=0.3)
+
+            Color(0, 0, 0, 1)
+            Line(rectangle=(485, 148, 87, 35), width=0.3)
+
+            Color(0, 0, 0, 1)
+            Line(rectangle=(574, 148, 87, 35), width=0.3)
+
+            Color(0, 0, 0, 1)
+            Line(rectangle=(307, 113, 87, 35), width=0.3)
+
+            Color(0, 0, 0, 1)
+            Line(rectangle=(396, 113, 87, 35), width=0.3)
+
+            Color(0, 0, 0, 1)
+            Line(rectangle=(485, 113, 87, 35), width=0.3)
+
+            Color(0, 0, 0, 1)
+            Line(rectangle=(574, 113, 87, 35), width=0.3)
+
+            Color(0, 0, 0, 1)
+            Line(rectangle=(307, 78, 87, 35), width=0.3)
+
+            Color(0, 0, 0, 1)
+            Line(rectangle=(396, 78, 87, 35), width=0.3)
+
+            Color(0, 0, 0, 1)
+            Line(rectangle=(485, 78, 87, 35), width=0.3)
+
+            Color(0, 0, 0, 1)
+            Line(rectangle=(574, 78, 87, 35), width=0.3)
+
+        for i in range(16):
+            if i > 9:
+                i = str(chr(i + 55))
+            self.add_widget(MDFlatButton(text=f'{i}',
+                                         on_release=self.hex_key_press))
+
+    def hex_key_press(self, instance):
+        """
+        On hex keyboard press, a thread verifies if RAM is ready to be written. Uses a shared queue to enqueue pressed
+        keys that are to be written to RAM.
+        :param instance: obj
+        """
+        thread = Thread(target=self.is_ram_ready)
+        if not self.queue.full():
+            self.queue.put(hex_to_binary(instance.text))
+            thread.start()
+
+    def is_ram_ready(self):
+        """
+        Utilizes semaphores and monitors to prevent threads from writing to RAM at the same time. Current thread is
+        allowed to write to RAM if the LSB is 0, otherwise it must wait.
+        """
+        with self.semaphore:
+            binary = hex_to_binary(RAM[HEX_KEYBOARD])
+            if binary[-1] != 0:
+                self.condition.acquire()
+            self.write_ram()
+
+    def write_ram(self):
+        with self.lock:
+            RAM[HEX_KEYBOARD] = convert_to_hex(int(f'{self.queue.get()}0001', 2), 8)
+            self.mem_table.data_list.clear()
+            self.mem_table.get_data()
+            sleep(1)
+            self.condition.release()
 
 
 class RunWindow(FloatLayout):
@@ -265,10 +467,7 @@ class RunWindow(FloatLayout):
         self.ascii_label_8 = Label(text='[color=000000]' + chr(int(RAM[4095], 16)) + '[/color]', pos=(130, 29),
                                    font_size=40, markup=True)
 
-        self.add_widget(self.save_button)
-        self.add_widget(self.run_button)
-        self.add_widget(self.debug_button)
-        self.add_widget(self.refresh_button)
+
         self.ascii = ASCIIGrid()
         self.reg_table = RegisterTable()
         self.mem_table = MemoryTable()
@@ -277,27 +476,40 @@ class RunWindow(FloatLayout):
         self.mem_table.data_list.clear()
         self.mem_table.get_data()
         self.light = TrafficLights()
+        self.seven_segment_display = SevenSegmentDisplay()
         self.inst_table.data_list.clear()
         self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
         self.header = True
+        self.hex_keyboard_label = Label(text='HEX KEYBOARD',
+                                        font_size=20,
+                                        color=(0, 0, 0, 1),
+                                        # size_hint=(1, 0.17),
+                                        pos_hint={'x': -0.025, 'y': 0.35})
+        self.hex_keyboard_layout = HexKeyboard(mem_table=self.mem_table)
 
         self.light.change_color(self.micro_sim.traffic_lights_binary())
+        self.seven_segment_display.activate_segments(self.micro_sim.seven_segment_binary())
 
-        #Create variable of scheduling instance so that it can be turned on and off,
-        #to avoid repeat of the same thread
-        self.event_on = Clock.schedule_interval(self.light.intermittent_off,  0.5)
-        self.event_off = Clock.schedule_interval(self.light.intermittent_on,  0.3)
+        # Create variable of scheduling instance so that it can be turned on and off,
+        # to avoid repeat of the same thread
+        self.event_on = Clock.schedule_interval(self.light.intermittent_off, 0.5)
+        self.event_off = Clock.schedule_interval(self.light.intermittent_on, 0.3)
 
-        #Since the instancing of the events actually starts the scheduling, needs to be canceled right away
+        # Since the instancing of the events actually starts the scheduling, needs to be canceled right away
         self.event_on.cancel()
         self.event_off.cancel()
 
-
-
+        self.add_widget(self.save_button)
+        self.add_widget(self.run_button)
+        self.add_widget(self.debug_button)
+        self.add_widget(self.refresh_button)
         self.add_widget(self.reg_table)
         self.add_widget(self.inst_table)
         self.add_widget(self.mem_table)
         self.add_widget(self.light)
+        self.add_widget(self.hex_keyboard_layout)
+        self.add_widget(self.hex_keyboard_label)
+        self.add_widget(self.seven_segment_display)
 
         self.add_widget(self.ascii)
         self.add_widget(self.ascii_label_1)
@@ -311,8 +523,6 @@ class RunWindow(FloatLayout):
 
     def save(self, instance):
         toast("Not Implemented yet. Will be ready on Sprint 3")
-
-        
 
     def run_micro_instructions(self, instance):
         if not self.micro_sim.is_running:
@@ -345,15 +555,15 @@ class RunWindow(FloatLayout):
                             else:
                                 self.micro_sim.prev_index = self.micro_sim.index
 
-                #Cancels last scheduling thread
+                # Cancels last scheduling thread
                 self.event_on.cancel()
                 self.event_off.cancel()
-                #Updates colors
+                # Updates colors
                 self.light.change_color(self.micro_sim.traffic_lights_binary())
-                #Begins new scheduling thread
+                # Begins new scheduling thread
                 self.event_on()
                 self.event_off()
-
+                self.seven_segment_display.activate_segments(self.micro_sim.seven_segment_binary())
                 self.reg_table.get_data()
                 self.mem_table.data_list.clear()
                 self.mem_table.get_data()
@@ -377,13 +587,12 @@ class RunWindow(FloatLayout):
         self.header = True
         self.first_inst = True
 
-        #Cancels last scheduling thread for clean event
+        # Cancels last scheduling thread for clean event
         self.event_on.cancel()
         self.event_off.cancel()
         self.light.change_color(self.micro_sim.traffic_lights_binary())
         self.update_ascii_grid()
-
-
+        self.seven_segment_display.activate_segments(self.micro_sim.seven_segment_binary())
         toast('Micro memory cleared! Load new data')
 
     def run_micro_instructions_step(self, instance):
@@ -405,19 +614,19 @@ class RunWindow(FloatLayout):
                     self.reg_table.get_data()
                     self.mem_table.data_list.clear()
                     self.mem_table.get_data()
-                    self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
-                    #Cancels last scheduling thread
-                    self.event_on.cancel()
-                    self.event_off.cancel()
-                    #Updates colors
                     self.inst_table.get_data(self.micro_sim.index, self.header,
                                              self.micro_sim.disassembled_instruction())
+                    # Cancels last scheduling thread
+                    self.event_on.cancel()
+                    self.event_off.cancel()
+                    # Updates colors
                     self.light.change_color(self.micro_sim.traffic_lights_binary())
-                    #Begins new scheduling thread
+                    # Begins new scheduling thread
                     self.event_on()
                     self.event_off()
                     self.update_ascii_grid()
-
+                    self.seven_segment_display.activate_segments(self.micro_sim.seven_segment_binary())
+                    
                 toast('Runnin instruction in step-by-step mode. Step ' + str(self.step_index) + ' is running')
                 for i in self.micro_sim.micro_instructions:
                     if i != 'NOP':
@@ -432,7 +641,6 @@ class RunWindow(FloatLayout):
         self.ascii_label_6.text = '[color=000000]' + chr(int(RAM[4093], 16)) + '[/color]'
         self.ascii_label_7.text = '[color=000000]' + chr(int(RAM[4094], 16)) + '[/color]'
         self.ascii_label_8.text = '[color=000000]' + chr(int(RAM[4095], 16)) + '[/color]'
-
 
 class MainWindow(BoxLayout):
 
@@ -577,6 +785,7 @@ class InstructionTable(RecycleView):
             self.data_list.append((f'{address:02x}').upper())
             self.data_list.append(f'{RAM[address]}')
             self.data_list.append(instruction.upper())
+
         self.data = [{"text": str(x.upper()), "color": (.1, .1, .1, 1)} for x in self.data_list]
 
 
@@ -590,94 +799,191 @@ class TrafficLights(Widget):
 
     def __init__(self, **kwargs):
         super(TrafficLights, self).__init__(**kwargs)
-        #Index of last bits of the byte used as Input for traffic lights
+        # Index of last bits of the byte used as Input for traffic lights
         self.control_bit_1 = 6
         self.control_bit_2 = 7
-        self.binary = '' #variable needed for intermittent function
+        self.binary = ''  # variable needed for intermittent function
 
-    #Scheduler calls method to turn off all lights
-    #Parameter dt is the scheduling time
+    # Scheduler calls method to turn off all lights
+    # Parameter dt is the scheduling time
     def intermittent_off(self, dt):
-        #First traffic light
+        # First traffic light
         if self.binary[self.control_bit_1] == '1':
             if self.binary[0] == '1':
-
-                self.red_2 = (0,0,0)
+                self.red_2 = (0, 0, 0)
             if self.binary[1] == '1':
-                self.yellow_2 = (0,0,0)
+                self.yellow_2 = (0, 0, 0)
             if self.binary[2] == '1':
-                self.green_2 = (0,0,0)
-        #Second traffic ligth
+                self.green_2 = (0, 0, 0)
+        # Second traffic ligth
         if self.binary[self.control_bit_2] == '1':
             if self.binary[3] == '1':
-                self.red_1 = (0,0,0)
+                self.red_1 = (0, 0, 0)
             if self.binary[4] == '1':
-                self.yellow_1 = (0,0,0)
+                self.yellow_1 = (0, 0, 0)
             if self.binary[5] == '1':
-                self.green_1 = (0,0,0)
+                self.green_1 = (0, 0, 0)
 
-    #Scheduler calls method to turn on all lights
-    #Parameter dt is the scheduling time
+    # Scheduler calls method to turn on all lights
+    # Parameter dt is the scheduling time
     def intermittent_on(self, dt):
 
-        #First traffic light
+        # First traffic light
         if self.binary[self.control_bit_1] == '1':
             if self.binary[0] == '1':
-                self.red_2 = (1,0,0)
+                self.red_2 = (1, 0, 0)
             if self.binary[1] == '1':
-                self.yellow_2 = (1,1,0)
+                self.yellow_2 = (1, 1, 0)
             if self.binary[2] == '1':
-                self.green_2 = (0,1,0)
-        #Second traffic ligth
+                self.green_2 = (0, 1, 0)
+        # Second traffic ligth
         if self.binary[self.control_bit_2] == '1':
             if self.binary[3] == '1':
-                self.red_1 = (1,0,0)
+                self.red_1 = (1, 0, 0)
             if self.binary[4] == '1':
-                self.yellow_1 = (1,1,0)
+                self.yellow_1 = (1, 1, 0)
             if self.binary[5] == '1':
-                self.green_1 = (0,1,0)
+                self.green_1 = (0, 1, 0)
 
-    #Iterates through the binary at the Input location (RAM) to determine which are 1s and which are 0s
-    #Then, changes colors accordingly.
+    # Iterates through the binary at the Input location (RAM) to determine which are 1s and which are 0s
+    # Then, changes colors accordingly.
     def change_color(self, binary):
 
         self.binary = binary
         for bit in range(len(binary)):
 
-            #First traffic ligth
+            # First traffic ligth
             if bit == 0:
                 if binary[bit] == '0':
-                    self.red_2 = (0,0,0)
+                    self.red_2 = (0, 0, 0)
                 else:
-                    self.red_2 = (1,0,0)
+                    self.red_2 = (1, 0, 0)
             elif bit == 1:
                 if binary[bit] == '0':
-                    self.yellow_2 = (0,0,0)
+                    self.yellow_2 = (0, 0, 0)
                 else:
-                    self.yellow_2 = (1,1,0)
+                    self.yellow_2 = (1, 1, 0)
             elif bit == 2:
                 if binary[bit] == '0':
-                    self.green_2 = (0,0,0)
+                    self.green_2 = (0, 0, 0)
                 else:
-                    self.green_2 = (0,1,0)
+                    self.green_2 = (0, 1, 0)
 
-            #Second traffic ligth
+            # Second traffic ligth
             elif bit == 3:
                 if binary[bit] == '0':
-                    self.red_1 = (0,0,0)
+                    self.red_1 = (0, 0, 0)
                 else:
-                    self.red_1 = (1,0,0)
+                    self.red_1 = (1, 0, 0)
             elif bit == 4:
                 if binary[bit] == '0':
-                    self.yellow_1 = (0,0,0)
+                    self.yellow_1 = (0, 0, 0)
                 else:
-                    self.yellow_1 = (1,1,0)
+                    self.yellow_1 = (1, 1, 0)
             elif bit == 5:
                 if binary[bit] == '0':
-                    self.green_1 = (0,0,0)
+                    self.green_1 = (0, 0, 0)
                 else:
-                    self.green_1 = (0,1,0)
-        
+                    self.green_1 = (0, 1, 0)
+
+
+class SevenSegmentDisplay(Widget):
+
+    leftA = ListProperty([.41, .41, .41])
+    leftB = ListProperty([.41, .41, .41])
+    leftC = ListProperty([.41, .41, .41])
+    leftD = ListProperty([.41, .41, .41])
+    leftE = ListProperty([.41, .41, .41])
+    leftF = ListProperty([.41, .41, .41])
+    leftG = ListProperty([.41, .41, .41])
+
+    rightA = ListProperty([.41, .41, .41])
+    rightB = ListProperty([.41, .41, .41])
+    rightC = ListProperty([.41, .41, .41])
+    rightD = ListProperty([.41, .41, .41])
+    rightE = ListProperty([.41, .41, .41])
+    rightF = ListProperty([.41, .41, .41])
+    rightG = ListProperty([.41, .41, .41])
+
+    # Iterates through the binary at the Input location (RAM) to determine which are 1s and which are 0s
+    # Then, activate segments accordingly.
+    def activate_segments(self, binary):
+        control_bit = int(binary[-1])
+        for bit in range(len(binary) - 1):
+            if control_bit == 0:
+                # if control_bit == 1 then activate the seven left segments depending of the bit.
+                if bit == 0:
+                    if binary[bit] == '0':
+                        self.leftA = (.41, .41, .41)
+                    else:
+                        self.leftA = (1, 0, 0)
+                elif bit == 1:
+                    if binary[bit] == '0':
+                        self.leftB = (.41, .41, .41)
+                    else:
+                        self.leftB = (1, 0, 0)
+                elif bit == 2:
+                    if binary[bit] == '0':
+                        self.leftC = (.41, .41, .41)
+                    else:
+                        self.leftC = (1, 0, 0)
+                elif bit == 3:
+                    if binary[bit] == '0':
+                        self.leftD = (.41, .41, .41)
+                    else:
+                        self.leftD = (1, 0, 0)
+                elif bit == 4:
+                    if binary[bit] == '0':
+                        self.leftE = (.41, .41, .41)
+                    else:
+                        self.leftE = (1, 0, 0)
+                elif bit == 5:
+                    if binary[bit] == '0':
+                        self.leftF = (.41, .41, .41)
+                    else:
+                        self.leftF = (1, 0, 0)
+                elif bit == 6:
+                    if binary[bit] == '0':
+                        self.leftG = (.41, .41, .41)
+                    else:
+                        self.leftG = (1, 0, 0)
+            elif control_bit == 1:
+                # if control_bit == 1 then activate the seven right segments depending of the bit.
+                if bit == 0:
+                    if binary[bit] == '0':
+                        self.rightA = (.41, .41, .41)
+                    else:
+                        self.rightA = (1, 0, 0)
+                elif bit == 1:
+                    if binary[bit] == '0':
+                        self.rightB = (.41, .41, .41)
+                    else:
+                        self.rightB = (1, 0, 0)
+                elif bit == 2:
+                    if binary[bit] == '0':
+                        self.rightC = (.41, .41, .41)
+                    else:
+                        self.rightC = (1, 0, 0)
+                elif bit == 3:
+                    if binary[bit] == '0':
+                        self.rightD = (.41, .41, .41)
+                    else:
+                        self.rightD = (1, 0, 0)
+                elif bit == 4:
+                    if binary[bit] == '0':
+                        self.rightE = (.41, .41, .41)
+                    else:
+                        self.rightE = (1, 0, 0)
+                elif bit == 5:
+                    if binary[bit] == '0':
+                        self.rightF = (.41, .41, .41)
+                    else:
+                        self.rightF = (1, 0, 0)
+                elif bit == 6:
+                    if binary[bit] == '0':
+                        self.rightG = (.41, .41, .41)
+                    else:
+                        self.rightG = (1, 0, 0)
 
 class ASCIIGrid(Widget):
 

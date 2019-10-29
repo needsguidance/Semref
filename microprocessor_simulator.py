@@ -1,13 +1,8 @@
 import re
 
-
-from constants import OPCODE, FORMAT_1_OPCODE, FORMAT_2_OPCODE, FORMAT_3_OPCODE, REGISTER
+from constants import OPCODE, FORMAT_1_OPCODE, FORMAT_2_OPCODE, FORMAT_3_OPCODE, REGISTER, convert_to_hex, hex_to_binary
 
 RAM = ['00' for i in range(4096)]
-
-
-def hex_to_binary(hex_num):
-    return f'{int(hex_num, 16):0{len(hex_num) * 4}b}'
 
 
 def get_opcode_key(val):
@@ -17,18 +12,12 @@ def get_opcode_key(val):
     return None
 
 
-
-def convert_to_hex(num, bits):
-    if not isinstance(num, int):
-        raise ValueError("Invalid number type, num must be of type int.")
-    return f'{num:0{int(bits / 4)}x}'
-
-
 class MicroSim:
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.is_ram_loaded = False
+        # TODO: Verify if micro_instructions & decoded_mirco_instructions are necessary
         self.micro_instructions = []
         self.decoded_micro_instructions = []
         self.index = 0
@@ -51,8 +40,6 @@ class MicroSim:
         lines.clear()
         file.close()
 
-
-
     def disassembled_instruction(self):
 
         instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
@@ -68,7 +55,6 @@ class MicroSim:
             ra = f'R{int(instruction[5:8], 2)}'
             rb = f'R{int(instruction[8:11], 2)}'
             rc = f'R{int(instruction[11:14], 2)}'
-
 
             register_a = f' {ra}'
             register_b = f' {rb}'
@@ -106,12 +92,12 @@ class MicroSim:
         return dis_instruction
 
     def run_micro_instructions(self):
-            REGISTER['ir'] = f'{RAM[self.index]}{RAM[self.index + 1]}'
-            binary_instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
-            self.execute_instruction(binary_instruction)
+        REGISTER['ir'] = f'{RAM[self.index]}{RAM[self.index + 1]}'
+        binary_instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
+        self.execute_instruction(binary_instruction)
 
     def run_micro_instructions_step(self, step_index):
-      
+
         REGISTER['ir'] = f'{RAM[self.index]}{RAM[self.index + 1]}'
         binary_instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
         self.execute_instruction(binary_instruction)
@@ -121,10 +107,12 @@ class MicroSim:
             self.prev_index = self.index
 
     def traffic_lights_binary(self):
-        
+
         return hex_to_binary(f'{RAM[0]}')
 
-        
+    def seven_segment_binary(self):
+
+        return hex_to_binary(f'{RAM[1]}')
 
     def micro_clear(self):
         self.is_ram_loaded = False
@@ -148,6 +136,7 @@ class MicroSim:
 
     def execute_instruction(self, instruction):
         if re.match('^[0]+$', instruction):
+            # TODO verify if is necessary
             self.micro_instructions.append('NOP')
         else:
 
