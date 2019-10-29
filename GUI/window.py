@@ -407,7 +407,7 @@ class HexKeyboard(GridLayout):
         allowed to write to RAM if the LSB is 0, otherwise it must wait.
         """
         with self.semaphore:
-            binary = hex_to_binary(RAM[HEX_KEYBOARD])
+            binary = hex_to_binary(RAM[HEX_KEYBOARD['port']])
             if binary[-1] != 0:
                 self.condition.acquire()
             self.write_ram()
@@ -648,14 +648,14 @@ class RunWindow(FloatLayout):
                         print(i)
 
     def update_ascii_grid(self):
-        self.ascii_label_1.text = '[color=000000]' + chr(int(RAM[4088], 16)) + '[/color]'
-        self.ascii_label_2.text = '[color=000000]' + chr(int(RAM[4089], 16)) + '[/color]'
-        self.ascii_label_3.text = '[color=000000]' + chr(int(RAM[4090], 16)) + '[/color]'
-        self.ascii_label_4.text = '[color=000000]' + chr(int(RAM[4091], 16)) + '[/color]'
-        self.ascii_label_5.text = '[color=000000]' + chr(int(RAM[4092], 16)) + '[/color]'
-        self.ascii_label_6.text = '[color=000000]' + chr(int(RAM[4093], 16)) + '[/color]'
-        self.ascii_label_7.text = '[color=000000]' + chr(int(RAM[4094], 16)) + '[/color]'
-        self.ascii_label_8.text = '[color=000000]' + chr(int(RAM[4095], 16)) + '[/color]'
+        self.ascii_label_1.text = '[color=000000]' + chr(int(RAM[ASCII_TABLE['port']], 16)) + '[/color]'
+        self.ascii_label_2.text = '[color=000000]' + chr(int(RAM[ASCII_TABLE['port'] + 1], 16)) + '[/color]'
+        self.ascii_label_3.text = '[color=000000]' + chr(int(RAM[ASCII_TABLE['port'] + 2], 16)) + '[/color]'
+        self.ascii_label_4.text = '[color=000000]' + chr(int(RAM[ASCII_TABLE['port'] + 3], 16)) + '[/color]'
+        self.ascii_label_5.text = '[color=000000]' + chr(int(RAM[ASCII_TABLE['port'] + 4], 16)) + '[/color]'
+        self.ascii_label_6.text = '[color=000000]' + chr(int(RAM[ASCII_TABLE['port'] + 5], 16)) + '[/color]'
+        self.ascii_label_7.text = '[color=000000]' + chr(int(RAM[ASCII_TABLE['port'] + 6], 16)) + '[/color]'
+        self.ascii_label_8.text = '[color=000000]' + chr(int(RAM[ASCII_TABLE['port'] + 7], 16)) + '[/color]'
 
 class MainWindow(BoxLayout):
 
@@ -722,15 +722,19 @@ class NavDrawer(MDNavigationDrawer):
                 if num < 0 or num > 4095:
                     toast('Invalid port number. Valid port numbers [0-4095]')
                 else:
+                    toast_message = 'Changed port number'
                     if title == TRAFFIC_LIGHT['menu_title']:
                         TRAFFIC_LIGHT['port'] = num
                     elif title == SEVEN_SEGMENT_DISPLAY['menu_title']:
                         SEVEN_SEGMENT_DISPLAY['port'] = num
                     elif title == ASCII_TABLE['menu_title']:
-                        ASCII_TABLE['port'] = num
+                        if num > 4088:
+                            toast_message = 'Invalid port for ASCII Table. Valid ports [0-4088]'
+                        else:
+                            ASCII_TABLE['port'] = num
                     else:
                         HEX_KEYBOARD['port'] = num
-                    toast('Changed port number')
+                    toast(toast_message)
             else:
                 toast('Invalid input. Not a number!')
             

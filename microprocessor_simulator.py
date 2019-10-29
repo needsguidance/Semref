@@ -111,11 +111,11 @@ class MicroSim:
 
     def traffic_lights_binary(self):
 
-        return hex_to_binary(f'{RAM[TRAFFIC_LIGHT['port']]}')
+        return hex_to_binary(f'{RAM[TRAFFIC_LIGHT["port"]]}')
 
     def seven_segment_binary(self):
 
-        return hex_to_binary(f'{RAM[SEVEN_SEGMENT_DISPLAY['port']]}')
+        return hex_to_binary(f'{RAM[SEVEN_SEGMENT_DISPLAY["port"]]}')
 
     def micro_clear(self):
         self.is_ram_loaded = False
