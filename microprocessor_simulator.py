@@ -112,7 +112,7 @@ class MicroSim:
 
     def seven_segment_binary(self):
 
-        return hex_to_binary(f'{RAM[1]}')
+        return hex_to_binary(f'{RAM[0]}')
 
     def micro_clear(self):
         self.is_ram_loaded = False

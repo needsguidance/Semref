@@ -1,0 +1,274 @@
+<RegisterTable>:
+    id: data_list
+    pos_hint:{'x': 0, 'center_y': 1.5}
+    RecycleGridLayout:
+        canvas.before:
+            Color: 
+                rgba: .75, .75, .75, 1
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        canvas:
+            Color:
+                rgba: .50, .50, .50, 1
+            Line:
+                width: 2.
+                rectangle: (self.x, self.y, self.width, self.height) 
+
+        cols: 2
+        default_size: None, dp(30)
+        default_size_hint: 1, None
+        size_hint_y: None
+        size_hint_x: 0.2
+        height: self.minimum_height
+        orientation: 'vertical'
+
+<InstructionTable>:
+    id: data_list
+    pos_hint:{'x': 0.2, 'center_y': 1.5}
+    RecycleGridLayout:
+        cols: 3
+        default_size: None, dp(30)
+        default_size_hint: 1, None
+        size_hint_y: None
+        size_hint_x: 0.5
+        height: self.minimum_height
+        orientation: 'vertical'
+
+
+<MemoryTable>:
+    id: data_list
+    pos_hint:{'x': 0.75, 'center_y': 1.5}
+    RecycleGridLayout:
+        canvas.before:
+            Color: 
+                rgba: .75, .75, .75, 1
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        canvas:
+            Color:
+                rgba: .50, .50, .50, 1
+            Line:
+                width: 2.
+                rectangle: (self.x, self.y, self.width, self.height) 
+        cols: 2
+        default_size: None, dp(30)
+        default_size_hint: 1, None
+        size_hint_y: None
+        size_hint_x: 0.25
+        height: self.minimum_height
+        orientation: 'vertical'
+
+<TrafficLights>
+    canvas.before:
+        Color:
+            rgb: 0,0,0
+        Rectangle:
+            pos: 0, 0
+            size: 302, 252
+        Color:
+            rgb: .8,.8,.8
+        Rectangle:
+            pos: 2, 2
+            size: 298, 248
+        Color:
+            rgb: 0,0,0
+        Rectangle:
+            pos: 4, 4
+            size: 293, 243
+        Color:
+            rgb: 1,1,1
+        Rectangle:
+            pos: 6, 6
+            size: 289, 239
+        Color:
+            rgb: 1,.8,0
+        Rectangle:
+            pos: 45, 55
+            size: 95, 115
+        Color:
+            rgb: 0,0,0
+        Rectangle:
+            pos: 50, 60
+            size: 85, 106
+        Color:
+            rgb: .5,.5,.5
+        Rectangle:
+            pos: 98, 128
+            size: 29, 29
+        Rectangle:
+            pos: 98, 98
+            size: 29, 29
+        Rectangle:
+            pos: 98, 68
+            size: 29, 29
+        Rectangle:
+            pos: 58, 128
+            size: 29, 29
+        Rectangle:
+            pos: 58, 98
+            size: 29, 29
+        Rectangle:
+            pos: 58, 68
+            size: 29, 29
+        Color:
+            rgb: self.red_1
+        Ellipse:
+            pos: 100, 130
+            size: 25, 25
+        Color:
+            rgb: self.yellow_1
+        Ellipse:
+            pos: 100, 100
+            size: 25, 25
+        Color:
+            rgb: self.green_1
+        Ellipse:
+            pos: 100, 70
+            size: 25, 25
+        Color:
+            rgb: self.red_2
+        Ellipse:
+            pos: 60, 130
+            size: 25, 25
+        Color:
+            rgb: self.yellow_2
+        Ellipse:
+            pos: 60, 100
+            size: 25, 25
+        Color:
+            rgb: self.green_2
+        Ellipse:
+            pos: 60, 70
+            size: 25, 25 
+
+<ASCIIGrid> 
+    canvas.before:
+        Color:  
+            rgb: 0,0,0 
+        Rectangle: 
+            pos: 300,15
+            size: 365,50   
+        Color: 
+            rgb: 1,1,1 
+        Rectangle: 
+            pos: 305,20
+            size: 40,40 
+        Rectangle: 
+            pos: 350,20 
+            size: 40,40 
+        Rectangle: 
+            pos: 395,20
+            size: 40,40 
+        Rectangle: 
+            pos: 440,20 
+            size: 40,40 
+        Rectangle: 
+            pos: 485,20
+            size: 40,40 
+        Rectangle: 
+            pos: 530,20
+            size: 40,40 
+        Rectangle: 
+            pos: 575,20
+            size: 40,40 
+        Rectangle: 
+            pos: 620,20
+            size: 40,40  
+            
+<SevenSegmentDisplay>
+    canvas.before:
+        Color:
+            rgb: 0,0,0
+        Rectangle:
+            pos: 140, 50
+            size: 150, 130
+        # A
+        Color:
+            rgb: self.leftA
+        Rectangle:
+            pos: 160, 160
+            size: 40, 10
+        # B   
+        Color:
+            rgb: self.leftB
+        Rectangle:
+            pos: 200, 120
+            size: 10, 40   
+        # C
+        Color:
+            rgb: self.leftC
+        Rectangle:
+            pos: 200, 70
+            size: 10, 40 
+        # D
+        Color:
+            rgb: self.leftD
+        Rectangle:
+            pos: 160, 60
+            size: 40, 10
+        # E
+        Color:
+            rgb: self.leftE
+        Rectangle:
+            pos: 150, 70
+            size: 10, 40       
+        # F
+        Color:
+            rgb: self.leftF
+        Rectangle:
+            pos: 150, 120
+            size: 10, 40   
+
+        # G
+        Color:
+            rgb: self.leftG
+        Rectangle:
+            pos: 160, 110
+            size: 40, 10
+# ############    Right Number ############
+       # A
+        Color:
+            rgb: self.rightA
+        Rectangle:
+            pos: 230, 160
+            size: 40, 10
+        # B   
+        Color:
+            rgb: self.rightB
+        Rectangle:
+            pos: 270, 120
+            size: 10, 40   
+        # C
+        Color:
+            rgb: self.rightC
+        Rectangle:
+            pos: 270, 70
+            size: 10, 40 
+        # D
+        Color:
+            rgb: self.rightD
+        Rectangle:
+            pos: 230, 60
+            size: 40, 10
+        # E
+        Color:
+            rgb: self.rightE
+        Rectangle:
+            pos: 220, 70
+            size: 10, 40       
+        # F
+        Color:
+            rgb: self.rightF
+        Rectangle:
+            pos: 220, 120
+            size: 10, 40   
+
+        # G
+        Color:
+            rgb: self.rightG
+        Rectangle:
+            pos: 230, 110
+            size: 40, 10
+
