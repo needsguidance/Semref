@@ -17,6 +17,7 @@ class MicroSim:
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.is_ram_loaded = False
+        # TODO: Verify if micro_instructions & decoded_mirco_instructions are necessary
         self.micro_instructions = []
         self.decoded_micro_instructions = []
         self.index = 0
@@ -91,12 +92,12 @@ class MicroSim:
         return dis_instruction
 
     def run_micro_instructions(self):
-            REGISTER['ir'] = f'{RAM[self.index]}{RAM[self.index + 1]}'
-            binary_instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
-            self.execute_instruction(binary_instruction)
+        REGISTER['ir'] = f'{RAM[self.index]}{RAM[self.index + 1]}'
+        binary_instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
+        self.execute_instruction(binary_instruction)
 
     def run_micro_instructions_step(self, step_index):
-      
+
         REGISTER['ir'] = f'{RAM[self.index]}{RAM[self.index + 1]}'
         binary_instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
         self.execute_instruction(binary_instruction)
@@ -109,7 +110,9 @@ class MicroSim:
 
         return hex_to_binary(f'{RAM[0]}')
 
+    def seven_segment_binary(self):
 
+        return hex_to_binary(f'{RAM[1]}')
 
     def micro_clear(self):
         self.is_ram_loaded = False
@@ -133,6 +136,7 @@ class MicroSim:
 
     def execute_instruction(self, instruction):
         if re.match('^[0]+$', instruction):
+            # TODO verify if is necessary
             self.micro_instructions.append('NOP')
         else:
 
