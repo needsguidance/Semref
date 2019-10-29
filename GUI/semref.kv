@@ -1,26 +1,57 @@
 <RegisterTable>:
     id: data_list
-    pos_hint:{'x': 0, 'center_y': 1.5}
+    pos_hint:{'x': dp(0), 'center_y': dp(1.5)}
     RecycleGridLayout:
         canvas.before:
-            Color: 
-                rgba: .75, .75, .75, 1
-            Rectangle:
-                pos: self.pos
-                size: self.size
-        canvas:
             Color:
                 rgba: .50, .50, .50, 1
             Line:
                 width: 2.
-                rectangle: (self.x, self.y, self.width, self.height) 
+                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height)) 
+
+            Line:
+                width: 2.
+                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 30 ))
+            Line:
+                width: 2.
+                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 60 ))
+            Line:
+                width: 2.
+                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 90 ))
+            Line:
+                width: 2.
+                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 120))
+            Line:
+                width: 2.
+                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 150 ))
+            Line:
+                width: 2.
+                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 180 ))
+            Line:
+                width: 2.
+                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 210))
+            Line:
+                width: 2.
+                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 240 ))
+            Line:
+                width: 2.
+                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 270 ))
+            Line:
+                width: 2.
+                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 300 ))
+            Line:
+                width: 2.
+                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 330 ))
+            Line:
+                width: 2.
+                rectangle: (dp(self.x), dp(self.y), dp(self.width/2), dp(self.height))
 
         cols: 2
         default_size: None, dp(30)
-        default_size_hint: 1, None
+        default_size_hint: dp(1), None
         size_hint_y: None
-        size_hint_x: 0.2
-        height: self.minimum_height
+        size_hint_x: dp(0.2)
+        height: dp(self.minimum_height)
         orientation: 'vertical'
 
 <InstructionTable>:
@@ -29,29 +60,89 @@
     RecycleGridLayout:
         cols: 3
         default_size: None, dp(30)
-        default_size_hint: 1, None
+        default_size_hint: dp(1), None
         size_hint_y: None
-        size_hint_x: 0.5
-        height: self.minimum_height
+        size_hint_x: dp(0.5)
+        height: dp(self.minimum_height)
         orientation: 'vertical'
 
 
 <MemoryTable>:
     id: data_list
-    pos_hint:{'x': 0.75, 'center_y': 1.5}
+    pos_hint:{'x': dp(0.75), 'center_y': dp(1.5)}
     RecycleGridLayout:
-        canvas.before:
-            Color: 
-                rgba: .75, .75, .75, 1
-            Rectangle:
-                pos: self.pos
-                size: self.size
         canvas:
             Color:
                 rgba: .50, .50, .50, 1
             Line:
                 width: 2.
-                rectangle: (self.x, self.y, self.width, self.height) 
+                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height)) 
+            Line:
+                width: 2.
+                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 30 ))
+            Line:
+                width: 2.
+                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 60 ))
+            Line:
+                width: 2.
+                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 90 ))
+            Line:
+                width: 2.
+                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 120))
+            Line:
+                width: 2.
+                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 150 ))
+            Line:
+                width: 2.
+                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 180 ))
+            Line:
+                width: 2.
+                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 210))
+            Line:
+                width: 2.
+                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 240 ))
+            Line:
+                width: 2.
+                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 270 ))
+            Line:
+                width: 2.
+                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 300 ))
+            Line:
+                width: 2.
+                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 330 ))
+            Line:
+                width: 2.
+                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 360 ))
+            Line:
+                width: 2.
+                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 390 ))
+            Line:
+                width: 2.
+                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 420))
+            Line:
+                width: 2.
+                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 450 ))
+            Line:
+                width: 2.
+                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 480 ))
+            Line:
+                width: 2.
+                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 510))
+            Line:
+                width: 2.
+                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 540 ))
+            Line:
+                width: 2.
+                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 570 ))
+            Line:
+                width: 2.
+                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 600 ))
+            Line:
+                width: 2.
+                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 630 ))
+            Line:
+                width: 2.
+                rectangle: (dp(self.x), dp(self.y), dp(self.width/2), dp(self.height))
         cols: 2
         default_size: None, dp(30)
         default_size_hint: 1, None
@@ -62,30 +153,12 @@
 
 <TrafficLights>
     canvas.before:
-        Color:
-            rgb: 0,0,0
-        Rectangle:
-            pos: 0, 0
-            size: 302, 252
-        Color:
-            rgb: .8,.8,.8
-        Rectangle:
-            pos: 2, 2
-            size: 298, 248
-        Color:
-            rgb: 0,0,0
-        Rectangle:
-            pos: 4, 4
-            size: 293, 243
-        Color:
-            rgb: 1,1,1
-        Rectangle:
-            pos: 6, 6
-            size: 289, 239
+        
         Color:
             rgb: 1,.8,0
         Rectangle:
-            pos: 45, 55
+            pos: dp(900), dp(100)
+        #    pos: 45, 55
             size: 95, 115
         Color:
             rgb: 0,0,0
@@ -145,8 +218,8 @@
 
 <ASCIIGrid> 
     canvas.before:
-        Color:  
-            rgb: 0,0,0 
+        Color:
+            rgba: .50, .50, .50, 1 
         Rectangle: 
             pos: 300,15
             size: 365,50   

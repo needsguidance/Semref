@@ -63,60 +63,48 @@ class HexKeyboard(GridLayout):
         self.condition = Condition()
 
         with self.canvas.before:
-            Color(0, 0, 0, 1)
-            Rectangle(pos=(306, 75), size=(355, 202))
+            Color(.50, .50, .50, 1)
+            Rectangle(pos=(303, 72), size=(362, 208))
 
         with self.canvas:
+            Color(1, 1, 1, 1)
+            Rectangle(pos=(307, 77), size=(354, 199))
+
             Color(.75, .75, .75, 1)
-            Rectangle(pos=(307, 76), size=(353, 200))
+            Rectangle(pos=(307, 76), size=(353, 143))
 
-            Color(0, 0, 0, 1)
-            Line(rectangle=(307, 183, 87, 35), width=0.3)
+            Color(.50, .50, .50, 1)
+            Line(rectangle=(307, 183, 87, 35), width=0.8)
 
-            Color(0, 0, 0, 1)
-            Line(rectangle=(396, 183, 87, 35), width=0.3)
+            Line(rectangle=(396, 183, 87, 35), width=0.8)
 
-            Color(0, 0, 0, 1)
-            Line(rectangle=(485, 183, 87, 35), width=0.3)
+            Line(rectangle=(485, 183, 87, 35), width=0.8)
 
-            Color(0, 0, 0, 1)
-            Line(rectangle=(574, 183, 87, 35), width=0.3)
+            Line(rectangle=(574, 183, 87, 35), width=0.8)
 
-            Color(0, 0, 0, 1)
-            Line(rectangle=(307, 148, 87, 35), width=0.3)
+            Line(rectangle=(307, 148, 87, 35), width=0.8)
 
-            Color(0, 0, 0, 1)
-            Line(rectangle=(396, 148, 87, 35), width=0.3)
+            Line(rectangle=(396, 148, 87, 35), width=0.8)
 
-            Color(0, 0, 0, 1)
-            Line(rectangle=(485, 148, 87, 35), width=0.3)
+            Line(rectangle=(485, 148, 87, 35), width=0.8)
 
-            Color(0, 0, 0, 1)
-            Line(rectangle=(574, 148, 87, 35), width=0.3)
+            Line(rectangle=(574, 148, 87, 35), width=0.8)
 
-            Color(0, 0, 0, 1)
-            Line(rectangle=(307, 113, 87, 35), width=0.3)
+            Line(rectangle=(307, 113, 87, 35), width=0.8)
 
-            Color(0, 0, 0, 1)
-            Line(rectangle=(396, 113, 87, 35), width=0.3)
+            Line(rectangle=(396, 113, 87, 35), width=0.8)
 
-            Color(0, 0, 0, 1)
-            Line(rectangle=(485, 113, 87, 35), width=0.3)
+            Line(rectangle=(485, 113, 87, 35), width=0.8)
 
-            Color(0, 0, 0, 1)
-            Line(rectangle=(574, 113, 87, 35), width=0.3)
+            Line(rectangle=(574, 113, 87, 35), width=0.8)
 
-            Color(0, 0, 0, 1)
-            Line(rectangle=(307, 78, 87, 35), width=0.3)
+            Line(rectangle=(307, 78, 87, 35), width=0.8)
 
-            Color(0, 0, 0, 1)
-            Line(rectangle=(396, 78, 87, 35), width=0.3)
+            Line(rectangle=(396, 78, 87, 35), width=0.8)
 
-            Color(0, 0, 0, 1)
-            Line(rectangle=(485, 78, 87, 35), width=0.3)
+            Line(rectangle=(485, 78, 87, 35), width=0.8)
 
-            Color(0, 0, 0, 1)
-            Line(rectangle=(574, 78, 87, 35), width=0.3)
+            Line(rectangle=(574, 78, 87, 35), width=0.8)
 
         for i in range(16):
             if i > 9:
@@ -161,7 +149,6 @@ class HexKeyboard(GridLayout):
             # Begins new scheduling thread
             self.event_on()
             self.event_off()
-
             self.seven_segment_display.activate_segments(self.micro_sim.seven_segment_binary())
             sleep(1)
             self.condition.release()
@@ -555,8 +542,9 @@ class RegisterTable(RecycleView):
                 _data.append(
                     {'text': self.data_list[i + 1].upper(), 'color': (.1, .1, .1, 1)})
             i += 2
-
+            
         self.data = _data
+        
 
 
 class MemoryTable(RecycleView):
