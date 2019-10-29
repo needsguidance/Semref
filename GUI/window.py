@@ -2,10 +2,11 @@ from microprocessor_simulator import MicroSim, RAM
 from queue import Queue
 from constants import HEX_KEYBOARD
 from time import sleep
+from kivy.metrics import dp, sp
 from kivy import Config
 
-Config.set('graphics', 'width', '1024')
-Config.set('graphics', 'height', '650')
+Config.set('graphics', 'width', 1024)
+Config.set('graphics', 'height', 650)
 Config.set('graphics', 'resizable', False)
 
 
@@ -64,47 +65,47 @@ class HexKeyboard(GridLayout):
 
         with self.canvas.before:
             Color(.50, .50, .50, 1)
-            Rectangle(pos=(303, 72), size=(362, 208))
+            Rectangle(pos=(dp(303), dp(72)), size=(dp(362), dp(208)))
 
         with self.canvas:
             Color(1, 1, 1, 1)
-            Rectangle(pos=(307, 77), size=(354, 199))
+            Rectangle(pos=(dp(307), dp(77)), size=(dp(354), dp(199)))
 
             Color(.75, .75, .75, 1)
-            Rectangle(pos=(307, 76), size=(353, 143))
+            Rectangle(pos=(dp(307), dp(76)), size=(dp(353), dp(143)))
 
             Color(.50, .50, .50, 1)
-            Line(rectangle=(307, 183, 87, 35), width=0.8)
+            Line(rectangle=(dp(307), dp(183), dp(87), dp(35)), width=0.8)
 
-            Line(rectangle=(396, 183, 87, 35), width=0.8)
+            Line(rectangle=(dp(396), dp(183), dp(87), dp(35)), width=0.8)
 
-            Line(rectangle=(485, 183, 87, 35), width=0.8)
+            Line(rectangle=(dp(485), dp(183), dp(87), dp(35)), width=0.8)
 
-            Line(rectangle=(574, 183, 87, 35), width=0.8)
+            Line(rectangle=(dp(574), dp(183), dp(87), dp(35)), width=0.8)
 
-            Line(rectangle=(307, 148, 87, 35), width=0.8)
+            Line(rectangle=(dp(307), dp(148), dp(87), dp(35)), width=0.8)
 
-            Line(rectangle=(396, 148, 87, 35), width=0.8)
+            Line(rectangle=(dp(396), dp(148), dp(87), dp(35)), width=0.8)
 
-            Line(rectangle=(485, 148, 87, 35), width=0.8)
+            Line(rectangle=(dp(485), dp(148), dp(87), dp(35)), width=0.8)
 
-            Line(rectangle=(574, 148, 87, 35), width=0.8)
+            Line(rectangle=(dp(574), dp(148), dp(87), dp(35)), width=0.8)
 
-            Line(rectangle=(307, 113, 87, 35), width=0.8)
+            Line(rectangle=(dp(307), dp(113), dp(87), dp(35)), width=0.8)
 
-            Line(rectangle=(396, 113, 87, 35), width=0.8)
+            Line(rectangle=(dp(396), dp(113), dp(87), dp(35)), width=0.8)
 
-            Line(rectangle=(485, 113, 87, 35), width=0.8)
+            Line(rectangle=(dp(485), dp(113), dp(87), dp(35)), width=0.8)
 
-            Line(rectangle=(574, 113, 87, 35), width=0.8)
+            Line(rectangle=(dp(574), dp(113), dp(87), dp(35)), width=0.8)
 
-            Line(rectangle=(307, 78, 87, 35), width=0.8)
+            Line(rectangle=(dp(307), dp(78), dp(87), dp(35)), width=0.8)
 
-            Line(rectangle=(396, 78, 87, 35), width=0.8)
+            Line(rectangle=(dp(396), dp(78), dp(87), dp(35)), width=0.8)
 
-            Line(rectangle=(485, 78, 87, 35), width=0.8)
+            Line(rectangle=(dp(485), dp(78), dp(87), dp(35)), width=0.8)
 
-            Line(rectangle=(574, 78, 87, 35), width=0.8)
+            Line(rectangle=(dp(574), dp(78), dp(87), dp(35)), width=0.8)
 
         for i in range(16):
             if i > 9:
@@ -189,22 +190,22 @@ class RunWindow(FloatLayout):
                                                          'center_x': .35, 'center_y': 2.12},
                                                      on_release=self.open_save_dialog)
 
-        self.ascii_label_1 = Label(text='[color=000000]' + chr(int(RAM[4088], 16)) + '[/color]', pos=(-187, -105),
-                                   font_size=40, markup=True)
-        self.ascii_label_2 = Label(text='[color=000000]' + chr(int(RAM[4089], 16)) + '[/color]', pos=(-146, -105),
-                                   font_size=40, markup=True)
-        self.ascii_label_3 = Label(text='[color=000000]' + chr(int(RAM[4090], 16)) + '[/color]', pos=(-100, -105),
-                                   font_size=40, markup=True)
-        self.ascii_label_4 = Label(text='[color=000000]' + chr(int(RAM[4091], 16)) + '[/color]', pos=(-54, -105),
-                                   font_size=40, markup=True)
-        self.ascii_label_5 = Label(text='[color=000000]' + chr(int(RAM[4092], 16)) + '[/color]', pos=(-8, -105),
-                                   font_size=40, markup=True)
-        self.ascii_label_6 = Label(text='[color=000000]' + chr(int(RAM[4093], 16)) + '[/color]', pos=(38, -105),
-                                   font_size=40, markup=True)
-        self.ascii_label_7 = Label(text='[color=000000]' + chr(int(RAM[4094], 16)) + '[/color]', pos=(84, -105),
-                                   font_size=40, markup=True)
-        self.ascii_label_8 = Label(text='[color=000000]' + chr(int(RAM[4095], 16)) + '[/color]', pos=(130, -105),
-                                   font_size=40, markup=True)
+        self.ascii_label_1 = Label(text='[color=000000]' + chr(int(RAM[4088], 16)) + '[/color]', pos=(dp(-187), dp(-105)),
+                                   font_size=sp(40), markup=True)
+        self.ascii_label_2 = Label(text='[color=000000]' + chr(int(RAM[4089], 16)) + '[/color]', pos=(dp(-146), dp(-105)),
+                                   font_size=sp(40), markup=True)
+        self.ascii_label_3 = Label(text='[color=000000]' + chr(int(RAM[4090], 16)) + '[/color]', pos=(dp(-100), dp(-105)),
+                                   font_size=sp(40), markup=True)
+        self.ascii_label_4 = Label(text='[color=000000]' + chr(int(RAM[4091], 16)) + '[/color]', pos=(dp(-54), dp(-105)),
+                                   font_size=sp(40), markup=True)
+        self.ascii_label_5 = Label(text='[color=000000]' + chr(int(RAM[4092], 16)) + '[/color]', pos=(dp(-8), dp(-105)),
+                                   font_size=sp(40), markup=True)
+        self.ascii_label_6 = Label(text='[color=000000]' + chr(int(RAM[4093], 16)) + '[/color]', pos=(dp(38), dp(-105)),
+                                   font_size=sp(40), markup=True)
+        self.ascii_label_7 = Label(text='[color=000000]' + chr(int(RAM[4094], 16)) + '[/color]', pos=(dp(84), dp(-105)),
+                                   font_size=sp(40), markup=True)
+        self.ascii_label_8 = Label(text='[color=000000]' + chr(int(RAM[4095], 16)) + '[/color]', pos=(dp(130), dp(-105)),
+                                   font_size=sp(40), markup=True)
 
 
         self.ascii = ASCIIGrid()
@@ -221,10 +222,10 @@ class RunWindow(FloatLayout):
             self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
         self.header = True
         self.hex_keyboard_label = Label(text='HEX KEYBOARD',
-                                        font_size=20,
+                                        font_size=sp(20),
                                         color=(0, 0, 0, 1),
                                         # size_hint=(1, 0.17),
-                                        pos_hint={'x': -0.025, 'y': 0.35})
+                                        pos_hint={'x': dp(-0.025), 'y': dp(0.35)})
 
         self.light.change_color(self.micro_sim.traffic_lights_binary())
         self.seven_segment_display.activate_segments(

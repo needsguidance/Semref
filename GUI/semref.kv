@@ -56,7 +56,7 @@
 
 <InstructionTable>:
     id: data_list
-    pos_hint:{'x': 0.2, 'center_y': 1.5}
+    pos_hint:{'x': dp(0.2), 'center_y': dp(1.5)}
     RecycleGridLayout:
         cols: 3
         default_size: None, dp(30)
@@ -145,10 +145,10 @@
                 rectangle: (dp(self.x), dp(self.y), dp(self.width/2), dp(self.height))
         cols: 2
         default_size: None, dp(30)
-        default_size_hint: 1, None
+        default_size_hint: sp(1), None
         size_hint_y: None
-        size_hint_x: 0.25
-        height: self.minimum_height
+        size_hint_x: dp(0.25)
+        height: sp(self.minimum_height)
         orientation: 'vertical'
 
 <TrafficLights>
