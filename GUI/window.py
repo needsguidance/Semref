@@ -1,40 +1,41 @@
+from time import sleep
+from constants import HEX_KEYBOARD
+from queue import Queue
+from microprocessor_simulator import MicroSim, RAM
+from kivy import Config
+
+from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
+                                         NavigationDrawerIconButton,
+                                         NavigationDrawerSubheader,
+                                         NavigationLayout)
+from kivymd.uix.filemanager import MDFileManager
+from kivymd.uix.textfield import MDTextField
+from kivymd.toast import toast
+from kivymd.theming import ThemeManager
+from kivy.uix.recycleview import RecycleView
+from kivy.uix.modalview import ModalView
+from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.boxlayout import BoxLayout
+from kivy.properties import (ListProperty)
+from kivy.uix.label import Label
+from kivy.uix.widget import Widget
+from kivy.clock import Clock
+from kivy.lang import Builder
+from kivy.app import App
+from kivymd.uix.button import MDFillRoundFlatIconButton, MDFlatButton
+from kivymd.uix.dialog import MDDialog
 from pathlib import Path
 from threading import Lock, Thread, Semaphore, Condition
 
-from kivy import Config
+
 from kivy.graphics.context_instructions import Color
 from kivy.graphics.vertex_instructions import Rectangle, Line
 from kivy.uix.gridlayout import GridLayout
 
 from constants import REGISTER, hex_to_binary, convert_to_hex
 
-Config.set('graphics', 'width', '1024')
-Config.set('graphics', 'height', '650')
-Config.set('graphics', 'resizable', False)
-from kivymd.uix.dialog import MDInputDialog
-from kivymd.uix.button import MDFillRoundFlatIconButton, MDFlatButton
-from kivy.app import App
-from kivy.lang import Builder
-from kivy.clock import Clock
-from kivy.uix.widget import Widget
-from kivy.uix.label import Label
-from kivy.properties import (ListProperty)
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.modalview import ModalView
-from kivy.uix.recycleview import RecycleView
-from kivymd.theming import ThemeManager
-from kivymd.toast import toast
-from kivymd.uix.filemanager import MDFileManager
-from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
-                                         NavigationDrawerIconButton,
-                                         NavigationDrawerSubheader,
-                                         NavigationLayout)
 
-from microprocessor_simulator import MicroSim, RAM
-from queue import Queue
-from constants import HEX_KEYBOARD
-from time import sleep
+
 
 Builder.load_string('''
 <RegisterTable>:
@@ -379,7 +380,8 @@ class HexKeyboard(GridLayout):
 
     def write_ram(self):
         with self.lock:
-            RAM[HEX_KEYBOARD] = convert_to_hex(int(f'{self.queue.get()}0001', 2), 8)
+            RAM[HEX_KEYBOARD] = convert_to_hex(
+                int(f'{self.queue.get()}0001', 2), 8)
             self.mem_table.data_list.clear()
             self.mem_table.get_data()
             sleep(1)
@@ -398,22 +400,26 @@ class RunWindow(FloatLayout):
         self.run_button = MDFillRoundFlatIconButton(text='Run',
                                                     icon='run',
                                                     size_hint=(None, None),
-                                                    pos_hint={'center_x': .7, 'center_y': 2.12},
+                                                    pos_hint={
+                                                        'center_x': .7, 'center_y': 2.12},
                                                     on_release=self.run_micro_instructions)
         self.debug_button = MDFillRoundFlatIconButton(text='Debug',
                                                       icon='android-debug-bridge',
                                                       size_hint=(None, None),
-                                                      pos_hint={'center_x': .9, 'center_y': 2.12},
+                                                      pos_hint={
+                                                          'center_x': .9, 'center_y': 2.12},
                                                       on_release=self.run_micro_instructions_step)
         self.refresh_button = MDFillRoundFlatIconButton(text='Clear',
                                                         icon='refresh',
                                                         size_hint=(None, None),
-                                                        pos_hint={'center_x': .5, 'center_y': 2.12},
+                                                        pos_hint={
+                                                            'center_x': .5, 'center_y': 2.12},
                                                         on_release=self.clear)
         self.save_button = MDFillRoundFlatIconButton(text='Save File',
                                                      icon='download',
                                                      size_hint=(None, None),
-                                                     pos_hint={'center_x': .35, 'center_y': 2.12},
+                                                     pos_hint={
+                                                         'center_x': .35, 'center_y': 2.12},
                                                      on_release=self.save)
 
         self.reg_table = RegisterTable()
@@ -425,7 +431,8 @@ class RunWindow(FloatLayout):
         self.light = TrafficLights()
         self.seven_segment_display = SevenSegmentDisplay()
         self.inst_table.data_list.clear()
-        self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
+        self.inst_table.get_data(
+            self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
         self.header = True
         self.hex_keyboard_label = Label(text='HEX KEYBOARD',
                                         font_size=20,
@@ -435,12 +442,15 @@ class RunWindow(FloatLayout):
         self.hex_keyboard_layout = HexKeyboard(mem_table=self.mem_table)
 
         self.light.change_color(self.micro_sim.traffic_lights_binary())
-        self.seven_segment_display.activate_segments(self.micro_sim.seven_segment_binary())
+        self.seven_segment_display.activate_segments(
+            self.micro_sim.seven_segment_binary())
 
         # Create variable of scheduling instance so that it can be turned on and off,
         # to avoid repeat of the same thread
-        self.event_on = Clock.schedule_interval(self.light.intermittent_off, 0.5)
-        self.event_off = Clock.schedule_interval(self.light.intermittent_on, 0.3)
+        self.event_on = Clock.schedule_interval(
+            self.light.intermittent_off, 0.5)
+        self.event_off = Clock.schedule_interval(
+            self.light.intermittent_on, 0.3)
 
         # Since the instancing of the events actually starts the scheduling, needs to be canceled right away
         self.event_on.cancel()
@@ -500,7 +510,8 @@ class RunWindow(FloatLayout):
                 # Begins new scheduling thread
                 self.event_on()
                 self.event_off()
-                self.seven_segment_display.activate_segments(self.micro_sim.seven_segment_binary())
+                self.seven_segment_display.activate_segments(
+                    self.micro_sim.seven_segment_binary())
                 self.reg_table.get_data()
                 self.mem_table.data_list.clear()
                 self.mem_table.get_data()
@@ -519,7 +530,8 @@ class RunWindow(FloatLayout):
         self.mem_table.data_list.clear()
         self.mem_table.get_data()
         self.inst_table.data_list.clear()
-        self.inst_table.get_data(self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
+        self.inst_table.get_data(
+            self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
         self.header = True
         self.first_inst = True
 
@@ -527,7 +539,8 @@ class RunWindow(FloatLayout):
         self.event_on.cancel()
         self.event_off.cancel()
         self.light.change_color(self.micro_sim.traffic_lights_binary())
-        self.seven_segment_display.activate_segments(self.micro_sim.seven_segment_binary())
+        self.seven_segment_display.activate_segments(
+            self.micro_sim.seven_segment_binary())
         toast('Micro memory cleared! Load new data')
 
     def run_micro_instructions_step(self, instance):
@@ -554,12 +567,15 @@ class RunWindow(FloatLayout):
                     self.event_on.cancel()
                     self.event_off.cancel()
                     # Updates colors
-                    self.light.change_color(self.micro_sim.traffic_lights_binary())
+                    self.light.change_color(
+                        self.micro_sim.traffic_lights_binary())
                     # Begins new scheduling thread
                     self.event_on()
                     self.event_off()
-                    self.seven_segment_display.activate_segments(self.micro_sim.seven_segment_binary())
-                toast('Runnin instruction in step-by-step mode. Step ' + str(self.step_index) + ' is running')
+                    self.seven_segment_display.activate_segments(
+                        self.micro_sim.seven_segment_binary())
+                toast('Runnin instruction in step-by-step mode. Step ' +
+                      str(self.step_index) + ' is running')
                 for i in self.micro_sim.micro_instructions:
                     if i != 'NOP':
                         print(i)
@@ -604,17 +620,19 @@ class NavDrawer(MDNavigationDrawer):
                                                    on_release=self.io_config_open))
 
     def io_config_open(self, instance):
-        dialog = MDInputDialog(title='Configure I/O Ports',
-                               hint_text='Hello World',
-                               size_hint=(0.8, 0.4),
-                               text_button_ok='Save',
-                               text_button_cancel='Cancel',
-                               events_callback=self.save_io_ports)
+        dialog = MDDialog(title='Configure I/O Ports',
+                          #    hint_text='Hello World',
+                          size_hint=(0.8, 0.4),
+                          text_button_ok='Save',
+                          text_button_cancel='Cancel',
+                          events_callback=self.save_io_ports)
+        dialog.add_widget(MDTextField(hint_text='Persistent helper text',
+                                      helper_text='Text is always here',
+                                      helper_text_mode='persistent'))
         dialog.open()
 
     def save_io_ports(self, *args):
-        print(args[1].text_field.text)
-        toast(args[1].text_field.text)
+        toast(str(args))
 
     def file_manager_open(self, instance):
         if not self.manager:
@@ -679,11 +697,15 @@ class RegisterTable(RecycleView):
         for j in range(int(len(self.data_list) / 2)):
             if _data_list and len(_data_list) > 2 and _data_list[i] == self.data_list[i] and _data_list[i + 1] != \
                     self.data_list[i + 1]:
-                _data.append({'text': self.data_list[i].upper(), 'color': (177 / 255, 62 / 255, 88 / 255, 1)})
-                _data.append({'text': self.data_list[i + 1].upper(), 'color': (177 / 255, 62 / 255, 88 / 255, 1)})
+                _data.append({'text': self.data_list[i].upper(), 'color': (
+                    177 / 255, 62 / 255, 88 / 255, 1)})
+                _data.append(
+                    {'text': self.data_list[i + 1].upper(), 'color': (177 / 255, 62 / 255, 88 / 255, 1)})
             else:
-                _data.append({'text': self.data_list[i].upper(), 'color': (.1, .1, .1, 1)})
-                _data.append({'text': self.data_list[i + 1].upper(), 'color': (.1, .1, .1, 1)})
+                _data.append(
+                    {'text': self.data_list[i].upper(), 'color': (.1, .1, .1, 1)})
+                _data.append(
+                    {'text': self.data_list[i + 1].upper(), 'color': (.1, .1, .1, 1)})
             i += 2
 
         self.data = _data
@@ -705,7 +727,8 @@ class MemoryTable(RecycleView):
             self.data_list.append(f'{RAM[i + 1]}')
             i += 2
 
-        self.data = [{"text": str(x.upper()), "color": (.1, .1, .1, 1)} for x in self.data_list]
+        self.data = [{"text": str(x.upper()), "color": (.1, .1, .1, 1)}
+                     for x in self.data_list]
 
 
 class InstructionTable(RecycleView):
@@ -725,7 +748,8 @@ class InstructionTable(RecycleView):
             self.data_list.append(f'{RAM[address]}')
             self.data_list.append(instruction.upper())
 
-        self.data = [{"text": str(x.upper()), "color": (.1, .1, .1, 1)} for x in self.data_list]
+        self.data = [{"text": str(x.upper()), "color": (.1, .1, .1, 1)}
+                     for x in self.data_list]
 
 
 class TrafficLights(Widget):
@@ -931,15 +955,20 @@ class GUI(NavigationLayout):
         self.app = App.get_running_app()
         self.micro_sim = MicroSim()
         self.add_widget(NavDrawer(micro_sim=self.micro_sim))
-        self.add_widget(MainWindow(nav_drawer=self, app=self.app, micro_sim=self.micro_sim))
+        self.add_widget(MainWindow(nav_drawer=self,
+                                   app=self.app, micro_sim=self.micro_sim))
 
 
 class TestApp(App):
     theme_cls = ThemeManager()
     theme_cls.primary_palette = 'Teal'
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def build_config(self, config):
+        super().build_config(config)
+        config.adddefaultsection('graphics')
+        config.setdefault('graphics', 'width', '1024')
+        config.setdefault('graphics', 'height', '650')
+        config.setdefault('graphics', 'resizable', False)
 
     def build(self):
         return GUI()
