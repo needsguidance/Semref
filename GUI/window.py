@@ -1,4 +1,3 @@
-import secrets
 from pathlib import Path
 from threading import Lock, Thread, Semaphore, Condition
 
@@ -187,33 +186,33 @@ Builder.load_string('''
         Color:  
             rgb: 0,0,0 
         Rectangle: 
-            pos: 300,150
+            pos: 300,15
             size: 365,50   
         Color: 
             rgb: 1,1,1 
         Rectangle: 
-            pos: 305,155
+            pos: 305,20
             size: 40,40 
         Rectangle: 
-            pos: 350,155 
+            pos: 350,20 
             size: 40,40 
         Rectangle: 
-            pos: 395,155
+            pos: 395,20
             size: 40,40 
         Rectangle: 
-            pos: 440,155 
+            pos: 440,20 
             size: 40,40 
         Rectangle: 
-            pos: 485,155 
+            pos: 485,20
             size: 40,40 
         Rectangle: 
-            pos: 530,155 
+            pos: 530,20
             size: 40,40 
         Rectangle: 
-            pos: 575,155 
+            pos: 575,20
             size: 40,40 
         Rectangle: 
-            pos: 620,155 
+            pos: 620,20
             size: 40,40  
             
 <SevenSegmentDisplay>
@@ -450,21 +449,21 @@ class RunWindow(FloatLayout):
                                                      pos_hint={'center_x': .35, 'center_y': 2.12},
                                                      on_release=self.save)
 
-        self.ascii_label_1 = Label(text='[color=000000]' + chr(int(RAM[4088], 16)) + '[/color]', pos=(-187, 29),
+        self.ascii_label_1 = Label(text='[color=000000]' + chr(int(RAM[4088], 16)) + '[/color]', pos=(-187, -105),
                                    font_size=40, markup=True)
-        self.ascii_label_2 = Label(text='[color=000000]' + chr(int(RAM[4089], 16)) + '[/color]', pos=(-146, 29),
+        self.ascii_label_2 = Label(text='[color=000000]' + chr(int(RAM[4089], 16)) + '[/color]', pos=(-146, -105),
                                    font_size=40, markup=True)
-        self.ascii_label_3 = Label(text='[color=000000]' + chr(int(RAM[4090], 16)) + '[/color]', pos=(-100, 29),
+        self.ascii_label_3 = Label(text='[color=000000]' + chr(int(RAM[4090], 16)) + '[/color]', pos=(-100, -105),
                                    font_size=40, markup=True)
-        self.ascii_label_4 = Label(text='[color=000000]' + chr(int(RAM[4091], 16)) + '[/color]', pos=(-54, 29),
+        self.ascii_label_4 = Label(text='[color=000000]' + chr(int(RAM[4091], 16)) + '[/color]', pos=(-54, -105),
                                    font_size=40, markup=True)
-        self.ascii_label_5 = Label(text='[color=000000]' + chr(int(RAM[4092], 16)) + '[/color]', pos=(-8, 29),
+        self.ascii_label_5 = Label(text='[color=000000]' + chr(int(RAM[4092], 16)) + '[/color]', pos=(-8, -105),
                                    font_size=40, markup=True)
-        self.ascii_label_6 = Label(text='[color=000000]' + chr(int(RAM[4093], 16)) + '[/color]', pos=(38, 29),
+        self.ascii_label_6 = Label(text='[color=000000]' + chr(int(RAM[4093], 16)) + '[/color]', pos=(38, -105),
                                    font_size=40, markup=True)
-        self.ascii_label_7 = Label(text='[color=000000]' + chr(int(RAM[4094], 16)) + '[/color]', pos=(84, 29),
+        self.ascii_label_7 = Label(text='[color=000000]' + chr(int(RAM[4094], 16)) + '[/color]', pos=(84, -105),
                                    font_size=40, markup=True)
-        self.ascii_label_8 = Label(text='[color=000000]' + chr(int(RAM[4095], 16)) + '[/color]', pos=(130, 29),
+        self.ascii_label_8 = Label(text='[color=000000]' + chr(int(RAM[4095], 16)) + '[/color]', pos=(130, -105),
                                    font_size=40, markup=True)
 
 
@@ -520,6 +519,8 @@ class RunWindow(FloatLayout):
         self.add_widget(self.ascii_label_6)
         self.add_widget(self.ascii_label_7)
         self.add_widget(self.ascii_label_8)
+
+
 
     def save(self, instance):
         toast("Not Implemented yet. Will be ready on Sprint 3")
