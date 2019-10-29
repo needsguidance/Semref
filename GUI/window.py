@@ -500,6 +500,8 @@ class NavDrawer(MDNavigationDrawer):
         self.add_widget(NavigationDrawerIconButton(icon='paperclip',
                                                    text='Load File',
                                                    on_release=self.file_manager_open))
+        self.add_widget(NavigationDrawerIconButton(icon='settings',
+                                                   text='Configure I/O'))
 
     def file_manager_open(self, instance):
         if not self.manager:
