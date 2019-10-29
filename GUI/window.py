@@ -1,4 +1,3 @@
-import secrets
 from pathlib import Path
 from threading import Lock, Thread, Semaphore, Condition
 
@@ -12,6 +11,7 @@ from constants import REGISTER, hex_to_binary, convert_to_hex
 Config.set('graphics', 'width', '1024')
 Config.set('graphics', 'height', '650')
 Config.set('graphics', 'resizable', False)
+from kivymd.uix.dialog import MDInputDialog
 from kivymd.uix.button import MDFillRoundFlatIconButton, MDFlatButton
 from kivy.app import App
 from kivy.lang import Builder
@@ -600,7 +600,21 @@ class NavDrawer(MDNavigationDrawer):
                                                    text='Load File',
                                                    on_release=self.file_manager_open))
         self.add_widget(NavigationDrawerIconButton(icon='settings',
-                                                   text='Configure I/O'))
+                                                   text='Configure I/O',
+                                                   on_release=self.io_config_open))
+
+    def io_config_open(self, instance):
+        dialog = MDInputDialog(title='Configure I/O Ports',
+                               hint_text='Hello World',
+                               size_hint=(0.8, 0.4),
+                               text_button_ok='Save',
+                               text_button_cancel='Cancel',
+                               events_callback=self.save_io_ports)
+        dialog.open()
+
+    def save_io_ports(self, *args):
+        print(args[1].text_field.text)
+        toast(args[1].text_field.text)
 
     def file_manager_open(self, instance):
         if not self.manager:
@@ -813,7 +827,6 @@ class TrafficLights(Widget):
 
 
 class SevenSegmentDisplay(Widget):
-
     leftA = ListProperty([.41, .41, .41])
     leftB = ListProperty([.41, .41, .41])
     leftC = ListProperty([.41, .41, .41])
