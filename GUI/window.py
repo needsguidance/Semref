@@ -1,5 +1,5 @@
 from time import sleep
-from constants import HEX_KEYBOARD
+from constants import TRAFFIC_LIGHT, SEVEN_SEGMENT_DISPLAY, ASCII_TABLE, HEX_KEYBOARD
 from queue import Queue
 from microprocessor_simulator import MicroSim, RAM
 from kivy import Config
@@ -10,12 +10,14 @@ from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
                                          NavigationLayout)
 from kivymd.uix.filemanager import MDFileManager
 from kivymd.uix.textfield import MDTextField
+from kivy.uix.popup import Popup
 from kivymd.toast import toast
 from kivymd.theming import ThemeManager
 from kivy.uix.recycleview import RecycleView
 from kivy.uix.modalview import ModalView
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.anchorlayout import AnchorLayout
 from kivy.properties import (ListProperty)
 from kivy.uix.label import Label
 from kivy.uix.widget import Widget
@@ -23,7 +25,7 @@ from kivy.clock import Clock
 from kivy.lang import Builder
 from kivy.app import App
 from kivymd.uix.button import MDFillRoundFlatIconButton, MDFlatButton
-from kivymd.uix.dialog import MDDialog
+from kivymd.uix.dialog import MDDialog, MDInputDialog
 from pathlib import Path
 from threading import Lock, Thread, Semaphore, Condition
 
@@ -33,8 +35,6 @@ from kivy.graphics.vertex_instructions import Rectangle, Line
 from kivy.uix.gridlayout import GridLayout
 
 from constants import REGISTER, hex_to_binary, convert_to_hex
-
-
 
 
 Builder.load_string('''
@@ -380,7 +380,7 @@ class HexKeyboard(GridLayout):
 
     def write_ram(self):
         with self.lock:
-            RAM[HEX_KEYBOARD] = convert_to_hex(
+            RAM[HEX_KEYBOARD['port']] = convert_to_hex(
                 int(f'{self.queue.get()}0001', 2), 8)
             self.mem_table.data_list.clear()
             self.mem_table.get_data()
@@ -615,24 +615,49 @@ class NavDrawer(MDNavigationDrawer):
         self.add_widget(NavigationDrawerIconButton(icon='paperclip',
                                                    text='Load File',
                                                    on_release=self.file_manager_open))
-        self.add_widget(NavigationDrawerIconButton(icon='settings',
-                                                   text='Configure I/O',
+        self.add_widget(NavigationDrawerIconButton(icon='traffic-light',
+                                                   text=TRAFFIC_LIGHT['menu_title'],
+                                                   on_release=self.io_config_open))
+        self.add_widget(NavigationDrawerIconButton(icon='numeric-7-box-multiple',
+                                                   text=SEVEN_SEGMENT_DISPLAY['menu_title'],
+                                                   on_release=self.io_config_open))
+        self.add_widget(NavigationDrawerIconButton(icon='alphabetical-variant',
+                                                   text=ASCII_TABLE['menu_title'],
+                                                   on_release=self.io_config_open))
+        self.add_widget(NavigationDrawerIconButton(icon='keyboard',
+                                                   text=HEX_KEYBOARD['menu_title'],
                                                    on_release=self.io_config_open))
 
     def io_config_open(self, instance):
-        dialog = MDDialog(title='Configure I/O Ports',
-                          #    hint_text='Hello World',
-                          size_hint=(0.8, 0.4),
-                          text_button_ok='Save',
-                          text_button_cancel='Cancel',
-                          events_callback=self.save_io_ports)
-        # dialog.add_widget(MDTextField(hint_text='Persistent helper text',
-        #                               helper_text='Text is always here',
-        #                               helper_text_mode='persistent'))
+        dialog = MDInputDialog(title=instance.text,
+                               hint_text='Input port number [0-4095]',
+                               size_hint=(0.8, 0.4),
+                               text_button_ok='Save',
+                               text_button_cancel='Cancel',
+                               events_callback=self.save_io_ports)
         dialog.open()
 
     def save_io_ports(self, *args):
-        toast(str(args))
+        if args[0] == 'Save':
+            title = args[1].title
+            text = args[1].text_field.text
+            if text.isdigit():
+                num = int(text)
+                if num < 0 or num > 4095:
+                    toast('Invalid port number. Valid port numbers [0-4095]')
+                else:
+                    if title == TRAFFIC_LIGHT['menu_title']:
+                        TRAFFIC_LIGHT['port'] = num
+                    elif title == SEVEN_SEGMENT_DISPLAY['menu_title']:
+                        SEVEN_SEGMENT_DISPLAY['port'] = num
+                    elif title == ASCII_TABLE['menu_title']:
+                        ASCII_TABLE['port'] = num
+                    else:
+                        HEX_KEYBOARD['port'] = num
+                    toast('Changed port number')
+            else:
+                toast('Invalid input. Not a number!')
+            
 
     def file_manager_open(self, instance):
         if not self.manager:
