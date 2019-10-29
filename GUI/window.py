@@ -337,7 +337,7 @@ class RunWindow(FloatLayout):
         self.light = TrafficLights()
         self.inst_table.data_list.clear()
         self.inst_table.get_data(
-            self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
+        self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
         self.header = True
         self.hex_keyboard_label = Label(text='HEX KEYBOARD',
                                         font_size=20,
@@ -371,20 +371,51 @@ class RunWindow(FloatLayout):
         self.add_widget(self.hex_keyboard_label)
 
     def open_save_dialog(self, instance):
+        """It will be called when user click on the save file button.
+
+        :param instance: used asevent handler for button click;
+
+        """
+        toast('Save Register and Memory Content')
         dialog = MDInputDialog(
-            title='Save Register Content', hint_text='Enter file name', size_hint=(.4, .3),
+            title='Save file: Enter file name', hint_text='Enter file name', size_hint=(.3, .3),
             text_button_ok='Save',
             text_button_cancel='Cancel',
             events_callback=self.save_file)
         dialog.open()
 
     def save_file(self, *args):
-        f = open('output/' + args[1].text_field.text + '.txt', 'w')
-        f.write('\nRegister Content: \n')
-        for k, v in REGISTER.items():
-            f.write('\n' + k.upper() + ':' + '       ' + v.upper() + '\n')
-        toast('File saved in output folder as ' + args[1].text_field.text + '.txt')
-        f.close()
+        """It is called when user clicks on 'Save' or 'Cancel' button of dialog.
+        
+        :type *args: object array
+        :param *args: passes an object array generated when opening open_save_dialog. 
+                Said object indcludes input text used for file saving;
+
+        """
+        if args[0] == 'Save':
+            filename = ''
+
+            #Checks if user input is valid or null for filename. if null, assigns a default filename
+            if args[1].text_field.text:
+                filename = args[1].text_field.text
+            else:
+                filename = 'Save'
+            f = open('output/' + filename + '.txt', 'w')
+            f.write('\nRegister Content: \n')
+            for k, v in REGISTER.items():
+                f.write('\n' + k.upper() + ':' + '       ' + v.upper() + '\n')
+            
+            i = 0
+            f.write('\nMemory Content: \n')
+            for m in range(50):
+                f.write(f'\n{RAM[i]}    {RAM[i + 1]}')
+                i += 2
+        
+            toast('File saved in output folder as ' + filename + '.txt')
+            f.close()
+
+        else: 
+            toast('File save cancelled')
 
     def run_micro_instructions(self, instance):
         if not self.micro_sim.is_running:
