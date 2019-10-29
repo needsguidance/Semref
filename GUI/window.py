@@ -1,40 +1,46 @@
-from constants import REGISTER, hex_to_binary, convert_to_hex
-from kivy.uix.gridlayout import GridLayout
-
+from microprocessor_simulator import MicroSim, RAM
+from queue import Queue
+from constants import HEX_KEYBOARD
+from time import sleep
 from kivy import Config
+
 Config.set('graphics', 'width', '1024')
 Config.set('graphics', 'height', '650')
 Config.set('graphics', 'resizable', False)
 
-from kivy.graphics.vertex_instructions import Rectangle, Line
-from kivy.graphics.context_instructions import Color
-from threading import Lock, Thread, Semaphore, Condition
-from pathlib import Path
-from kivymd.uix.dialog import MDInputDialog, MDDialog
-from kivymd.uix.button import MDFillRoundFlatIconButton, MDFlatButton
-from kivy.uix.popup import Popup
-from kivy.app import App
-from kivy.lang import Builder
-from kivy.clock import Clock
-from kivy.uix.widget import Widget
-from kivy.uix.label import Label
-from kivy.properties import ListProperty, StringProperty
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.modalview import ModalView
-from kivy.uix.recycleview import RecycleView
-from kivymd.theming import ThemeManager
-from kivymd.toast import toast
-from kivymd.uix.filemanager import MDFileManager
+
+
 from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
                                          NavigationDrawerIconButton,
                                          NavigationDrawerSubheader,
                                          NavigationLayout)
-from time import sleep
-from constants import HEX_KEYBOARD
-from queue import Queue
-from microprocessor_simulator import MicroSim, RAM
+from kivymd.uix.filemanager import MDFileManager
+from kivymd.toast import toast
+from kivymd.theming import ThemeManager
+from kivy.uix.recycleview import RecycleView
+from kivy.uix.modalview import ModalView
+from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.boxlayout import BoxLayout
+from kivy.properties import ListProperty, StringProperty
+from kivy.uix.label import Label
+from kivy.uix.widget import Widget
+from kivy.clock import Clock
+from kivy.lang import Builder
+from kivy.app import App
+from kivy.uix.popup import Popup
+from kivymd.uix.button import MDFillRoundFlatIconButton, MDFlatButton
+from kivymd.uix.dialog import MDInputDialog, MDDialog
+import secrets
+from pathlib import Path
+from threading import Lock, Thread, Semaphore, Condition
 
+from kivy import Config
+from kivy.graphics.context_instructions import Color
+from kivy.graphics.vertex_instructions import Rectangle, Line
+from kivy.uix.gridlayout import GridLayout
+
+from constants import REGISTER, hex_to_binary, convert_to_hex
+from kivy.uix.gridlayout import GridLayout
 
 
 Builder.load_string('''
@@ -182,6 +188,101 @@ Builder.load_string('''
         Ellipse:
             pos: 60, 70
             size: 25, 25
+            
+<SevenSegmentDisplay>
+    canvas.before:
+        Color:
+            rgb: 0,0,0
+        Rectangle:
+            pos: 140, 50
+            size: 150, 130
+        # A
+        Color:
+            rgb: self.leftA
+        Rectangle:
+            pos: 160, 160
+            size: 40, 10
+        # B   
+        Color:
+            rgb: self.leftB
+        Rectangle:
+            pos: 200, 120
+            size: 10, 40   
+        # C
+        Color:
+            rgb: self.leftC
+        Rectangle:
+            pos: 200, 70
+            size: 10, 40 
+        # D
+        Color:
+            rgb: self.leftD
+        Rectangle:
+            pos: 160, 60
+            size: 40, 10
+        # E
+        Color:
+            rgb: self.leftE
+        Rectangle:
+            pos: 150, 70
+            size: 10, 40       
+        # F
+        Color:
+            rgb: self.leftF
+        Rectangle:
+            pos: 150, 120
+            size: 10, 40   
+
+        # G
+        Color:
+            rgb: self.leftG
+        Rectangle:
+            pos: 160, 110
+            size: 40, 10
+# ############    Right Number ############
+       # A
+        Color:
+            rgb: self.rightA
+        Rectangle:
+            pos: 230, 160
+            size: 40, 10
+        # B   
+        Color:
+            rgb: self.rightB
+        Rectangle:
+            pos: 270, 120
+            size: 10, 40   
+        # C
+        Color:
+            rgb: self.rightC
+        Rectangle:
+            pos: 270, 70
+            size: 10, 40 
+        # D
+        Color:
+            rgb: self.rightD
+        Rectangle:
+            pos: 230, 60
+            size: 40, 10
+        # E
+        Color:
+            rgb: self.rightE
+        Rectangle:
+            pos: 220, 70
+            size: 10, 40       
+        # F
+        Color:
+            rgb: self.rightF
+        Rectangle:
+            pos: 220, 120
+            size: 10, 40   
+
+        # G
+        Color:
+            rgb: self.rightG
+        Rectangle:
+            pos: 230, 110
+            size: 40, 10
 
 
 ''')
@@ -335,9 +436,10 @@ class RunWindow(FloatLayout):
         self.mem_table.data_list.clear()
         self.mem_table.get_data()
         self.light = TrafficLights()
+        self.seven_segment_display = SevenSegmentDisplay()
         self.inst_table.data_list.clear()
         self.inst_table.get_data(
-        self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
+            self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
         self.header = True
         self.hex_keyboard_label = Label(text='HEX KEYBOARD',
                                         font_size=20,
@@ -347,6 +449,8 @@ class RunWindow(FloatLayout):
         self.hex_keyboard_layout = HexKeyboard(mem_table=self.mem_table)
 
         self.light.change_color(self.micro_sim.traffic_lights_binary())
+        self.seven_segment_display.activate_segments(
+            self.micro_sim.seven_segment_binary())
 
         # Create variable of scheduling instance so that it can be turned on and off,
         # to avoid repeat of the same thread
@@ -369,6 +473,7 @@ class RunWindow(FloatLayout):
         self.add_widget(self.light)
         self.add_widget(self.hex_keyboard_layout)
         self.add_widget(self.hex_keyboard_label)
+        self.add_widget(self.seven_segment_display)
 
     def open_save_dialog(self, instance):
         """It will be called when user click on the save file button.
@@ -386,7 +491,7 @@ class RunWindow(FloatLayout):
 
     def save_file(self, *args):
         """It is called when user clicks on 'Save' or 'Cancel' button of dialog.
-        
+
         :type *args: object array
         :param *args: passes an object array generated when opening open_save_dialog. 
                 Said object indcludes input text used for file saving;
@@ -395,7 +500,7 @@ class RunWindow(FloatLayout):
         if args[0] == 'Save':
             filename = ''
 
-            #Checks if user input is valid or null for filename. if null, assigns a default filename
+            # Checks if user input is valid or null for filename. if null, assigns a default filename
             if args[1].text_field.text:
                 filename = args[1].text_field.text
             else:
@@ -404,17 +509,17 @@ class RunWindow(FloatLayout):
             f.write('\nRegister Content: \n')
             for k, v in REGISTER.items():
                 f.write('\n' + k.upper() + ':' + '       ' + v.upper() + '\n')
-            
+
             i = 0
             f.write('\nMemory Content: \n')
             for m in range(50):
                 f.write(f'\n{RAM[i]}    {RAM[i + 1]}')
                 i += 2
-        
+
             toast('File saved in output folder as ' + filename + '.txt')
             f.close()
 
-        else: 
+        else:
             toast('File save cancelled')
 
     def run_micro_instructions(self, instance):
@@ -456,7 +561,8 @@ class RunWindow(FloatLayout):
                 # Begins new scheduling thread
                 self.event_on()
                 self.event_off()
-
+                self.seven_segment_display.activate_segments(
+                    self.micro_sim.seven_segment_binary())
                 self.reg_table.get_data()
                 self.mem_table.data_list.clear()
                 self.mem_table.get_data()
@@ -484,7 +590,8 @@ class RunWindow(FloatLayout):
         self.event_on.cancel()
         self.event_off.cancel()
         self.light.change_color(self.micro_sim.traffic_lights_binary())
-
+        self.seven_segment_display.activate_segments(
+            self.micro_sim.seven_segment_binary())
         toast('Micro memory cleared! Load new data')
 
     def run_micro_instructions_step(self, instance):
@@ -516,7 +623,8 @@ class RunWindow(FloatLayout):
                     # Begins new scheduling thread
                     self.event_on()
                     self.event_off()
-
+                    self.seven_segment_display.activate_segments(
+                        self.micro_sim.seven_segment_binary())
                 toast('Runnin instruction in step-by-step mode. Step ' +
                       str(self.step_index) + ' is running')
                 for i in self.micro_sim.micro_instructions:
@@ -773,6 +881,105 @@ class TrafficLights(Widget):
                     self.green_1 = (0, 0, 0)
                 else:
                     self.green_1 = (0, 1, 0)
+
+
+class SevenSegmentDisplay(Widget):
+
+    leftA = ListProperty([.41, .41, .41])
+    leftB = ListProperty([.41, .41, .41])
+    leftC = ListProperty([.41, .41, .41])
+    leftD = ListProperty([.41, .41, .41])
+    leftE = ListProperty([.41, .41, .41])
+    leftF = ListProperty([.41, .41, .41])
+    leftG = ListProperty([.41, .41, .41])
+
+    rightA = ListProperty([.41, .41, .41])
+    rightB = ListProperty([.41, .41, .41])
+    rightC = ListProperty([.41, .41, .41])
+    rightD = ListProperty([.41, .41, .41])
+    rightE = ListProperty([.41, .41, .41])
+    rightF = ListProperty([.41, .41, .41])
+    rightG = ListProperty([.41, .41, .41])
+
+    # Iterates through the binary at the Input location (RAM) to determine which are 1s and which are 0s
+    # Then, activate segments accordingly.
+    def activate_segments(self, binary):
+        control_bit = int(binary[-1])
+        for bit in range(len(binary) - 1):
+            if control_bit == 0:
+                # if control_bit == 1 then activate the seven left segments depending of the bit.
+                if bit == 0:
+                    if binary[bit] == '0':
+                        self.leftA = (.41, .41, .41)
+                    else:
+                        self.leftA = (1, 0, 0)
+                elif bit == 1:
+                    if binary[bit] == '0':
+                        self.leftB = (.41, .41, .41)
+                    else:
+                        self.leftB = (1, 0, 0)
+                elif bit == 2:
+                    if binary[bit] == '0':
+                        self.leftC = (.41, .41, .41)
+                    else:
+                        self.leftC = (1, 0, 0)
+                elif bit == 3:
+                    if binary[bit] == '0':
+                        self.leftD = (.41, .41, .41)
+                    else:
+                        self.leftD = (1, 0, 0)
+                elif bit == 4:
+                    if binary[bit] == '0':
+                        self.leftE = (.41, .41, .41)
+                    else:
+                        self.leftE = (1, 0, 0)
+                elif bit == 5:
+                    if binary[bit] == '0':
+                        self.leftF = (.41, .41, .41)
+                    else:
+                        self.leftF = (1, 0, 0)
+                elif bit == 6:
+                    if binary[bit] == '0':
+                        self.leftG = (.41, .41, .41)
+                    else:
+                        self.leftG = (1, 0, 0)
+            elif control_bit == 1:
+                # if control_bit == 1 then activate the seven right segments depending of the bit.
+                if bit == 0:
+                    if binary[bit] == '0':
+                        self.rightA = (.41, .41, .41)
+                    else:
+                        self.rightA = (1, 0, 0)
+                elif bit == 1:
+                    if binary[bit] == '0':
+                        self.rightB = (.41, .41, .41)
+                    else:
+                        self.rightB = (1, 0, 0)
+                elif bit == 2:
+                    if binary[bit] == '0':
+                        self.rightC = (.41, .41, .41)
+                    else:
+                        self.rightC = (1, 0, 0)
+                elif bit == 3:
+                    if binary[bit] == '0':
+                        self.rightD = (.41, .41, .41)
+                    else:
+                        self.rightD = (1, 0, 0)
+                elif bit == 4:
+                    if binary[bit] == '0':
+                        self.rightE = (.41, .41, .41)
+                    else:
+                        self.rightE = (1, 0, 0)
+                elif bit == 5:
+                    if binary[bit] == '0':
+                        self.rightF = (.41, .41, .41)
+                    else:
+                        self.rightF = (1, 0, 0)
+                elif bit == 6:
+                    if binary[bit] == '0':
+                        self.rightG = (.41, .41, .41)
+                    else:
+                        self.rightG = (1, 0, 0)
 
 
 class GUI(NavigationLayout):
