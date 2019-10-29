@@ -478,16 +478,17 @@ class RunWindow(FloatLayout):
     def open_save_dialog(self, instance):
         """It will be called when user click on the save file button.
 
-        :param instance: used asevent handler for button click;
+        :param instance: used as event handler for button click;
 
         """
-        toast('Save Register and Memory Content')
         dialog = MDInputDialog(
             title='Save file: Enter file name', hint_text='Enter file name', size_hint=(.3, .3),
             text_button_ok='Save',
             text_button_cancel='Cancel',
             events_callback=self.save_file)
+        toast('Save Register and Memory Content')
         dialog.open()
+
 
     def save_file(self, *args):
         """It is called when user clicks on 'Save' or 'Cancel' button of dialog.
@@ -498,13 +499,12 @@ class RunWindow(FloatLayout):
 
         """
         if args[0] == 'Save':
-            filename = ''
+            filename = args[0]
 
             # Checks if user input is valid or null for filename. if null, assigns a default filename
             if args[1].text_field.text:
                 filename = args[1].text_field.text
-            else:
-                filename = 'Save'
+
             f = open('output/' + filename + '.txt', 'w')
             f.write('\nRegister Content: \n')
             for k, v in REGISTER.items():
