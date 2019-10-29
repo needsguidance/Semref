@@ -1,41 +1,39 @@
-from time import sleep
-from constants import HEX_KEYBOARD
-from queue import Queue
-from microprocessor_simulator import MicroSim, RAM
+from constants import REGISTER, hex_to_binary, convert_to_hex
+from kivy.uix.gridlayout import GridLayout
+
 from kivy import Config
 Config.set('graphics', 'width', '1024')
 Config.set('graphics', 'height', '650')
 Config.set('graphics', 'resizable', False)
 
+from kivy.graphics.vertex_instructions import Rectangle, Line
+from kivy.graphics.context_instructions import Color
+from threading import Lock, Thread, Semaphore, Condition
+from pathlib import Path
+from kivymd.uix.dialog import MDInputDialog, MDDialog
+from kivymd.uix.button import MDFillRoundFlatIconButton, MDFlatButton
+from kivy.uix.popup import Popup
+from kivy.app import App
+from kivy.lang import Builder
+from kivy.clock import Clock
+from kivy.uix.widget import Widget
+from kivy.uix.label import Label
+from kivy.properties import ListProperty, StringProperty
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.modalview import ModalView
+from kivy.uix.recycleview import RecycleView
+from kivymd.theming import ThemeManager
+from kivymd.toast import toast
+from kivymd.uix.filemanager import MDFileManager
 from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
                                          NavigationDrawerIconButton,
                                          NavigationDrawerSubheader,
                                          NavigationLayout)
-from kivymd.uix.filemanager import MDFileManager
-from kivymd.toast import toast
-from kivymd.theming import ThemeManager
-from kivy.uix.recycleview import RecycleView
-from kivy.uix.modalview import ModalView
-from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.boxlayout import BoxLayout
-from kivy.properties import ListProperty, StringProperty
-from kivy.uix.label import Label
-from kivy.uix.widget import Widget
-from kivy.clock import Clock
-from kivy.lang import Builder
-from kivy.app import App
-from kivy.uix.popup import Popup
-from kivymd.uix.button import MDFillRoundFlatIconButton, MDFlatButton
-from pathlib import Path
-from threading import Lock, Thread, Semaphore, Condition
-
-
-from kivy.graphics.context_instructions import Color
-from kivy.graphics.vertex_instructions import Rectangle, Line
-from kivy.uix.gridlayout import GridLayout
-
-from constants import REGISTER, hex_to_binary, convert_to_hex
-
+from time import sleep
+from constants import HEX_KEYBOARD
+from queue import Queue
+from microprocessor_simulator import MicroSim, RAM
 
 
 
@@ -185,49 +183,6 @@ Builder.load_string('''
             pos: 60, 70
             size: 25, 25
 
-<OpenDialog>:
-    title: 'InputDialog'
-    size_hint: None, None
-    size: 400, 300
-    auto_dismiss: False
-    text: input.text
-    lb_error: er
-
-    FloatLayout:
-        orientation: 'vertical'
-        pos: self.pos
-        size: root.size
-
-        BoxLayout:
-            orientation: 'horizontal'
-            Label:
-                text: 'Enter Value'
-
-            TextInput:
-                id: input
-                multiline: False
-                hint_text:'Age'
-                input_filter: 'int'
-                on_text: root.error = ''
-
-        BoxLayout:
-            orientation: 'horizontal'
-            Button:
-                text: 'Enter'
-                on_press: root._enter()
-
-            Button:
-                text: 'Cancel'
-                background_color: 0,1,255,0.7
-                on_press: root._cancel()
-
-        Label:
-            id: er
-            foreground_color: 1, 250, 100, 1
-            color: 1, 0.67, 0, 1
-            size_hint_y: None
-            height: 0
-            text: root.error
 
 ''')
 
@@ -416,13 +371,23 @@ class RunWindow(FloatLayout):
         self.add_widget(self.hex_keyboard_label)
 
     def open_save_dialog(self, instance):
-        obj = OpenDialog()
-        obj.open()
-        toast("not")
+        dialog = MDInputDialog(
+            title='Save Register Content', hint_text='Enter file name', size_hint=(.4, .3),
+            text_button_ok='Save',
+            text_button_cancel='Cancel',
+            events_callback=self.save_file)
+        dialog.open()
+
+    def save_file(self, *args):
+        f = open('output/' + args[1].text_field.text + '.txt', 'w')
+        f.write('\nRegister Content: \n')
+        for k, v in REGISTER.items():
+            f.write('\n' + k.upper() + ':' + '       ' + v.upper() + '\n')
+        toast('File saved in output folder as ' + args[1].text_field.text + '.txt')
 
     def run_micro_instructions(self, instance):
         if not self.micro_sim.is_running:
-            toast("Infinite loop encountered. Program stopped")
+            toast('Infinite loop encountered. Program stopped')
         else:
             if not self.micro_sim.is_ram_loaded:
                 toast('Must load file first before running')
@@ -777,34 +742,6 @@ class TrafficLights(Widget):
                 else:
                     self.green_1 = (0, 1, 0)
 
-
-class OpenDialog(Popup):
-
-    error = StringProperty()
-
-
-    def __init__(self, **kwargs):
-        super(OpenDialog, self).__init__(**kwargs)
-
-
-    def on_error(self, inst, text):
-        if text:
-            self.lb_error.size_hint_y = 1
-            self.size = (400, 150)
-        else:
-            self.lb_error.size_hint_y = None
-            self.lb_error.height = 0
-            self.size = (400, 120)
-
-    def _enter(self):
-        if not self.text:
-            self.error = "Error: Enter file name"
-        else:
-            self._age = int(self.text)
-            self.dismiss()
-
-    def _cancel(self):
-        self.dismiss()
 
 class GUI(NavigationLayout):
 
