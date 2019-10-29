@@ -1,4 +1,3 @@
-import secrets
 from pathlib import Path
 from threading import Lock, Thread, Semaphore, Condition
 
@@ -73,8 +72,8 @@ Builder.load_string('''
         size_hint_x: 0.5
         height: self.minimum_height
         orientation: 'vertical'
-        
-        
+
+
 <MemoryTable>:
     id: data_list
     pos_hint:{'x': 0.75, 'center_y': 1.5}
@@ -180,7 +179,41 @@ Builder.load_string('''
             rgb: self.green_2
         Ellipse:
             pos: 60, 70
-            size: 25, 25
+            size: 25, 25 
+
+<ASCIIGrid> 
+    canvas.before:
+        Color:  
+            rgb: 0,0,0 
+        Rectangle: 
+            pos: 300,15
+            size: 365,50   
+        Color: 
+            rgb: 1,1,1 
+        Rectangle: 
+            pos: 305,20
+            size: 40,40 
+        Rectangle: 
+            pos: 350,20 
+            size: 40,40 
+        Rectangle: 
+            pos: 395,20
+            size: 40,40 
+        Rectangle: 
+            pos: 440,20 
+            size: 40,40 
+        Rectangle: 
+            pos: 485,20
+            size: 40,40 
+        Rectangle: 
+            pos: 530,20
+            size: 40,40 
+        Rectangle: 
+            pos: 575,20
+            size: 40,40 
+        Rectangle: 
+            pos: 620,20
+            size: 40,40  
             
 <SevenSegmentDisplay>
     canvas.before:
@@ -416,6 +449,25 @@ class RunWindow(FloatLayout):
                                                      pos_hint={'center_x': .35, 'center_y': 2.12},
                                                      on_release=self.save)
 
+        self.ascii_label_1 = Label(text='[color=000000]' + chr(int(RAM[4088], 16)) + '[/color]', pos=(-187, -105),
+                                   font_size=40, markup=True)
+        self.ascii_label_2 = Label(text='[color=000000]' + chr(int(RAM[4089], 16)) + '[/color]', pos=(-146, -105),
+                                   font_size=40, markup=True)
+        self.ascii_label_3 = Label(text='[color=000000]' + chr(int(RAM[4090], 16)) + '[/color]', pos=(-100, -105),
+                                   font_size=40, markup=True)
+        self.ascii_label_4 = Label(text='[color=000000]' + chr(int(RAM[4091], 16)) + '[/color]', pos=(-54, -105),
+                                   font_size=40, markup=True)
+        self.ascii_label_5 = Label(text='[color=000000]' + chr(int(RAM[4092], 16)) + '[/color]', pos=(-8, -105),
+                                   font_size=40, markup=True)
+        self.ascii_label_6 = Label(text='[color=000000]' + chr(int(RAM[4093], 16)) + '[/color]', pos=(38, -105),
+                                   font_size=40, markup=True)
+        self.ascii_label_7 = Label(text='[color=000000]' + chr(int(RAM[4094], 16)) + '[/color]', pos=(84, -105),
+                                   font_size=40, markup=True)
+        self.ascii_label_8 = Label(text='[color=000000]' + chr(int(RAM[4095], 16)) + '[/color]', pos=(130, -105),
+                                   font_size=40, markup=True)
+
+
+        self.ascii = ASCIIGrid()
         self.reg_table = RegisterTable()
         self.mem_table = MemoryTable()
         self.inst_table = InstructionTable()
@@ -457,6 +509,18 @@ class RunWindow(FloatLayout):
         self.add_widget(self.hex_keyboard_layout)
         self.add_widget(self.hex_keyboard_label)
         self.add_widget(self.seven_segment_display)
+
+        self.add_widget(self.ascii)
+        self.add_widget(self.ascii_label_1)
+        self.add_widget(self.ascii_label_2)
+        self.add_widget(self.ascii_label_3)
+        self.add_widget(self.ascii_label_4)
+        self.add_widget(self.ascii_label_5)
+        self.add_widget(self.ascii_label_6)
+        self.add_widget(self.ascii_label_7)
+        self.add_widget(self.ascii_label_8)
+
+
 
     def save(self, instance):
         toast("Not Implemented yet. Will be ready on Sprint 3")
@@ -504,6 +568,7 @@ class RunWindow(FloatLayout):
                 self.reg_table.get_data()
                 self.mem_table.data_list.clear()
                 self.mem_table.get_data()
+                self.update_ascii_grid()
 
                 toast('File executed successfully')
                 for i in self.micro_sim.micro_instructions:
@@ -527,6 +592,7 @@ class RunWindow(FloatLayout):
         self.event_on.cancel()
         self.event_off.cancel()
         self.light.change_color(self.micro_sim.traffic_lights_binary())
+        self.update_ascii_grid()
         self.seven_segment_display.activate_segments(self.micro_sim.seven_segment_binary())
         toast('Micro memory cleared! Load new data')
 
@@ -542,6 +608,7 @@ class RunWindow(FloatLayout):
                     self.inst_table.get_data(self.micro_sim.index, self.header,
                                              self.micro_sim.disassembled_instruction())
                     self.first_inst = False
+                    self.update_ascii_grid()
                 else:
 
                     self.micro_sim.run_micro_instructions_step(self.step_index)
@@ -558,12 +625,23 @@ class RunWindow(FloatLayout):
                     # Begins new scheduling thread
                     self.event_on()
                     self.event_off()
+                    self.update_ascii_grid()
                     self.seven_segment_display.activate_segments(self.micro_sim.seven_segment_binary())
+                    
                 toast('Runnin instruction in step-by-step mode. Step ' + str(self.step_index) + ' is running')
                 for i in self.micro_sim.micro_instructions:
                     if i != 'NOP':
                         print(i)
 
+    def update_ascii_grid(self):
+        self.ascii_label_1.text = '[color=000000]' + chr(int(RAM[4088], 16)) + '[/color]'
+        self.ascii_label_2.text = '[color=000000]' + chr(int(RAM[4089], 16)) + '[/color]'
+        self.ascii_label_3.text = '[color=000000]' + chr(int(RAM[4090], 16)) + '[/color]'
+        self.ascii_label_4.text = '[color=000000]' + chr(int(RAM[4091], 16)) + '[/color]'
+        self.ascii_label_5.text = '[color=000000]' + chr(int(RAM[4092], 16)) + '[/color]'
+        self.ascii_label_6.text = '[color=000000]' + chr(int(RAM[4093], 16)) + '[/color]'
+        self.ascii_label_7.text = '[color=000000]' + chr(int(RAM[4094], 16)) + '[/color]'
+        self.ascii_label_8.text = '[color=000000]' + chr(int(RAM[4095], 16)) + '[/color]'
 
 class MainWindow(BoxLayout):
 
@@ -907,6 +985,11 @@ class SevenSegmentDisplay(Widget):
                         self.rightG = (.41, .41, .41)
                     else:
                         self.rightG = (1, 0, 0)
+
+class ASCIIGrid(Widget):
+
+    def __init__(self, **kwargs):
+        super(ASCIIGrid, self).__init__(**kwargs)
 
 
 class GUI(NavigationLayout):
