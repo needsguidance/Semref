@@ -626,9 +626,9 @@ class NavDrawer(MDNavigationDrawer):
                           text_button_ok='Save',
                           text_button_cancel='Cancel',
                           events_callback=self.save_io_ports)
-        dialog.add_widget(MDTextField(hint_text='Persistent helper text',
-                                      helper_text='Text is always here',
-                                      helper_text_mode='persistent'))
+        # dialog.add_widget(MDTextField(hint_text='Persistent helper text',
+        #                               helper_text='Text is always here',
+        #                               helper_text_mode='persistent'))
         dialog.open()
 
     def save_io_ports(self, *args):
