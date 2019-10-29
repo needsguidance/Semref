@@ -384,6 +384,7 @@ class RunWindow(FloatLayout):
         for k, v in REGISTER.items():
             f.write('\n' + k.upper() + ':' + '       ' + v.upper() + '\n')
         toast('File saved in output folder as ' + args[1].text_field.text + '.txt')
+        f.close()
 
     def run_micro_instructions(self, instance):
         if not self.micro_sim.is_running:
