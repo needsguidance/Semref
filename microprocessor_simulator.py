@@ -110,7 +110,7 @@ class MicroSim:
             self.prev_index = self.index
 
     def traffic_lights_binary(self):
-
+        print(TRAFFIC_LIGHT["port"])
         return hex_to_binary(f'{RAM[TRAFFIC_LIGHT["port"]]}')
 
     def seven_segment_binary(self):
