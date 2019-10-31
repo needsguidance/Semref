@@ -20,7 +20,6 @@ class AssemblerTestCase(TestCase):
                 ('0000100000000101', 4),
                 ('0000101011111111', 6),
                 ('0111001100000000', 8),
-                ('0000000000110001', 10),
                 ('0000000100000100', 14),  # LOAD R1, valor1
                 ('0000001000000101', 16),  # LOAD R2, arreglo
                 ('0000101100110001', 18),  # LOADIM R3, pi
@@ -36,7 +35,6 @@ class AssemblerTestCase(TestCase):
                 ('0805', 4),
                 ('0AFF', 6),
                 ('7300', 8),
-                ('0031', 10),
                 ('0104', 14),  # LOAD R1, valor1
                 ('0205', 16),  # LOAD R2, arreglo
                 ('0B31', 18),  # LOADIM R3, pi
@@ -55,31 +53,29 @@ class AssemblerTestCase(TestCase):
                 ('1010100000001010', 0),  # JMPADDR start
                 ('0000010100000111', 2),
                 ('0000000000000000', 4),
-                ('0000000000001010', 6),  # const ten 0A
-                ('0000000100000010', 8),  # LOAD R1, valor1
-                ('0000001000000011', 10),  # LOAD R2, valor2
-                ('1100100101000000', 12),  # GRT  R1, R2
-                ('1010100000010110', 14),  # JMPADDR R1esMayor
-                ('0001101000000100', 16),  # STORE R2, mayor
-                ('1010100000011010', 18),  # JMPADDR fin
-                ('0001100100000100', 20),  # STORE R1, mayor
-                ('0000101100001000', 22),  # LOADIM R3, #8
-                ('1010100000011010', 24)  # JMPADDR fin
+                ('0000000100000010', 6),  # LOAD R1, valor1
+                ('0000001000000011', 8),  # LOAD R2, valor2
+                ('1100100101000000', 10),  # GRT  R1, R2
+                ('1010100000010110', 12),  # JMPADDR R1esMayor
+                ('0001101000000100', 14),  # STORE R2, mayor
+                ('1010100000011010', 16),  # JMPADDR fin
+                ('0001100100000100', 18),  # STORE R1, mayor
+                ('0000101100001000', 20),  # LOADIM R3, #8
+                ('1010100000011010', 22)  # JMPADDR fin
             ]
             self.hex_content = [
                 ('A80A', 0),  # JMPADDR start
                 ('0507', 2),
                 ('0000', 4),
-                ('000A', 6),  # const ten 0A
-                ('0102', 8),  # LOAD R1, valor1
-                ('0203', 10),  # LOAD R2, valor2
-                ('C940', 12),  # GRT  R1, R2
-                ('A816', 14),  # JMPADDR R1esMayor
-                ('1A04', 16),  # STORE R2, mayor
-                ('A81A', 18),  # JMPADDR fin
-                ('1904', 20),  # STORE R1, mayor
-                ('0B08', 22),  # LOADIM R3, #8
-                ('A81A', 24)  # JMPADDR fin
+                ('0102', 6),  # LOAD R1, valor1
+                ('0203', 8),  # LOAD R2, valor2
+                ('C940', 10),  # GRT  R1, R2
+                ('A816', 12),  # JMPADDR R1esMayor
+                ('1A04', 14),  # STORE R2, mayor
+                ('A81A', 16),  # JMPADDR fin
+                ('1904', 18),  # STORE R1, mayor
+                ('0B08', 20),  # LOADIM R3, #8
+                ('A81A', 22)  # JMPADDR fin
             ]
             self.verify_ram_content_helper()
         
@@ -88,33 +84,65 @@ class AssemblerTestCase(TestCase):
                 ('1010100000001010', 0),  # JMPADDR start
                 ('0000010100000111', 2),
                 ('0000000000000000', 4),
-                ('0000000000001010', 6),  # const ten 0A
-                ('0000000100000010', 8),  # LOAD R1, valor1
-                ('0000001000000011', 10),  # LOAD R2, valor2
-                ('1100100101000000', 12),  # GRT  R1, R2
-                ('1010100000010110', 14),  # JMPADDR R1esMayor
-                ('0001101000000100', 16),  # STORE R2, mayor
-                ('1010100000011010', 18),  # JMPADDR fin
-                ('0001100100000100', 20),  # STORE R1, mayor
-                ('0000101100001000', 22),  # LOADIM R3, #8
-                ('1010100000011010', 24)  # JMPADDR fin
+                ('0000000100000010', 6),  # LOAD R1, valor1
+                ('0000001000000011', 8),  # LOAD R2, valor2
+                ('1100100101000000', 10),  # GRT  R1, R2
+                ('1010100000010110', 12),  # JMPADDR R1esMayor
+                ('0001101000000100', 14),  # STORE R2, mayor
+                ('1010100000011010', 16),  # JMPADDR fin
+                ('0001100100000100', 18),  # STORE R1, mayor
+                ('0000101100001000', 20),  # LOADIM R3, #8
+                ('1010100000011010', 22)  # JMPADDR fin
             ]
             self.hex_content = [
                 ('A80A', 0),  # JMPADDR start
                 ('0507', 2),
                 ('0000', 4),
-                ('000A', 6),  # const ten 0A
-                ('0102', 8),  # LOAD R1, valor1
-                ('0203', 10),  # LOAD R2, valor2
-                ('C940', 12),  # GRT  R1, R2
-                ('A816', 14),  # JMPADDR R1esMayor
-                ('1A04', 16),  # STORE R2, mayor
-                ('A81A', 18),  # JMPADDR fin
-                ('1904', 20),  # STORE R1, mayor
-                ('0B08', 22),  # LOADIM R3, #8
-                ('A81A', 24)  # JMPADDR fin
+                ('0102', 6),  # LOAD R1, valor1
+                ('0203', 8),  # LOAD R2, valor2
+                ('C940', 10),  # GRT  R1, R2
+                ('A816', 12),  # JMPADDR R1esMayor
+                ('1A04', 14),  # STORE R2, mayor
+                ('A81A', 16),  # JMPADDR fin
+                ('1904', 18),  # STORE R1, mayor
+                ('0B08', 20),  # LOADIM R3, #8
+                ('A81A', 22)  # JMPADDR fin
             ]
             self.verify_ram_content_helper()
+        
+        with mock.patch('builtins.input', return_value='input/test7.asm'):
+            self.binary_content = [
+                ('1010100000000100', 0), # JMPADDR begin
+                ('0000000000001010', 2),
+                ('0000111100000000', 4),
+                ('0000110100001100', 6), # LOADIM R5, #C
+                ('0000011000000100', 8), # LOAD R6, z
+                ('1110011010100000', 10), # NEQ R6, R5
+                ('0000011100000010', 12), # LOAD R7, x
+                ('0100111100000001', 14), # ADDIM R7, #1
+                ('0001111100000010', 16), # STORE x, R7
+                ('1011000000000000', 18), # JCONDRIN R0
+                ('1010100000010100', 20), # JMPADDR fin
+            ]
+            self.hex_content = [
+                ('A804', 0), # JMPADDR begin
+                ('000A', 2),
+                ('0F00', 4),
+                ('0D0C', 6), # LOADIM R5, #C
+                ('0604', 8), # LOAD R6, z
+                ('E6A0', 10), # NEQ R6, R5
+                ('0702', 12), # LOAD R7, x
+                ('4F01', 14), # ADDIM R7, #1
+                ('1F02', 16), # STORE x, R7
+                ('B000', 18), # JCONDRIN R0
+                ('A814', 20), # JMPADDR fin
+            ]
+            self.verify_ram_content_helper()
+
+        with mock.patch('builtins.input', return_value='input/test8.asm'):
+            self.binary_content = [
+
+            ]
 
     def test_invalid_instruction(self):
         with mock.patch('builtins.input', return_value='input/test1.asm'):
