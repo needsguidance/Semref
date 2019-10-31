@@ -3,6 +3,11 @@ from constants import TRAFFIC_LIGHT, SEVEN_SEGMENT_DISPLAY, ASCII_TABLE, HEX_KEY
 from queue import Queue
 from microprocessor_simulator import MicroSim, RAM
 from kivy import Config
+
+Config.set('graphics', 'width', '1024')
+Config.set('graphics', 'height', '650')
+Config.set('graphics', 'resizable', False)
+
 from kivy.metrics import dp, sp
 
 from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
@@ -54,8 +59,8 @@ class HexKeyboard(GridLayout):
 
         super(HexKeyboard, self).__init__(**kwargs)
         self.cols = 4
-        self.size_hint = (0.4, 0.4)
-        self.pos_hint = {'x': 0.30, 'y': 0.35}
+        self.size_hint = (dp(0.4), dp(0.4))
+        self.pos_hint = {'x': dp(0.30), 'y': dp(0.35)}
         self.queue = Queue(maxsize=10)
         self.lock = Lock()
         self.semaphore = Semaphore()
@@ -73,37 +78,37 @@ class HexKeyboard(GridLayout):
             Rectangle(pos=(dp(307), dp(76)), size=(dp(353), dp(143)))
 
             Color(.50, .50, .50, 1)
-            Line(rectangle=(dp(307), dp(183), dp(87), dp(35)), width=0.8)
+            Line(rectangle=(dp(307), dp(183), dp(87), dp(35)), width=dp(dp(0.8)))
 
-            Line(rectangle=(dp(396), dp(183), dp(87), dp(35)), width=0.8)
+            Line(rectangle=(dp(396), dp(183), dp(87), dp(35)), width=dp(dp(0.8)))
 
-            Line(rectangle=(dp(485), dp(183), dp(87), dp(35)), width=0.8)
+            Line(rectangle=(dp(485), dp(183), dp(87), dp(35)), width=dp(0.8))
 
-            Line(rectangle=(dp(574), dp(183), dp(87), dp(35)), width=0.8)
+            Line(rectangle=(dp(574), dp(183), dp(87), dp(35)), width=dp(0.8))
 
-            Line(rectangle=(dp(307), dp(148), dp(87), dp(35)), width=0.8)
+            Line(rectangle=(dp(307), dp(148), dp(87), dp(35)), width=dp(0.8))
 
-            Line(rectangle=(dp(396), dp(148), dp(87), dp(35)), width=0.8)
+            Line(rectangle=(dp(396), dp(148), dp(87), dp(35)), width=dp(0.8))
 
-            Line(rectangle=(dp(485), dp(148), dp(87), dp(35)), width=0.8)
+            Line(rectangle=(dp(485), dp(148), dp(87), dp(35)), width=dp(0.8))
 
-            Line(rectangle=(dp(574), dp(148), dp(87), dp(35)), width=0.8)
+            Line(rectangle=(dp(574), dp(148), dp(87), dp(35)), width=dp(0.8))
 
-            Line(rectangle=(dp(307), dp(113), dp(87), dp(35)), width=0.8)
+            Line(rectangle=(dp(307), dp(113), dp(87), dp(35)), width=dp(0.8))
 
-            Line(rectangle=(dp(396), dp(113), dp(87), dp(35)), width=0.8)
+            Line(rectangle=(dp(396), dp(113), dp(87), dp(35)), width=dp(0.8))
 
-            Line(rectangle=(dp(485), dp(113), dp(87), dp(35)), width=0.8)
+            Line(rectangle=(dp(485), dp(113), dp(87), dp(35)), width=dp(0.8))
 
-            Line(rectangle=(dp(574), dp(113), dp(87), dp(35)), width=0.8)
+            Line(rectangle=(dp(574), dp(113), dp(87), dp(35)), width=dp(0.8))
 
-            Line(rectangle=(dp(307), dp(78), dp(87), dp(35)), width=0.8)
+            Line(rectangle=(dp(307), dp(78), dp(87), dp(35)), width=dp(0.8))
 
-            Line(rectangle=(dp(396), dp(78), dp(87), dp(35)), width=0.8)
+            Line(rectangle=(dp(396), dp(78), dp(87), dp(35)), width=dp(0.8))
 
-            Line(rectangle=(dp(485), dp(78), dp(87), dp(35)), width=0.8)
+            Line(rectangle=(dp(485), dp(78), dp(87), dp(35)), width=dp(0.8))
 
-            Line(rectangle=(dp(574), dp(78), dp(87), dp(35)), width=0.8)
+            Line(rectangle=(dp(574), dp(78), dp(87), dp(35)), width=dp(0.8))
 
         for i in range(16):
             if i > 9:
@@ -167,25 +172,25 @@ class RunWindow(FloatLayout):
                                                     icon='run',
                                                     size_hint=(None, None),
                                                     pos_hint={
-                                                        'center_x': .7, 'center_y': 2.12},
+                                                        'center_x': dp(.7), 'center_y': dp(2.12)},
                                                     on_release=self.run_micro_instructions)
         self.debug_button = MDFillRoundFlatIconButton(text='Debug',
                                                       icon='android-debug-bridge',
                                                       size_hint=(None, None),
                                                       pos_hint={
-                                                          'center_x': .9, 'center_y': 2.12},
+                                                          'center_x': dp(.9), 'center_y': dp(2.12)},
                                                       on_release=self.run_micro_instructions_step)
         self.refresh_button = MDFillRoundFlatIconButton(text='Clear',
                                                         icon='refresh',
                                                         size_hint=(None, None),
                                                         pos_hint={
-                                                            'center_x': .5, 'center_y': 2.12},
+                                                            'center_x': dp(.5), 'center_y': dp(2.12)},
                                                         on_release=self.clear)
         self.save_button = MDFillRoundFlatIconButton(text='Save File',
                                                      icon='download',
                                                      size_hint=(None, None),
                                                      pos_hint={
-                                                         'center_x': .35, 'center_y': 2.12},
+                                                         'center_x': dp(.35), 'center_y': dp(2.12)},
                                                      on_release=self.open_save_dialog)
 
         self.ascii_label_1 = Label(text='[color=000000]' + chr(int(RAM[4088], 16)) + '[/color]', pos=(dp(-187), dp(-105)),
@@ -483,7 +488,7 @@ class NavDrawer(MDNavigationDrawer):
     def io_config_open(self, instance):
         dialog = MDInputDialog(title=instance.text,
                                hint_text='Input port number [0-4095]',
-                               size_hint=(0.8, 0.4),
+                               size_hint=(dp(0.8), dp(0.4)),
                                text_button_ok='Save',
                                text_button_cancel='Cancel',
                                events_callback=self.save_io_ports)
@@ -517,7 +522,7 @@ class NavDrawer(MDNavigationDrawer):
 
     def file_manager_open(self, instance):
         if not self.manager:
-            self.manager = ModalView(size_hint=(1, 1), auto_dismiss=False)
+            self.manager = ModalView(size_hint=(dp(1), dp(1)), auto_dismiss=False)
             self.file_manager = MDFileManager(exit_manager=self.exit_manager,
                                               select_path=self.select_path,
                                               ext=['.asm', '.obj'])
@@ -852,10 +857,7 @@ class SemrefApp(App):
 
     def build_config(self, config):
         super().build_config(config)
-        # config.adddefaultsection('graphics')
-        # config.setdefault('graphics', 'width', '1024')
-        # config.setdefault('graphics', 'height', '650')
-        # config.setdefault('graphics', 'resizable', False)
+
 
     def build(self):
         return GUI()
