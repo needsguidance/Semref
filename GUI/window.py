@@ -1,43 +1,41 @@
-from microprocessor_simulator import MicroSim, RAM
-from queue import Queue
-from constants import HEX_KEYBOARD
 from time import sleep
+from constants import TRAFFIC_LIGHT, SEVEN_SEGMENT_DISPLAY, ASCII_TABLE, HEX_KEYBOARD
+from queue import Queue
+from microprocessor_simulator import MicroSim, RAM
 from kivy import Config
-
-Config.set('graphics', 'width', '1024')
-Config.set('graphics', 'height', '650')
-Config.set('graphics', 'resizable', False)
-
-
 
 from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
                                          NavigationDrawerIconButton,
                                          NavigationDrawerSubheader,
                                          NavigationLayout)
 from kivymd.uix.filemanager import MDFileManager
+from kivymd.uix.textfield import MDTextField
+from kivy.uix.popup import Popup
 from kivymd.toast import toast
 from kivymd.theming import ThemeManager
 from kivy.uix.recycleview import RecycleView
 from kivy.uix.modalview import ModalView
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
-from kivy.properties import ListProperty, StringProperty
+from kivy.uix.anchorlayout import AnchorLayout
+from kivy.properties import (ListProperty)
 from kivy.uix.label import Label
 from kivy.uix.widget import Widget
 from kivy.clock import Clock
 from kivy.lang import Builder
 from kivy.app import App
-from kivy.uix.popup import Popup
 from kivymd.uix.button import MDFillRoundFlatIconButton, MDFlatButton
-from kivymd.uix.dialog import MDInputDialog, MDDialog
-import secrets
+from kivymd.uix.dialog import MDDialog, MDInputDialog
 from pathlib import Path
 from threading import Lock, Thread, Semaphore, Condition
 
-from kivy import Config
+
 from kivy.graphics.context_instructions import Color
 from kivy.graphics.vertex_instructions import Rectangle, Line
 from kivy.uix.gridlayout import GridLayout
+
+from constants import REGISTER, hex_to_binary, convert_to_hex
+
 
 from constants import REGISTER, hex_to_binary, convert_to_hex
 from kivy.uix.gridlayout import GridLayout
@@ -141,14 +139,14 @@ class HexKeyboard(GridLayout):
         allowed to write to RAM if the LSB is 0, otherwise it must wait.
         """
         with self.semaphore:
-            binary = hex_to_binary(RAM[HEX_KEYBOARD])
+            binary = hex_to_binary(RAM[HEX_KEYBOARD['port']])
             if binary[-1] != 0:
                 self.condition.acquire()
             self.write_ram()
 
     def write_ram(self):
         with self.lock:
-            RAM[HEX_KEYBOARD] = convert_to_hex(
+            RAM[HEX_KEYBOARD['port']] = convert_to_hex(
                 int(f'{self.queue.get()}0001', 2), 8)
             self.mem_table.data_list.clear()
             self.mem_table.get_data()
@@ -438,14 +436,14 @@ class RunWindow(FloatLayout):
                         print(i)
 
     def update_ascii_grid(self):
-        self.ascii_label_1.text = '[color=000000]' + chr(int(RAM[4088], 16)) + '[/color]'
-        self.ascii_label_2.text = '[color=000000]' + chr(int(RAM[4089], 16)) + '[/color]'
-        self.ascii_label_3.text = '[color=000000]' + chr(int(RAM[4090], 16)) + '[/color]'
-        self.ascii_label_4.text = '[color=000000]' + chr(int(RAM[4091], 16)) + '[/color]'
-        self.ascii_label_5.text = '[color=000000]' + chr(int(RAM[4092], 16)) + '[/color]'
-        self.ascii_label_6.text = '[color=000000]' + chr(int(RAM[4093], 16)) + '[/color]'
-        self.ascii_label_7.text = '[color=000000]' + chr(int(RAM[4094], 16)) + '[/color]'
-        self.ascii_label_8.text = '[color=000000]' + chr(int(RAM[4095], 16)) + '[/color]'
+        self.ascii_label_1.text = '[color=000000]' + chr(int(RAM[ASCII_TABLE['port']], 16)) + '[/color]'
+        self.ascii_label_2.text = '[color=000000]' + chr(int(RAM[ASCII_TABLE['port'] + 1], 16)) + '[/color]'
+        self.ascii_label_3.text = '[color=000000]' + chr(int(RAM[ASCII_TABLE['port'] + 2], 16)) + '[/color]'
+        self.ascii_label_4.text = '[color=000000]' + chr(int(RAM[ASCII_TABLE['port'] + 3], 16)) + '[/color]'
+        self.ascii_label_5.text = '[color=000000]' + chr(int(RAM[ASCII_TABLE['port'] + 4], 16)) + '[/color]'
+        self.ascii_label_6.text = '[color=000000]' + chr(int(RAM[ASCII_TABLE['port'] + 5], 16)) + '[/color]'
+        self.ascii_label_7.text = '[color=000000]' + chr(int(RAM[ASCII_TABLE['port'] + 6], 16)) + '[/color]'
+        self.ascii_label_8.text = '[color=000000]' + chr(int(RAM[ASCII_TABLE['port'] + 7], 16)) + '[/color]'
 
 class MainWindow(BoxLayout):
 
@@ -481,6 +479,53 @@ class NavDrawer(MDNavigationDrawer):
         self.add_widget(NavigationDrawerIconButton(icon='paperclip',
                                                    text='Load File',
                                                    on_release=self.file_manager_open))
+        self.add_widget(NavigationDrawerIconButton(icon='traffic-light',
+                                                   text=TRAFFIC_LIGHT['menu_title'],
+                                                   on_release=self.io_config_open))
+        self.add_widget(NavigationDrawerIconButton(icon='numeric-7-box-multiple',
+                                                   text=SEVEN_SEGMENT_DISPLAY['menu_title'],
+                                                   on_release=self.io_config_open))
+        self.add_widget(NavigationDrawerIconButton(icon='alphabetical-variant',
+                                                   text=ASCII_TABLE['menu_title'],
+                                                   on_release=self.io_config_open))
+        self.add_widget(NavigationDrawerIconButton(icon='keyboard',
+                                                   text=HEX_KEYBOARD['menu_title'],
+                                                   on_release=self.io_config_open))
+
+    def io_config_open(self, instance):
+        dialog = MDInputDialog(title=instance.text,
+                               hint_text='Input port number [0-4095]',
+                               size_hint=(0.8, 0.4),
+                               text_button_ok='Save',
+                               text_button_cancel='Cancel',
+                               events_callback=self.save_io_ports)
+        dialog.open()
+
+    def save_io_ports(self, *args):
+        if args[0] == 'Save':
+            title = args[1].title
+            text = args[1].text_field.text
+            if text.isdigit():
+                num = int(text)
+                if num < 0 or num > 4095:
+                    toast('Invalid port number. Valid port numbers [0-4095]')
+                else:
+                    toast_message = 'Changed port number'
+                    if title == TRAFFIC_LIGHT['menu_title']:
+                        TRAFFIC_LIGHT['port'] = num
+                    elif title == SEVEN_SEGMENT_DISPLAY['menu_title']:
+                        SEVEN_SEGMENT_DISPLAY['port'] = num
+                    elif title == ASCII_TABLE['menu_title']:
+                        if num > 4088:
+                            toast_message = 'Invalid port for ASCII Table. Valid ports [0-4088]'
+                        else:
+                            ASCII_TABLE['port'] = num
+                    else:
+                        HEX_KEYBOARD['port'] = num
+                    toast(toast_message)
+            else:
+                toast('Invalid input. Not a number!')
+            
 
     def file_manager_open(self, instance):
         if not self.manager:
@@ -699,7 +744,6 @@ class TrafficLights(Widget):
 
 
 class SevenSegmentDisplay(Widget):
-
     leftA = ListProperty([.41, .41, .41])
     leftB = ListProperty([.41, .41, .41])
     leftC = ListProperty([.41, .41, .41])
@@ -817,8 +861,12 @@ class SemrefApp(App):
     theme_cls = ThemeManager()
     theme_cls.primary_palette = 'Teal'
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def build_config(self, config):
+        super().build_config(config)
+        config.adddefaultsection('graphics')
+        config.setdefault('graphics', 'width', '1024')
+        config.setdefault('graphics', 'height', '650')
+        config.setdefault('graphics', 'resizable', False)
 
     def build(self):
         return GUI()
