@@ -109,4 +109,22 @@ FORMAT_3_OPCODE = [
     'call'
 ]
 
-HEX_KEYBOARD = 0
+TRAFFIC_LIGHT = {
+    'menu_title': 'Configure Traffic Light Port',
+    'port': 0
+}
+
+SEVEN_SEGMENT_DISPLAY = {
+    'menu_title': 'Configure 7 Segment Display Port',
+    'port': 0
+}
+
+ASCII_TABLE = {
+    'menu_title': 'Configure ASCII Table Port',
+    'port': 0
+}
+
+HEX_KEYBOARD = {
+    'menu_title': 'Configure Hex Keyboard Port',
+    'port': 0
+}
