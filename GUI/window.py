@@ -1,5 +1,6 @@
 from time import sleep
-from constants import TRAFFIC_LIGHT, SEVEN_SEGMENT_DISPLAY, ASCII_TABLE, HEX_KEYBOARD
+from constants import TRAFFIC_LIGHT, SEVEN_SEGMENT_DISPLAY, ASCII_TABLE, HEX_KEYBOARD, is_valid_port, \
+    update_reserved_ports
 from queue import Queue
 from microprocessor_simulator import MicroSim, RAM
 from kivy import Config
@@ -29,13 +30,11 @@ from kivymd.uix.dialog import MDDialog, MDInputDialog
 from pathlib import Path
 from threading import Lock, Thread, Semaphore, Condition
 
-
 from kivy.graphics.context_instructions import Color
 from kivy.graphics.vertex_instructions import Rectangle, Line
 from kivy.uix.gridlayout import GridLayout
 
 from constants import REGISTER, hex_to_binary, convert_to_hex
-
 
 from constants import REGISTER, hex_to_binary, convert_to_hex
 from kivy.uix.gridlayout import GridLayout
@@ -165,7 +164,6 @@ class HexKeyboard(GridLayout):
             self.condition.release()
 
 
-
 class RunWindow(FloatLayout):
 
     def __init__(self, **kwargs):
@@ -217,7 +215,6 @@ class RunWindow(FloatLayout):
         self.ascii_label_8 = Label(text='[color=000000]' + chr(int(RAM[4095], 16)) + '[/color]', pos=(130, -105),
                                    font_size=40, markup=True)
 
-
         self.ascii = ASCIIGrid()
         self.reg_table = RegisterTable()
         self.mem_table = MemoryTable()
@@ -252,8 +249,10 @@ class RunWindow(FloatLayout):
         self.event_on.cancel()
         self.event_off.cancel()
 
-        self.hex_keyboard_layout = HexKeyboard(mem_table=self.mem_table, light=self.light, seven_segment_display=self.seven_segment_display, micro_sim=self.micro_sim, event_on=self.event_on, event_off=self.event_off)
-
+        self.hex_keyboard_layout = HexKeyboard(mem_table=self.mem_table, light=self.light,
+                                               seven_segment_display=self.seven_segment_display,
+                                               micro_sim=self.micro_sim, event_on=self.event_on,
+                                               event_off=self.event_off)
 
         self.add_widget(self.save_button)
         self.add_widget(self.run_button)
@@ -289,7 +288,6 @@ class RunWindow(FloatLayout):
             events_callback=self.save_file)
         toast('Save Register and Memory Content')
         dialog.open()
-
 
     def save_file(self, *args):
         """It is called when user clicks on 'Save' or 'Cancel' button of dialog.
@@ -391,7 +389,7 @@ class RunWindow(FloatLayout):
         # Cancels last scheduling thread for clean event
         self.event_on.cancel()
         self.event_off.cancel()
-        
+
         self.light.change_color(self.micro_sim.traffic_lights_binary())
         self.update_ascii_grid()
         self.seven_segment_display.activate_segments(self.micro_sim.seven_segment_binary())
@@ -429,7 +427,7 @@ class RunWindow(FloatLayout):
                     self.event_off()
                     self.update_ascii_grid()
                     self.seven_segment_display.activate_segments(self.micro_sim.seven_segment_binary())
-                    
+
                 toast('Runnin instruction in step-by-step mode. Step ' + str(self.step_index) + ' is running')
                 for i in self.micro_sim.micro_instructions:
                     if i != 'NOP':
@@ -444,6 +442,7 @@ class RunWindow(FloatLayout):
         self.ascii_label_6.text = '[color=000000]' + chr(int(RAM[ASCII_TABLE['port'] + 5], 16)) + '[/color]'
         self.ascii_label_7.text = '[color=000000]' + chr(int(RAM[ASCII_TABLE['port'] + 6], 16)) + '[/color]'
         self.ascii_label_8.text = '[color=000000]' + chr(int(RAM[ASCII_TABLE['port'] + 7], 16)) + '[/color]'
+
 
 class MainWindow(BoxLayout):
 
@@ -506,26 +505,33 @@ class NavDrawer(MDNavigationDrawer):
             title = args[1].title
             text = args[1].text_field.text
             if text.isdigit():
-                num = int(text)
-                if num < 0 or num > 4095:
+                port = int(text)
+                if port < 0 or port > 4095:
                     toast('Invalid port number. Valid port numbers [0-4095]')
                 else:
                     toast_message = 'Changed port number'
-                    if title == TRAFFIC_LIGHT['menu_title']:
-                        TRAFFIC_LIGHT['port'] = num
-                    elif title == SEVEN_SEGMENT_DISPLAY['menu_title']:
-                        SEVEN_SEGMENT_DISPLAY['port'] = num
-                    elif title == ASCII_TABLE['menu_title']:
-                        if num > 4088:
-                            toast_message = 'Invalid port for ASCII Table. Valid ports [0-4088]'
+                    if is_valid_port(port):
+                        if title == TRAFFIC_LIGHT['menu_title']:
+                            update_reserved_ports(TRAFFIC_LIGHT['port'], port)
+                            TRAFFIC_LIGHT['port'] = port
+                        elif title == SEVEN_SEGMENT_DISPLAY['menu_title']:
+                            update_reserved_ports(SEVEN_SEGMENT_DISPLAY['port'], port)
+                            SEVEN_SEGMENT_DISPLAY['port'] = port
+                        elif title == ASCII_TABLE['menu_title']:
+                            if port > 4088:
+                                toast_message = 'Invalid port for ASCII Table. Valid ports [0-4088]'
+                            else:
+                                update_reserved_ports(ASCII_TABLE['port'], port)
+                                ASCII_TABLE['port'] = port
                         else:
-                            ASCII_TABLE['port'] = num
+                            update_reserved_ports(HEX_KEYBOARD['port'], port)
+                            HEX_KEYBOARD['port'] = port
+                        toast(toast_message)
                     else:
-                        HEX_KEYBOARD['port'] = num
-                    toast(toast_message)
+                        toast('Invalid input. That port is reserved!')
+
             else:
                 toast('Invalid input. Not a number!')
-            
 
     def file_manager_open(self, instance):
         if not self.manager:
@@ -839,6 +845,7 @@ class SevenSegmentDisplay(Widget):
                         self.rightG = (.41, .41, .41)
                     else:
                         self.rightG = (1, 0, 0)
+
 
 class ASCIIGrid(Widget):
 

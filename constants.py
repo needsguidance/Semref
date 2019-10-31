@@ -128,3 +128,31 @@ HEX_KEYBOARD = {
     'menu_title': 'Configure Hex Keyboard Port',
     'port': 0
 }
+
+RESERVED_PORTS = [
+
+]
+
+
+def is_valid_port(port):
+    """
+    Verify if port is valid
+
+    :param port: int
+    :return: Boolean
+    """
+
+    return port not in RESERVED_PORTS
+
+
+def update_reserved_ports(port_to_remove, port_to_add):
+    """
+    Update RESERVED_PORTS List.
+    
+    :param port_to_remove: 
+    :param port_to_add: 
+    """
+    if RESERVED_PORTS:
+        RESERVED_PORTS.remove(port_to_remove)
+
+    RESERVED_PORTS.append(port_to_add)
