@@ -16,7 +16,7 @@ start:
 
 R1esMayor:
     STORE R1, mayor
-    LOADIM R3, 8
+    LOADIM R3, #8
 
 fin:
     JMPADDR fin
