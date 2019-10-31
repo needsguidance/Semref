@@ -9,4 +9,7 @@ POP R1
 LOADRIND R5, R1
 STORERIND R1, R6
 
+fin:
+    JMPADDR fin
+
 

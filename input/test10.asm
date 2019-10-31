@@ -12,3 +12,6 @@ greater:
     XOR R1, R3, R4
     NOT R3, R3
     NEG R4, R4
+
+fin:
+    JMPADDR fin
