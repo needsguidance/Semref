@@ -19,27 +19,6 @@ class InputTestCase(unittest.TestCase):
             with self.assertRaises(FileNotFoundError):
                 asm.read_source()
 
-        with mock.patch('builtins.input', return_value='input/test1.asm'):
-            file = input()
-            asm = Assembler(file)
-            asm.read_source()
-            with self.assertRaises(SyntaxError):
-                asm.store_instructions_in_ram()
-
-        with mock.patch('builtins.input', return_value='input/test2.asm'):
-            file = input()
-            asm = Assembler(file)
-            asm.read_source()
-            with self.assertRaises(SyntaxError):
-                asm.store_instructions_in_ram()
-
-        with mock.patch('builtins.input', return_value='input/test4.asm'):
-            file = input()
-            asm = Assembler(file)
-            asm.read_source()
-            with self.assertRaises(MemoryError):
-                asm.store_instructions_in_ram()
-
     def test_valid_input(self):
         with mock.patch('builtins.input', return_value="input/test.asm"):
             file = input()

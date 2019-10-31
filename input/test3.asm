@@ -15,7 +15,7 @@ start: LOAD R1, valor1
 
 R1esMayor:
     STORE R1, mayor
-    LOADIM R3, 8
+    LOADIM R3, #8
 
 fin:
     JMPADDR fin

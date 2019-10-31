@@ -17,7 +17,7 @@ class AssemblerTestCase(TestCase):
         with mock.patch('builtins.input', return_value='input/test5.asm'):
             self.binary_content = [
                 ('1010100000001110', 0),  # JMPADDR start
-                ('0000100000000101', 4),  
+                ('0000100000000101', 4),
                 ('0000101011111111', 6),
                 ('0111001100000000', 8),
                 ('0000000000110001', 10),
@@ -82,41 +82,68 @@ class AssemblerTestCase(TestCase):
                 ('A81A', 24)  # JMPADDR fin
             ]
             self.verify_ram_content_helper()
-
+        
         with mock.patch('builtins.input', return_value='input/test3.asm'):
             self.binary_content = [
                 ('1010100000001010', 0),  # JMPADDR start
-                ('0000010100000000', 2),  # valor1 db 5
-                ('0000011100000000', 4),  # valor2 db 7
-                ('0000000000000000', 6),  # mayor  db 0
-                ('0000000000001010', 8),  # const ten 0A
-                ('0000000100000010', 10),  # LOAD R1, valor1
-                ('0000001000000100', 12),  # LOAD R2, valor2
-                ('1100100101000000', 14),  # GRT  R1, R2
-                ('1010100000010110', 16),  # JMPADDR R1esMayor
-                ('0001101000000110', 18),  # STORE R2, mayor
-                ('1010100000011010', 20),  # JMPADDR fin
-                ('0001100100000110', 22),  # STORE R1, mayor
-                ('0000101100001000', 24),  # LOADIM R3, 8
-                ('1010100000011010', 26)  # JMPADDR fin
+                ('0000010100000111', 2),
+                ('0000000000000000', 4),
+                ('0000000000001010', 6),  # const ten 0A
+                ('0000000100000010', 8),  # LOAD R1, valor1
+                ('0000001000000011', 10),  # LOAD R2, valor2
+                ('1100100101000000', 12),  # GRT  R1, R2
+                ('1010100000010110', 14),  # JMPADDR R1esMayor
+                ('0001101000000100', 16),  # STORE R2, mayor
+                ('1010100000011010', 18),  # JMPADDR fin
+                ('0001100100000100', 20),  # STORE R1, mayor
+                ('0000101100001000', 22),  # LOADIM R3, #8
+                ('1010100000011010', 24)  # JMPADDR fin
             ]
             self.hex_content = [
                 ('A80A', 0),  # JMPADDR start
-                ('0500', 2),  # valor1 db 5
-                ('0700', 4),  # valor2 db 7
-                ('0000', 6),  # mayor  db 0
-                ('000A', 8),  # const ten 0A
-                ('0102', 10),  # LOAD R1, valor1
-                ('0204', 12),  # LOAD R2, valor2
-                ('C940', 14),  # GRT  R1, R2
-                ('A816', 16),  # JMPADDR R1esMayor
-                ('1A06', 18),  # STORE R2, mayor
-                ('A81A', 20),  # JMPADDR fin
-                ('1906', 22),  # STORE R1, mayor
-                ('0B08', 24),  # LOADIM R3, 8
-                ('A81A', 26)  # JMPADDR fin
+                ('0507', 2),
+                ('0000', 4),
+                ('000A', 6),  # const ten 0A
+                ('0102', 8),  # LOAD R1, valor1
+                ('0203', 10),  # LOAD R2, valor2
+                ('C940', 12),  # GRT  R1, R2
+                ('A816', 14),  # JMPADDR R1esMayor
+                ('1A04', 16),  # STORE R2, mayor
+                ('A81A', 18),  # JMPADDR fin
+                ('1904', 20),  # STORE R1, mayor
+                ('0B08', 22),  # LOADIM R3, #8
+                ('A81A', 24)  # JMPADDR fin
             ]
             self.verify_ram_content_helper()
+
+    def test_invalid_instruction(self):
+        with mock.patch('builtins.input', return_value='input/test1.asm'):
+            file = input()
+            asm = Assembler(file)
+            asm.read_source()
+            with self.assertRaises(SyntaxError):
+                asm.store_instructions_in_ram()
+        
+        with mock.patch('builtins.input', return_value='input/test2.asm'):
+            file = input()
+            asm = Assembler(file)
+            asm.read_source()
+            with self.assertRaises(SyntaxError):
+                asm.store_instructions_in_ram()
+            
+        with mock.patch('builtins.input', return_value='input/test4.asm'):
+            file = input()
+            asm = Assembler(file)
+            asm.read_source()
+            with self.assertRaises(MemoryError):
+                asm.store_instructions_in_ram()
+
+        with mock.patch('builtins.input', return_value='input/test6.asm'):
+            file = input()
+            asm = Assembler(file)
+            asm.read_source()
+            with self.assertRaises(MemoryError):
+                asm.store_instructions_in_ram()
 
     def assert_ram_content(self, content):
         """
