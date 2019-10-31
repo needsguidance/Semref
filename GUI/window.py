@@ -509,23 +509,32 @@ class NavDrawer(MDNavigationDrawer):
                 if port < 0 or port > 4095:
                     toast('Invalid port number. Valid port numbers [0-4095]')
                 else:
-                    toast_message = 'Changed port number'
                     if is_valid_port(port):
                         if title == TRAFFIC_LIGHT['menu_title']:
                             update_reserved_ports(TRAFFIC_LIGHT['port'], port)
                             TRAFFIC_LIGHT['port'] = port
+                            toast_message = 'Changed Traffic Light I/O port number to ' + str(port)
+
                         elif title == SEVEN_SEGMENT_DISPLAY['menu_title']:
                             update_reserved_ports(SEVEN_SEGMENT_DISPLAY['port'], port)
                             SEVEN_SEGMENT_DISPLAY['port'] = port
+                            toast_message = 'Changed Seven Segment I/O port number to ' + str(port)
+
                         elif title == ASCII_TABLE['menu_title']:
                             if port > 4088:
                                 toast_message = 'Invalid port for ASCII Table. Valid ports [0-4088]'
                             else:
                                 update_reserved_ports(ASCII_TABLE['port'], port)
                                 ASCII_TABLE['port'] = port
+                                toast_message = 'Changed ASCII Table I/O port number to ' + str(port)
+
+
                         else:
                             update_reserved_ports(HEX_KEYBOARD['port'], port)
                             HEX_KEYBOARD['port'] = port
+                            toast_message = 'Changed HEX Keyboard I/O port number to ' + str(port)
+
+
                         toast(toast_message)
                     else:
                         toast('Invalid input. That port is reserved!')

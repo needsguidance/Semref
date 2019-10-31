@@ -152,7 +152,7 @@ def update_reserved_ports(port_to_remove, port_to_add):
     :param port_to_remove: 
     :param port_to_add: 
     """
-    if RESERVED_PORTS:
+    if port_to_remove in RESERVED_PORTS:
         RESERVED_PORTS.remove(port_to_remove)
 
     RESERVED_PORTS.append(port_to_add)
