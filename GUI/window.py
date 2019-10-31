@@ -852,10 +852,10 @@ class SemrefApp(App):
 
     def build_config(self, config):
         super().build_config(config)
-        config.adddefaultsection('graphics')
-        config.setdefault('graphics', 'width', '1024')
-        config.setdefault('graphics', 'height', '650')
-        config.setdefault('graphics', 'resizable', False)
+        # config.adddefaultsection('graphics')
+        # config.setdefault('graphics', 'width', '1024')
+        # config.setdefault('graphics', 'height', '650')
+        # config.setdefault('graphics', 'resizable', False)
 
     def build(self):
         return GUI()
