@@ -856,4 +856,5 @@ class SemrefApp(App):
 
         Window.size = (window_width, window_height)
         Window.resizable = window_resizable
+        Window.softinput_mode = ''
         return GUI()
