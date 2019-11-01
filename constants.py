@@ -136,23 +136,25 @@ RESERVED_PORTS = [
 
 def is_valid_port(port):
     """
-    Verify if port is valid
+    Verify if the port is available
 
     :param port: int
-    :return: Boolean
+    :return: bool
     """
 
     return port not in RESERVED_PORTS
 
 
-def update_reserved_ports(port_to_remove, port_to_add):
+def update_reserved_ports(device, port_to_remove, port_to_add):
     """
     Update RESERVED_PORTS List.
     
-    :param port_to_remove: 
-    :param port_to_add: 
+    :param device: dict
+    :param port_to_remove: int
+    :param port_to_add: int
     """
     if port_to_remove in RESERVED_PORTS:
         RESERVED_PORTS.remove(port_to_remove)
 
     RESERVED_PORTS.append(port_to_add)
+    device['port'] = port_to_add
