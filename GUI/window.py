@@ -5,7 +5,6 @@ from time import sleep
 
 from kivy.app import App
 from kivy.clock import Clock
-from kivy.core.window import Window
 from kivy.graphics.context_instructions import Color
 from kivy.graphics.vertex_instructions import Rectangle, Line
 from kivy.properties import (ListProperty)
@@ -851,18 +850,5 @@ class SemrefApp(App):
     theme_cls = ThemeManager()
     theme_cls.primary_palette = 'Teal'
 
-    def build_config(self, config):
-        super().build_config(config)
-        config.adddefaultsection('graphics')
-        config.setdefault('graphics', 'width', '1024')
-        config.setdefault('graphics', 'height', '650')
-        config.setdefault('graphics', 'resizable', False)
-
     def build(self):
-        window_width = int(self.config['graphics']['width'])
-        window_height = int(self.config['graphics']['height'])
-        window_resizable = self.config['graphics']['resizable']
-
-        Window.size = (window_width, window_height)
-        Window.resizable = window_resizable
         return GUI()

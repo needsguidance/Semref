@@ -1,6 +1,8 @@
 import subprocess
 import sys
 
+from kivy import Config
+
 ALL = [
     'kivy==1.11.1',
     'Pillow==6.2.0',
@@ -36,3 +38,7 @@ elif platform == 'darwin':
     install(MACOS)
 else:
     install(LINUX)
+Config.set('graphics', 'width', '1024')
+Config.set('graphics', 'height', '650')
+Config.set('graphics', 'resizable', False)
+Config.write()
