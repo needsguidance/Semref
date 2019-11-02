@@ -13,6 +13,9 @@ class AssemblerTestCase(TestCase):
     hex_content = []
 
     def test_mutliple_variable_array(self):
+        """
+        Verifies assembler is able to successfully store array values in memory correctly
+        """
         with mock.patch('builtins.input', return_value='../input/test5.asm'):
             self.binary_content = [
                 ('1010100000001110', 0),  # JMPADDR start
@@ -47,6 +50,9 @@ class AssemblerTestCase(TestCase):
             self.verify_ram_content_helper()
 
     def test_simple_assembly_instructions(self):
+        """
+        Verifies generic assembly instructions are assembled correctly
+        """
         with mock.patch('builtins.input', return_value='../input/test.asm'):
             self.binary_content = [
                 ('1010100000000110', 0),  # JMPADDR start
@@ -196,6 +202,9 @@ class AssemblerTestCase(TestCase):
             self.hex_content.clear()
 
     def test_subroutine(self):
+        """
+        Verifies subroutine calls are assembled correctly
+        """
         with mock.patch('builtins.input', return_value='../input/test11.asm'):
             self.binary_content = [
                 ('1010100000000010', 0),  # JMPADDR start
@@ -222,6 +231,9 @@ class AssemblerTestCase(TestCase):
             self.hex_content.clear()
 
     def test_invalid_instruction(self):
+        """
+         Verifies assembly detects invalid code and raises an error
+        """
         with mock.patch('builtins.input', return_value='../input/test1.asm'):
             file = input()
             asm = Assembler(file)
