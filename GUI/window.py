@@ -27,7 +27,7 @@ from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
                                          NavigationDrawerSubheader,
                                          NavigationLayout)
 
-from constants import REGISTER, hex_to_binary, convert_to_hex
+from constants import REGISTER, hex_to_binary, convert_to_hex, is_valid_port, update_reserved_ports
 from constants import TRAFFIC_LIGHT, SEVEN_SEGMENT_DISPLAY, ASCII_TABLE, HEX_KEYBOARD
 from microprocessor_simulator import MicroSim, RAM
 
@@ -232,7 +232,6 @@ class RunWindow(FloatLayout):
                                                seven_segment_display=self.seven_segment_display,
                                                micro_sim=self.micro_sim, event_on=self.event_on,
                                                event_off=self.event_off)
-
         self.add_widget(self.save_button)
         self.add_widget(self.run_button)
         self.add_widget(self.debug_button)
@@ -423,6 +422,7 @@ class RunWindow(FloatLayout):
         self.ascii_label_8.text = '[color=000000]' + chr(int(RAM[ASCII_TABLE['port'] + 7], 16)) + '[/color]'
 
 
+
 class MainWindow(BoxLayout):
 
     def __init__(self, **kwargs):
@@ -484,23 +484,37 @@ class NavDrawer(MDNavigationDrawer):
             title = args[1].title
             text = args[1].text_field.text
             if text.isdigit():
-                num = int(text)
-                if num < 0 or num > 4095:
+                port = int(text)
+                if port < 0 or port > 4095:
                     toast('Invalid port number. Valid port numbers [0-4095]')
                 else:
-                    toast_message = 'Changed port number'
-                    if title == TRAFFIC_LIGHT['menu_title']:
-                        TRAFFIC_LIGHT['port'] = num
-                    elif title == SEVEN_SEGMENT_DISPLAY['menu_title']:
-                        SEVEN_SEGMENT_DISPLAY['port'] = num
-                    elif title == ASCII_TABLE['menu_title']:
-                        if num > 4088:
-                            toast_message = 'Invalid port for ASCII Table. Valid ports [0-4088]'
+                    if is_valid_port(port):
+                        if title == TRAFFIC_LIGHT['menu_title']:
+                            update_reserved_ports(TRAFFIC_LIGHT, TRAFFIC_LIGHT['port'], port)
+                            toast_message = 'Changed Traffic Light I/O port number to ' + str(port)
+
+                        elif title == SEVEN_SEGMENT_DISPLAY['menu_title']:
+                            update_reserved_ports(SEVEN_SEGMENT_DISPLAY, SEVEN_SEGMENT_DISPLAY['port'], port)
+                            toast_message = 'Changed Seven Segment I/O port number to ' + str(port)
+
+                        elif title == ASCII_TABLE['menu_title']:
+                            if port > 4088:
+                                toast_message = 'Invalid port for ASCII Table. Valid ports [0-4088]'
+                            else:
+                                update_reserved_ports(ASCII_TABLE, ASCII_TABLE['port'], port)
+                                ASCII_TABLE['port'] = port
+                                toast_message = 'Changed ASCII Table I/O port number to ' + str(port)
+
+
                         else:
-                            ASCII_TABLE['port'] = num
+                            update_reserved_ports(HEX_KEYBOARD, HEX_KEYBOARD['port'], port)
+                            HEX_KEYBOARD['port'] = port
+                            toast_message = 'Changed HEX Keyboard I/O port number to ' + str(port)
+
+                        toast(toast_message)
                     else:
-                        HEX_KEYBOARD['port'] = num
-                    toast(toast_message)
+                        toast('Invalid input. That port is reserved!')
+
             else:
                 toast('Invalid input. Not a number!')
 
@@ -577,9 +591,9 @@ class RegisterTable(RecycleView):
                 _data.append(
                     {'text': self.data_list[i + 1].upper(), 'color': (.1, .1, .1, 1)})
             i += 2
-            
+
         self.data = _data
-        
+
 
 
 class MemoryTable(RecycleView):
@@ -817,6 +831,7 @@ class SevenSegmentDisplay(Widget):
                         self.rightG = (.41, .41, .41)
                     else:
                         self.rightG = (1, 0, 0)
+
 
 
 class ASCIIGrid(Widget):

@@ -13,7 +13,7 @@ class AssemblerTestCase(TestCase):
     hex_content = []
 
     def test_mutliple_variable_array(self):
-        with mock.patch('builtins.input', return_value='input/test5.asm'):
+        with mock.patch('builtins.input', return_value='../input/test5.asm'):
             self.binary_content = [
                 ('1010100000001110', 0),  # JMPADDR start
                 ('0000100000000101', 4),
@@ -78,10 +78,10 @@ class AssemblerTestCase(TestCase):
             ]
             self.verify_ram_content_helper()
 
-        with mock.patch('builtins.input', return_value='input/test3.asm'):
+        with mock.patch('builtins.input', return_value='../input/test3.asm'):
             self.verify_ram_content_helper()
 
-        with mock.patch('builtins.input', return_value='input/test7.asm'):
+        with mock.patch('builtins.input', return_value='../input/test7.asm'):
             self.binary_content = [
                 ('1010100000000100', 0),  # JMPADDR begin
                 ('0000000000001010', 2),
@@ -110,7 +110,7 @@ class AssemblerTestCase(TestCase):
             ]
             self.verify_ram_content_helper()
 
-        with mock.patch('builtins.input', return_value='input/test8.asm'):
+        with mock.patch('builtins.input', return_value='../input/test8.asm'):
             self.binary_content = [
                 ('0000100100000101', 0),  # LOADIM R1, #5
                 ('0000101000000010', 2),  # LOADIM R2, #2
@@ -137,7 +137,7 @@ class AssemblerTestCase(TestCase):
             ]
             self.verify_ram_content_helper()
 
-        with mock.patch('builtins.input', return_value='input/test9.asm'):
+        with mock.patch('builtins.input', return_value='../input/test9.asm'):
             self.binary_content = [
                 ('0000100101100100', 0),  # LOADIM R1, #64
                 ('0000101000110010', 2),  # LOADIM R2, #32
@@ -162,7 +162,7 @@ class AssemblerTestCase(TestCase):
             ]
             self.verify_ram_content_helper()
 
-        with mock.patch('builtins.input', return_value='input/test10.asm'):
+        with mock.patch('builtins.input', return_value='../input/test10.asm'):
             self.binary_content = [
                 ('1110100000000000', 14),  # NOP
                 ('0000100100000101', 16),  # LOADIM R1, #5
@@ -196,7 +196,7 @@ class AssemblerTestCase(TestCase):
             self.hex_content.clear()
 
     def test_subroutine(self):
-        with mock.patch('builtins.input', return_value='input/test11.asm'):
+        with mock.patch('builtins.input', return_value='../input/test11.asm'):
             self.binary_content = [
                 ('1010100000000010', 0),  # JMPADDR start
                 ('0000100100000101', 2),  # LOADIM R1, #5
@@ -223,28 +223,28 @@ class AssemblerTestCase(TestCase):
 
 
     def test_invalid_instruction(self):
-        with mock.patch('builtins.input', return_value='input/test1.asm'):
+        with mock.patch('builtins.input', return_value='../input/test1.asm'):
             file = input()
             asm = Assembler(file)
             asm.read_source()
             with self.assertRaises(SyntaxError):
                 asm.store_instructions_in_ram()
 
-        with mock.patch('builtins.input', return_value='input/test2.asm'):
+        with mock.patch('builtins.input', return_value='../input/test2.asm'):
             file = input()
             asm = Assembler(file)
             asm.read_source()
             with self.assertRaises(SyntaxError):
                 asm.store_instructions_in_ram()
 
-        with mock.patch('builtins.input', return_value='input/test4.asm'):
+        with mock.patch('builtins.input', return_value='../input/test4.asm'):
             file = input()
             asm = Assembler(file)
             asm.read_source()
             with self.assertRaises(MemoryError):
                 asm.store_instructions_in_ram()
 
-        with mock.patch('builtins.input', return_value='input/test6.asm'):
+        with mock.patch('builtins.input', return_value='../input/test6.asm'):
             file = input()
             asm = Assembler(file)
             asm.read_source()
