@@ -1,6 +1,6 @@
 import re
 
-from constants import OPCODE, REGISTER, convert_to_binary
+from constants import OPCODE, convert_to_binary
 
 ADDRESSES = {}
 LABELS = {}
@@ -21,11 +21,11 @@ def verify_ram_content():
     for num in range(2048):
         if RAM[i] == 'jmprind' or RAM[i] == 'jcondrin':
             opcode = OPCODE[RAM[i]]
-            ra = REGISTER[RAM[i + 1]]
+            ra = convert_to_binary(int(RAM[i + 1][1]), 3)
             binary = opcode + ra + '00000000'
             RAM[i] = binary[0:8]
             RAM[i + 1] = binary[8:]
-        elif RAM[i] == 'jmpaddr' or RAM[i] == 'jcondaddr':
+        elif RAM[i] == 'jmpaddr' or RAM[i] == 'jcondaddr' or RAM[i] == 'call':
             opcode = OPCODE[RAM[i]]
             address = f'{int(RAM[i + 1], 16):011b}' if RAM[i + 1] not in VARIABLES else VARIABLES[RAM[i + 1]]
             binary = opcode + address if len(address) == 11 else address
@@ -64,45 +64,50 @@ class Assembler:
 
     def store_instructions_in_ram(self):
         for instruction in self.micro_instr:
-            instruction = re.sub(',', ' ', instruction)
-            source = instruction.split()
-            contains_label = [s for s in source if ':' in s]
-            if contains_label:
-                self.correct_p_counter()
-                label = source[0][:-1]
-                VARIABLES[label] = f'{self.p_counter:011b}'
-                if len(source) > 1:
-                    self.convert_instruction_to_binary(source[1:])
-                    self.p_counter += 2
-            else:
-                if source[0].lower() == 'org':
-                    # Indicates at what memory location it will begin storing instructions
-                    if len(source) > 2:
-                        # there is more than one value after the 'org' - invalid address.
-                        raise SyntaxError("Too many arguments after 'org'.")
-
-                    org_address = int(source[1], 16)
-
-                    if org_address > 4096 or org_address < 0:
-                        # the number given is not within the possible values (0 to 4096).
-                        raise MemoryError('Exceeded Memory Size')
-
-                    self.p_counter = org_address
-                else:
+            if instruction:
+                instruction = re.sub(',', ' ', instruction)
+                source = instruction.split()
+                contains_label = [s for s in source if ':' in s]
+                if contains_label:
+                    self.correct_p_counter()
+                    label = source[0][:-1]
+                    VARIABLES[label] = f'{self.p_counter:011b}'
                     if source[0].lower() in OPCODE:
-                        self.correct_p_counter()
-                        # Assign instruction to proper memory location
-                        self.convert_instruction_to_binary(source)
-                        self.p_counter += 2  # Increase Program Counter
+                        raise SyntaxError('Invalid instruction')
+                    elif len(source) > 1:
+                        self.convert_instruction_to_binary(source[1:])
+                        self.p_counter += 2
+                else:
+                    if source[0].lower() == 'org':
+                        # Indicates at what memory location it will begin storing instructions
+                        if len(source) > 2:
+                            # there is more than one value after the 'org' - invalid address.
+                            raise SyntaxError("Too many arguments after 'org'.")
+
+                        org_address = int(source[1], 16)
+
+                        if org_address > 4096 or org_address < 0:
+                            # the number given is not within the possible values (0 to 4096).
+                            raise MemoryError('Exceeded Memory Size')
+
+                        self.p_counter = org_address
                     else:
-                        if source[0].lower() == 'const':
+                        if source[0].lower() in OPCODE:
+                            self.correct_p_counter()
+                            # Assign instruction to proper memory location
+                            self.convert_instruction_to_binary(source)
+                            self.p_counter += 2  # Increase Program Counter
+                        elif source[0].lower() == 'const':
                             const = f'{int(source[2], 16):08b}'
                             CONSTANTS[source[1]] = const
 
-                        elif len(source) == 3:
+                        elif 'db' in source:
+                            if source[0].lower() in OPCODE:
+                                raise SyntaxError(f'{source[0].lower()} cannot be used as a variable')
                             VARIABLES[source[0]] = convert_to_binary(self.p_counter, 8)
-                            RAM[self.p_counter] = convert_to_binary(int(source[2], 16), 8)
-                            self.p_counter += 1
+                            for i in range(2, len(source)):
+                                RAM[self.p_counter] = convert_to_binary(int(source[i], 16), 8)
+                                self.p_counter += 1
                         else:
                             raise SyntaxError(f"'{instruction}' not a valid instruction")
 

@@ -83,7 +83,7 @@ class AssemblerTestCase(TestCase):
 
         with mock.patch('builtins.input', return_value='../input/test7.asm'):
             self.binary_content = [
-                ('1010100000000100', 0),  # JMPADDR begin
+                ('1010100000000110', 0),  # JMPADDR begin
                 ('0000000000001010', 2),
                 ('0000111100000000', 4),
                 ('0000110100001100', 6),  # LOADIM R5, #C
@@ -96,7 +96,7 @@ class AssemblerTestCase(TestCase):
                 ('1010100000010100', 20),  # JMPADDR fin
             ]
             self.hex_content = [
-                ('A804', 0),  # JMPADDR begin
+                ('A806', 0),  # JMPADDR begin
                 ('000A', 2),
                 ('0F00', 4),
                 ('0D0C', 6),  # LOADIM R5, #C
@@ -169,9 +169,9 @@ class AssemblerTestCase(TestCase):
                 ('0000110110101100', 18),  # LOADIM R5, #AC
                 ('0000111001111001', 20),  # LOADIM R6, #79
                 ('1001001110100100', 22),  # ROTAR R3, R5, R1
-                ('1001101110100100', 24),  # ROTAL R4, R6, R1
+                ('1001110011000100', 24),  # ROTAL R4, R6, R1
                 ('1101001110000000', 26),  # GRTEQ R3, R4
-                ('1011000000011110', 28),  # JCONDRIN greater
+                ('1010100000011110', 28),  # JMPADDR greater
                 ('0110100101110000', 30),  # XOR R1, R3, R4
                 ('0111001101100000', 32),  # NOT R3, R3
                 ('0111110010000000', 34),  # NEG R4, R4
@@ -183,9 +183,9 @@ class AssemblerTestCase(TestCase):
                 ('0DAC', 18),  # LOADIM R5, #AC
                 ('0E79', 20),  # LOADIM R6, #79
                 ('93A4', 22),  # ROTAR R3, R5, R1
-                ('9BA4', 24),  # ROTAL R4, R6, R1
+                ('9CC4', 24),  # ROTAL R4, R6, R1
                 ('D380', 26),  # GRTEQ R3, R4
-                ('B01E', 28),  # JCONDRIN greater
+                ('A81E', 28),  # JCONDRIN greater
                 ('6970', 30),  # XOR R1, R3, R4
                 ('7360', 32),  # NOT R3, R3
                 ('7C80', 34),  # NEG R4, R4
@@ -221,7 +221,6 @@ class AssemblerTestCase(TestCase):
             self.binary_content.clear()
             self.hex_content.clear()
 
-
     def test_invalid_instruction(self):
         with mock.patch('builtins.input', return_value='../input/test1.asm'):
             file = input()
@@ -248,7 +247,7 @@ class AssemblerTestCase(TestCase):
             file = input()
             asm = Assembler(file)
             asm.read_source()
-            with self.assertRaises(MemoryError):
+            with self.assertRaises(SyntaxError):
                 asm.store_instructions_in_ram()
 
     def assert_ram_content(self, content):
