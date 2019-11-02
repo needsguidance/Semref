@@ -1,43 +1,35 @@
-from time import sleep
-from constants import TRAFFIC_LIGHT, SEVEN_SEGMENT_DISPLAY, ASCII_TABLE, HEX_KEYBOARD, is_valid_port, \
-    update_reserved_ports
+from pathlib import Path
 from queue import Queue
-from microprocessor_simulator import MicroSim, RAM
-from kivy import Config
+from threading import Lock, Thread, Semaphore, Condition
+from time import sleep
 
+from kivy.metrics import dp, sp
+
+from kivy.app import App
+from kivy.clock import Clock
+from kivy.graphics.context_instructions import Color
+from kivy.graphics.vertex_instructions import Rectangle, Line
+from kivy.properties import (ListProperty)
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.label import Label
+from kivy.uix.modalview import ModalView
+from kivy.uix.recycleview import RecycleView
+from kivy.uix.widget import Widget
+from kivymd.theming import ThemeManager
+from kivymd.toast import toast
+from kivymd.uix.button import MDFillRoundFlatIconButton, MDFlatButton
+from kivymd.uix.dialog import MDInputDialog
+from kivymd.uix.filemanager import MDFileManager
 from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
                                          NavigationDrawerIconButton,
                                          NavigationDrawerSubheader,
                                          NavigationLayout)
-from kivymd.uix.filemanager import MDFileManager
-from kivymd.uix.textfield import MDTextField
-from kivy.uix.popup import Popup
-from kivymd.toast import toast
-from kivymd.theming import ThemeManager
-from kivy.uix.recycleview import RecycleView
-from kivy.uix.modalview import ModalView
-from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.anchorlayout import AnchorLayout
-from kivy.properties import (ListProperty)
-from kivy.uix.label import Label
-from kivy.uix.widget import Widget
-from kivy.clock import Clock
-from kivy.lang import Builder
-from kivy.app import App
-from kivymd.uix.button import MDFillRoundFlatIconButton, MDFlatButton
-from kivymd.uix.dialog import MDDialog, MDInputDialog
-from pathlib import Path
-from threading import Lock, Thread, Semaphore, Condition
 
-from kivy.graphics.context_instructions import Color
-from kivy.graphics.vertex_instructions import Rectangle, Line
-from kivy.uix.gridlayout import GridLayout
-
-from constants import REGISTER, hex_to_binary, convert_to_hex
-
-from constants import REGISTER, hex_to_binary, convert_to_hex
-from kivy.uix.gridlayout import GridLayout
+from constants import REGISTER, hex_to_binary, convert_to_hex, is_valid_port, update_reserved_ports
+from constants import TRAFFIC_LIGHT, SEVEN_SEGMENT_DISPLAY, ASCII_TABLE, HEX_KEYBOARD
+from microprocessor_simulator import MicroSim, RAM
 
 
 class HexKeyboard(GridLayout):
@@ -52,68 +44,56 @@ class HexKeyboard(GridLayout):
 
         super(HexKeyboard, self).__init__(**kwargs)
         self.cols = 4
-        self.size_hint = (0.4, 0.4)
-        self.pos_hint = {'x': 0.30, 'y': 0.35}
+        self.size_hint = (dp(0.4), dp(0.4))
+        self.pos_hint = {'x': dp(0.30), 'y': dp(0.35)}
         self.queue = Queue(maxsize=10)
         self.lock = Lock()
         self.semaphore = Semaphore()
         self.condition = Condition()
 
         with self.canvas.before:
-            Color(0, 0, 0, 1)
-            Rectangle(pos=(306, 75), size=(355, 202))
+            Color(.50, .50, .50, 1)
+            Rectangle(pos=(dp(303), dp(72)), size=(dp(362), dp(208)))
 
         with self.canvas:
+            Color(1, 1, 1, 1)
+            Rectangle(pos=(dp(307), dp(77)), size=(dp(354), dp(199)))
+
             Color(.75, .75, .75, 1)
-            Rectangle(pos=(307, 76), size=(353, 200))
+            Rectangle(pos=(dp(307), dp(76)), size=(dp(353), dp(143)))
 
-            Color(0, 0, 0, 1)
-            Line(rectangle=(307, 183, 87, 35), width=0.3)
+            Color(.50, .50, .50, 1)
+            Line(rectangle=(dp(307), dp(183), dp(87), dp(35)), width=dp(dp(0.8)))
 
-            Color(0, 0, 0, 1)
-            Line(rectangle=(396, 183, 87, 35), width=0.3)
+            Line(rectangle=(dp(396), dp(183), dp(87), dp(35)), width=dp(dp(0.8)))
 
-            Color(0, 0, 0, 1)
-            Line(rectangle=(485, 183, 87, 35), width=0.3)
+            Line(rectangle=(dp(485), dp(183), dp(87), dp(35)), width=dp(0.8))
 
-            Color(0, 0, 0, 1)
-            Line(rectangle=(574, 183, 87, 35), width=0.3)
+            Line(rectangle=(dp(574), dp(183), dp(87), dp(35)), width=dp(0.8))
 
-            Color(0, 0, 0, 1)
-            Line(rectangle=(307, 148, 87, 35), width=0.3)
+            Line(rectangle=(dp(307), dp(148), dp(87), dp(35)), width=dp(0.8))
 
-            Color(0, 0, 0, 1)
-            Line(rectangle=(396, 148, 87, 35), width=0.3)
+            Line(rectangle=(dp(396), dp(148), dp(87), dp(35)), width=dp(0.8))
 
-            Color(0, 0, 0, 1)
-            Line(rectangle=(485, 148, 87, 35), width=0.3)
+            Line(rectangle=(dp(485), dp(148), dp(87), dp(35)), width=dp(0.8))
 
-            Color(0, 0, 0, 1)
-            Line(rectangle=(574, 148, 87, 35), width=0.3)
+            Line(rectangle=(dp(574), dp(148), dp(87), dp(35)), width=dp(0.8))
 
-            Color(0, 0, 0, 1)
-            Line(rectangle=(307, 113, 87, 35), width=0.3)
+            Line(rectangle=(dp(307), dp(113), dp(87), dp(35)), width=dp(0.8))
 
-            Color(0, 0, 0, 1)
-            Line(rectangle=(396, 113, 87, 35), width=0.3)
+            Line(rectangle=(dp(396), dp(113), dp(87), dp(35)), width=dp(0.8))
 
-            Color(0, 0, 0, 1)
-            Line(rectangle=(485, 113, 87, 35), width=0.3)
+            Line(rectangle=(dp(485), dp(113), dp(87), dp(35)), width=dp(0.8))
 
-            Color(0, 0, 0, 1)
-            Line(rectangle=(574, 113, 87, 35), width=0.3)
+            Line(rectangle=(dp(574), dp(113), dp(87), dp(35)), width=dp(0.8))
 
-            Color(0, 0, 0, 1)
-            Line(rectangle=(307, 78, 87, 35), width=0.3)
+            Line(rectangle=(dp(307), dp(78), dp(87), dp(35)), width=dp(0.8))
 
-            Color(0, 0, 0, 1)
-            Line(rectangle=(396, 78, 87, 35), width=0.3)
+            Line(rectangle=(dp(396), dp(78), dp(87), dp(35)), width=dp(0.8))
 
-            Color(0, 0, 0, 1)
-            Line(rectangle=(485, 78, 87, 35), width=0.3)
+            Line(rectangle=(dp(485), dp(78), dp(87), dp(35)), width=dp(0.8))
 
-            Color(0, 0, 0, 1)
-            Line(rectangle=(574, 78, 87, 35), width=0.3)
+            Line(rectangle=(dp(574), dp(78), dp(87), dp(35)), width=dp(0.8))
 
         for i in range(16):
             if i > 9:
@@ -158,7 +138,6 @@ class HexKeyboard(GridLayout):
             # Begins new scheduling thread
             self.event_on()
             self.event_off()
-
             self.seven_segment_display.activate_segments(self.micro_sim.seven_segment_binary())
             sleep(1)
             self.condition.release()
@@ -177,43 +156,43 @@ class RunWindow(FloatLayout):
                                                     icon='run',
                                                     size_hint=(None, None),
                                                     pos_hint={
-                                                        'center_x': .7, 'center_y': 2.12},
+                                                        'center_x': dp(.7), 'center_y': dp(2.12)},
                                                     on_release=self.run_micro_instructions)
         self.debug_button = MDFillRoundFlatIconButton(text='Debug',
                                                       icon='android-debug-bridge',
                                                       size_hint=(None, None),
                                                       pos_hint={
-                                                          'center_x': .9, 'center_y': 2.12},
+                                                          'center_x': dp(.9), 'center_y': dp(2.12)},
                                                       on_release=self.run_micro_instructions_step)
         self.refresh_button = MDFillRoundFlatIconButton(text='Clear',
                                                         icon='refresh',
                                                         size_hint=(None, None),
                                                         pos_hint={
-                                                            'center_x': .5, 'center_y': 2.12},
+                                                            'center_x': dp(.5), 'center_y': dp(2.12)},
                                                         on_release=self.clear)
         self.save_button = MDFillRoundFlatIconButton(text='Save File',
                                                      icon='download',
                                                      size_hint=(None, None),
                                                      pos_hint={
-                                                         'center_x': .35, 'center_y': 2.12},
+                                                         'center_x': dp(.35), 'center_y': dp(2.12)},
                                                      on_release=self.open_save_dialog)
 
-        self.ascii_label_1 = Label(text='[color=000000]' + chr(int(RAM[4088], 16)) + '[/color]', pos=(-187, -105),
-                                   font_size=40, markup=True)
-        self.ascii_label_2 = Label(text='[color=000000]' + chr(int(RAM[4089], 16)) + '[/color]', pos=(-146, -105),
-                                   font_size=40, markup=True)
-        self.ascii_label_3 = Label(text='[color=000000]' + chr(int(RAM[4090], 16)) + '[/color]', pos=(-100, -105),
-                                   font_size=40, markup=True)
-        self.ascii_label_4 = Label(text='[color=000000]' + chr(int(RAM[4091], 16)) + '[/color]', pos=(-54, -105),
-                                   font_size=40, markup=True)
-        self.ascii_label_5 = Label(text='[color=000000]' + chr(int(RAM[4092], 16)) + '[/color]', pos=(-8, -105),
-                                   font_size=40, markup=True)
-        self.ascii_label_6 = Label(text='[color=000000]' + chr(int(RAM[4093], 16)) + '[/color]', pos=(38, -105),
-                                   font_size=40, markup=True)
-        self.ascii_label_7 = Label(text='[color=000000]' + chr(int(RAM[4094], 16)) + '[/color]', pos=(84, -105),
-                                   font_size=40, markup=True)
-        self.ascii_label_8 = Label(text='[color=000000]' + chr(int(RAM[4095], 16)) + '[/color]', pos=(130, -105),
-                                   font_size=40, markup=True)
+        self.ascii_label_1 = Label(text='[color=000000]' + chr(int(RAM[4088], 16)) + '[/color]', pos=(dp(-187), dp(-105)),
+                                   font_size=sp(40), markup=True)
+        self.ascii_label_2 = Label(text='[color=000000]' + chr(int(RAM[4089], 16)) + '[/color]', pos=(dp(-146), dp(-105)),
+                                   font_size=sp(40), markup=True)
+        self.ascii_label_3 = Label(text='[color=000000]' + chr(int(RAM[4090], 16)) + '[/color]', pos=(dp(-100), dp(-105)),
+                                   font_size=sp(40), markup=True)
+        self.ascii_label_4 = Label(text='[color=000000]' + chr(int(RAM[4091], 16)) + '[/color]', pos=(dp(-54), dp(-105)),
+                                   font_size=sp(40), markup=True)
+        self.ascii_label_5 = Label(text='[color=000000]' + chr(int(RAM[4092], 16)) + '[/color]', pos=(dp(-8), dp(-105)),
+                                   font_size=sp(40), markup=True)
+        self.ascii_label_6 = Label(text='[color=000000]' + chr(int(RAM[4093], 16)) + '[/color]', pos=(dp(38), dp(-105)),
+                                   font_size=sp(40), markup=True)
+        self.ascii_label_7 = Label(text='[color=000000]' + chr(int(RAM[4094], 16)) + '[/color]', pos=(dp(84), dp(-105)),
+                                   font_size=sp(40), markup=True)
+        self.ascii_label_8 = Label(text='[color=000000]' + chr(int(RAM[4095], 16)) + '[/color]', pos=(dp(130), dp(-105)),
+                                   font_size=sp(40), markup=True)
 
         self.ascii = ASCIIGrid()
         self.reg_table = RegisterTable()
@@ -229,10 +208,10 @@ class RunWindow(FloatLayout):
             self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
         self.header = True
         self.hex_keyboard_label = Label(text='HEX KEYBOARD',
-                                        font_size=20,
+                                        font_size=sp(20),
                                         color=(0, 0, 0, 1),
                                         # size_hint=(1, 0.17),
-                                        pos_hint={'x': -0.025, 'y': 0.35})
+                                        pos_hint={'x': dp(-0.025), 'y': dp(0.35)})
 
         self.light.change_color(self.micro_sim.traffic_lights_binary())
         self.seven_segment_display.activate_segments(
@@ -253,7 +232,6 @@ class RunWindow(FloatLayout):
                                                seven_segment_display=self.seven_segment_display,
                                                micro_sim=self.micro_sim, event_on=self.event_on,
                                                event_off=self.event_off)
-
         self.add_widget(self.save_button)
         self.add_widget(self.run_button)
         self.add_widget(self.debug_button)
@@ -444,6 +422,7 @@ class RunWindow(FloatLayout):
         self.ascii_label_8.text = '[color=000000]' + chr(int(RAM[ASCII_TABLE['port'] + 7], 16)) + '[/color]'
 
 
+
 class MainWindow(BoxLayout):
 
     def __init__(self, **kwargs):
@@ -494,7 +473,7 @@ class NavDrawer(MDNavigationDrawer):
     def io_config_open(self, instance):
         dialog = MDInputDialog(title=instance.text,
                                hint_text='Input port number [0-4095]',
-                               size_hint=(0.8, 0.4),
+                               size_hint=(dp(0.8), dp(0.4)),
                                text_button_ok='Save',
                                text_button_cancel='Cancel',
                                events_callback=self.save_io_ports)
@@ -541,7 +520,7 @@ class NavDrawer(MDNavigationDrawer):
 
     def file_manager_open(self, instance):
         if not self.manager:
-            self.manager = ModalView(size_hint=(1, 1), auto_dismiss=False)
+            self.manager = ModalView(size_hint=(dp(1), dp(1)), auto_dismiss=False)
             self.file_manager = MDFileManager(exit_manager=self.exit_manager,
                                               select_path=self.select_path,
                                               ext=['.asm', '.obj'])
@@ -614,6 +593,7 @@ class RegisterTable(RecycleView):
             i += 2
 
         self.data = _data
+
 
 
 class MemoryTable(RecycleView):
@@ -853,6 +833,7 @@ class SevenSegmentDisplay(Widget):
                         self.rightG = (1, 0, 0)
 
 
+
 class ASCIIGrid(Widget):
 
     def __init__(self, **kwargs):
@@ -873,13 +854,6 @@ class GUI(NavigationLayout):
 class SemrefApp(App):
     theme_cls = ThemeManager()
     theme_cls.primary_palette = 'Teal'
-
-    def build_config(self, config):
-        super().build_config(config)
-        config.adddefaultsection('graphics')
-        config.setdefault('graphics', 'width', '1024')
-        config.setdefault('graphics', 'height', '650')
-        config.setdefault('graphics', 'resizable', False)
 
     def build(self):
         return GUI()
