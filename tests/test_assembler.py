@@ -13,7 +13,7 @@ class AssemblerTestCase(TestCase):
     hex_content = []
 
     def test_mutliple_variable_array(self):
-        with mock.patch('builtins.input', return_value='input/test5.asm'):
+        with mock.patch('builtins.input', return_value='../input/test5.asm'):
             self.binary_content = [
                 ('1010100000001110', 0),  # JMPADDR start
                 ('0000100000000101', 4),
@@ -47,41 +47,41 @@ class AssemblerTestCase(TestCase):
             self.verify_ram_content_helper()
 
     def test_simple_assembly_instructions(self):
-        with mock.patch('builtins.input', return_value='input/test.asm'):
+        with mock.patch('builtins.input', return_value='../input/test.asm'):
             self.binary_content = [
-                ('1010100000001010', 0),  # JMPADDR start
+                ('1010100000000110', 0),  # JMPADDR start
                 ('0000010100000111', 2),
                 ('0000000000000000', 4),
                 ('0000000100000010', 6),  # LOAD R1, valor1
                 ('0000001000000011', 8),  # LOAD R2, valor2
                 ('1100100101000000', 10),  # GRT  R1, R2
-                ('1010100000010110', 12),  # JMPADDR R1esMayor
+                ('1010100000010010', 12),  # JMPADDR R1esMayor
                 ('0001101000000100', 14),  # STORE R2, mayor
-                ('1010100000011010', 16),  # JMPADDR fin
+                ('1010100000010110', 16),  # JMPADDR fin
                 ('0001100100000100', 18),  # STORE R1, mayor
                 ('0000101100001000', 20),  # LOADIM R3, #8
-                ('1010100000011010', 22)  # JMPADDR fin
+                ('1010100000010110', 22)  # JMPADDR fin
             ]
             self.hex_content = [
-                ('A80A', 0),  # JMPADDR start
+                ('A806', 0),  # JMPADDR start
                 ('0507', 2),
                 ('0000', 4),
                 ('0102', 6),  # LOAD R1, valor1
                 ('0203', 8),  # LOAD R2, valor2
                 ('C940', 10),  # GRT  R1, R2
-                ('A816', 12),  # JMPADDR R1esMayor
+                ('A812', 12),  # JMPADDR R1esMayor
                 ('1A04', 14),  # STORE R2, mayor
-                ('A81A', 16),  # JMPADDR fin
+                ('A816', 16),  # JMPADDR fin
                 ('1904', 18),  # STORE R1, mayor
                 ('0B08', 20),  # LOADIM R3, #8
-                ('A81A', 22)  # JMPADDR fin
+                ('A816', 22)  # JMPADDR fin
             ]
             self.verify_ram_content_helper()
 
-        with mock.patch('builtins.input', return_value='input/test3.asm'):
+        with mock.patch('builtins.input', return_value='../input/test3.asm'):
             self.verify_ram_content_helper()
 
-        with mock.patch('builtins.input', return_value='input/test7.asm'):
+        with mock.patch('builtins.input', return_value='../input/test7.asm'):
             self.binary_content = [
                 ('1010100000000100', 0),  # JMPADDR begin
                 ('0000000000001010', 2),
@@ -110,7 +110,7 @@ class AssemblerTestCase(TestCase):
             ]
             self.verify_ram_content_helper()
 
-        with mock.patch('builtins.input', return_value='input/test8.asm'):
+        with mock.patch('builtins.input', return_value='../input/test8.asm'):
             self.binary_content = [
                 ('0000100100000101', 0),  # LOADIM R1, #5
                 ('0000101000000010', 2),  # LOADIM R2, #2
@@ -137,7 +137,7 @@ class AssemblerTestCase(TestCase):
             ]
             self.verify_ram_content_helper()
 
-        with mock.patch('builtins.input', return_value='input/test9.asm'):
+        with mock.patch('builtins.input', return_value='../input/test9.asm'):
             self.binary_content = [
                 ('0000100101100100', 0),  # LOADIM R1, #64
                 ('0000101000110010', 2),  # LOADIM R2, #32
@@ -162,7 +162,7 @@ class AssemblerTestCase(TestCase):
             ]
             self.verify_ram_content_helper()
 
-        with mock.patch('builtins.input', return_value='input/test10.asm'):
+        with mock.patch('builtins.input', return_value='../input/test10.asm'):
             self.binary_content = [
                 ('1110100000000000', 14),  # NOP
                 ('0000100100000101', 16),  # LOADIM R1, #5
@@ -196,7 +196,7 @@ class AssemblerTestCase(TestCase):
             self.hex_content.clear()
 
     def test_subroutine(self):
-        with mock.patch('builtins.input', return_value='input/test11.asm'):
+        with mock.patch('builtins.input', return_value='../input/test11.asm'):
             self.binary_content = [
                 ('1010100000000010', 0),  # JMPADDR start
                 ('0000100100000101', 2),  # LOADIM R1, #5
@@ -223,28 +223,28 @@ class AssemblerTestCase(TestCase):
 
 
     def test_invalid_instruction(self):
-        with mock.patch('builtins.input', return_value='input/test1.asm'):
+        with mock.patch('builtins.input', return_value='../input/test1.asm'):
             file = input()
             asm = Assembler(file)
             asm.read_source()
             with self.assertRaises(SyntaxError):
                 asm.store_instructions_in_ram()
 
-        with mock.patch('builtins.input', return_value='input/test2.asm'):
+        with mock.patch('builtins.input', return_value='../input/test2.asm'):
             file = input()
             asm = Assembler(file)
             asm.read_source()
             with self.assertRaises(SyntaxError):
                 asm.store_instructions_in_ram()
 
-        with mock.patch('builtins.input', return_value='input/test4.asm'):
+        with mock.patch('builtins.input', return_value='../input/test4.asm'):
             file = input()
             asm = Assembler(file)
             asm.read_source()
             with self.assertRaises(MemoryError):
                 asm.store_instructions_in_ram()
 
-        with mock.patch('builtins.input', return_value='input/test6.asm'):
+        with mock.patch('builtins.input', return_value='../input/test6.asm'):
             file = input()
             asm = Assembler(file)
             asm.read_source()
@@ -259,7 +259,7 @@ class AssemblerTestCase(TestCase):
         """
         for c in content:
             self.assertEqual(RAM[c[1]] + RAM[c[1] + 1],
-                             c[0], f'Verify line # {content.index(c) + 1}')
+                             c[0], f'Verify line # {content.index(c) + 1} "{c}"')
 
     def verify_ram_content_helper(self):
         """
