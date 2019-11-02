@@ -64,7 +64,7 @@ class Assembler:
 
     def store_instructions_in_ram(self):
         for instruction in self.micro_instr:
-
+            instruction = re.sub(',', ' ', instruction)
             source = instruction.split()
             contains_label = [s for s in source if ':' in s]
             if contains_label:
@@ -100,8 +100,8 @@ class Assembler:
                             CONSTANTS[source[1]] = const
 
                         elif len(source) == 3:
-                            VARIABLES[source[0]] = f'{self.p_counter:08b}'
-                            RAM[self.p_counter] = f'{int(source[2]):08b}'
+                            VARIABLES[source[0]] = convert_to_binary(self.p_counter, 8)
+                            RAM[self.p_counter] = convert_to_binary(int(source[2], 16), 8)
                             self.p_counter += 1
                         else:
                             raise SyntaxError(f"'{instruction}' not a valid instruction")
@@ -128,9 +128,9 @@ class Assembler:
                     elif inst[2] in CONSTANTS:
                         address_or_const = CONSTANTS[inst[2]]
                     elif '#' in inst[2]:
-                        address_or_const = convert_to_binary(int(inst[2][1:]), 8)
+                        address_or_const = convert_to_binary(int(inst[2][1:], 16), 8)
                     else:
-                        address_or_const = convert_to_binary(int(inst[2]), 8)
+                        address_or_const = convert_to_binary(int(inst[2], 16), 8)
                     binary = opcode + ra + address_or_const
                 elif instruction == 'pop' or instruction == 'push':
                     if len(inst) != 2:
@@ -142,7 +142,8 @@ class Assembler:
                         raise SyntaxError(error)
                     ra = convert_to_binary(int(re.sub(r'[^\w\s]', '', inst[2])[1]), 3)
                     variable = re.sub(r'[^\w\s]', '', inst[1])
-                    address = convert_to_binary(int(variable), 8) if variable not in VARIABLES else VARIABLES[variable]
+                    address = convert_to_binary(int(variable, 16), 8) if variable not in VARIABLES else \
+                        VARIABLES[variable]
                     binary = opcode + ra + address
                 elif instruction == 'loadrind' or instruction == 'storerind' or instruction == 'not' or \
                         instruction == 'neg':
