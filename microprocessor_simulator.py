@@ -122,7 +122,6 @@ class MicroSim:
         self.decoded_micro_instructions = []
         self.index = 0
         self.is_running = True
-        # self.cond = False
         self.prev_index = -1
         self.counter = 0
         for m in range(4096):
