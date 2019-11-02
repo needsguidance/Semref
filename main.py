@@ -1,7 +1,5 @@
 from assembler import Assembler, RAM, verify_ram_content, hexify_ram_content
 from microprocessor_simulator import MicroSim
-from GUI.window import SemrefApp
-
 
 
 def assembler():
@@ -39,6 +37,6 @@ def micro_sim():
         sim.read_obj_file(file)
 
 
-# assembler()  # Test assembler
+assembler()  # Test assembler
 # micro_sim()
-SemrefApp().run()  # Comment this code to test assembler/microprocessor simulator
+# SemrefApp().run()  # Comment this code to test assembler/microprocessor simulator

@@ -6,7 +6,7 @@ LOADIM R6, #79
 ROTAR R3, R5, R1
 ROTAL R4, R6, R1
 GRTEQ R3, R4
-JCONDRIN greater
+JMPADDR greater
 
 greater:
     XOR R1, R3, R4

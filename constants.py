@@ -10,6 +10,12 @@ def convert_to_hex(num, bits):
     return f'{num:0{int(bits / 4)}x}'
 
 
+def convert_to_binary(num, bits):
+    if not isinstance(num, int):
+        raise ValueError("Invalid number type, num must be of type int.")
+    return f'{num:0{bits}b}'
+
+
 def hex_to_binary(hex_num):
     """
     Converts hexadecimal number to binary
