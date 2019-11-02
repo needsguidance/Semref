@@ -65,7 +65,8 @@ REGISTER = {
     'r7': f'{0:02x}',
     'pc': f'{0:03x}',
     'sp': f'{0:03x}',
-    'ir': f'{0:04x}'
+    'ir': f'{0:04x}',
+    'cond': f'{0:01x}'
 }
 
 FORMAT_1_OPCODE = [
