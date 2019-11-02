@@ -696,7 +696,6 @@ class TrafficLights(Widget):
     # Iterates through the binary at the Input location (RAM) to determine which are 1s and which are 0s
     # Then, changes colors accordingly.
     def change_color(self, binary):
-        print(binary)
         self.binary = binary
         for bit in range(len(binary)):
 
@@ -704,7 +703,6 @@ class TrafficLights(Widget):
             if bit == 0:
                 if binary[bit] == '0':
                     self.red_2 = (0, 0, 0)
-                    print('red_2')
                 else:
                     self.red_2 = (1, 0, 0)
             elif bit == 1:
@@ -716,7 +714,6 @@ class TrafficLights(Widget):
                 if binary[bit] == '0':
                     self.green_2 = (0, 0, 0)
                 else:
-                    print('green_2')
                     self.green_2 = (0, 1, 0)
 
             # Second traffic ligth
