@@ -37,7 +37,6 @@ class HexKeyboard(GridLayout):
     def __init__(self, **kwargs):
         self.mem_table = kwargs.pop('mem_table')
         self.light = kwargs.pop('light')
-        self.seven_segment_display = kwargs.pop('seven_segment_display')
         self.micro_sim = kwargs.pop('micro_sim')
         self.event_on = kwargs.pop('event_on')
         self.event_off = kwargs.pop('event_off')
@@ -127,18 +126,15 @@ class HexKeyboard(GridLayout):
         with self.lock:
             RAM[HEX_KEYBOARD['port']] = convert_to_hex(
                 int(f'{self.queue.get()}0001', 2), 8)
+
             self.mem_table.data_list.clear()
             self.mem_table.get_data()
 
-            # Cancels last scheduling thread
             self.event_on.cancel()
             self.event_off.cancel()
-            # Updates colors
-            self.light.change_color(self.micro_sim.traffic_lights_binary())
-            # Begins new scheduling thread
+
             self.event_on()
             self.event_off()
-            self.seven_segment_display.activate_segments(self.micro_sim.seven_segment_binary())
             sleep(1)
             self.condition.release()
 
@@ -198,12 +194,12 @@ class RunWindow(FloatLayout):
         self.reg_table = RegisterTable()
         self.mem_table = MemoryTable()
         self.inst_table = InstructionTable()
+        self.light = TrafficLights()
+        self.seven_segment_display = SevenSegmentDisplay()
+
         self.reg_table.get_data()
         self.mem_table.data_list.clear()
         self.mem_table.get_data()
-        self.light = TrafficLights()
-        self.seven_segment_display = SevenSegmentDisplay()
-        self.inst_table.data_list.clear()
         self.inst_table.get_data(
             self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
         self.header = True
@@ -213,10 +209,6 @@ class RunWindow(FloatLayout):
                                         # size_hint=(1, 0.17),
                                         pos_hint={'x': dp(-0.025), 'y': dp(0.35)})
 
-        self.light.change_color(self.micro_sim.traffic_lights_binary())
-        self.seven_segment_display.activate_segments(
-            self.micro_sim.seven_segment_binary())
-
         # Create variable of scheduling instance so that it can be turned on and off,
         # to avoid repeat of the same thread
         self.event_on = Clock.schedule_interval(
@@ -224,12 +216,14 @@ class RunWindow(FloatLayout):
         self.event_off = Clock.schedule_interval(
             self.light.intermittent_on, 0.3)
 
+        # Creates a clock thread that updates all tables and i/o's every 0.2 seconds. Does not get cancelled.
+        self.event_io = Clock.schedule_interval(self.update_io, 0.2)
+
         # Since the instancing of the events actually starts the scheduling, needs to be canceled right away
         self.event_on.cancel()
         self.event_off.cancel()
 
         self.hex_keyboard_layout = HexKeyboard(mem_table=self.mem_table, light=self.light,
-                                               seven_segment_display=self.seven_segment_display,
                                                micro_sim=self.micro_sim, event_on=self.event_on,
                                                event_off=self.event_off)
         self.add_widget(self.save_button)
@@ -317,8 +311,14 @@ class RunWindow(FloatLayout):
                                                  self.micro_sim.disassembled_instruction())
                         self.first_inst = False
                     else:
-
                         self.micro_sim.prev_index = -1
+                        self.event_on.cancel()
+                        self.event_off.cancel()
+                        self.reg_table.get_data()
+                        self.mem_table.data_list.clear()
+                        self.mem_table.get_data()
+                        self.event_on()
+                        self.event_off()
 
                         while self.micro_sim.is_running:
                             self.micro_sim.run_micro_instructions()
@@ -330,25 +330,16 @@ class RunWindow(FloatLayout):
                             else:
                                 self.micro_sim.prev_index = self.micro_sim.index
 
-                # Cancels last scheduling thread
-                self.event_on.cancel()
-                self.event_off.cancel()
-                # Updates colors
-                self.light.change_color(self.micro_sim.traffic_lights_binary())
-                # Begins new scheduling thread
-                self.event_on()
-                self.event_off()
-                self.seven_segment_display.activate_segments(
-                    self.micro_sim.seven_segment_binary())
-                self.reg_table.get_data()
-                self.mem_table.data_list.clear()
-                self.mem_table.get_data()
-                self.update_ascii_grid()
-
                 toast('File executed successfully')
                 for i in self.micro_sim.micro_instructions:
                     if i != 'NOP':
                         print(i)
+
+    def update_io(self, dt):
+        self.light.change_color(self.micro_sim.traffic_lights_binary())
+        self.seven_segment_display.activate_segments(
+            self.micro_sim.seven_segment_binary())
+        self.update_ascii_grid()
 
     def clear(self, instance):
         self.header = False
@@ -370,7 +361,8 @@ class RunWindow(FloatLayout):
 
         self.light.change_color(self.micro_sim.traffic_lights_binary())
         self.update_ascii_grid()
-        self.seven_segment_display.activate_segments(self.micro_sim.seven_segment_binary())
+        self.seven_segment_display.activate_segments(
+            self.micro_sim.seven_segment_binary())
         toast('Micro memory cleared! Load new data')
 
     def run_micro_instructions_step(self, instance):
@@ -385,42 +377,39 @@ class RunWindow(FloatLayout):
                     self.inst_table.get_data(self.micro_sim.index, self.header,
                                              self.micro_sim.disassembled_instruction())
                     self.first_inst = False
-                    self.update_ascii_grid()
-                else:
 
-                    self.micro_sim.run_micro_instructions_step(self.step_index)
+                else:
                     self.reg_table.get_data()
                     self.mem_table.data_list.clear()
                     self.mem_table.get_data()
+                    self.micro_sim.run_micro_instructions_step(self.step_index)
+
                     self.inst_table.get_data(self.micro_sim.index, self.header,
                                              self.micro_sim.disassembled_instruction())
-                    # Cancels last scheduling thread
-                    self.event_on.cancel()
-                    self.event_off.cancel()
-                    # Updates colors
-                    self.light.change_color(
-                        self.micro_sim.traffic_lights_binary())
-                    # Begins new scheduling thread
-                    self.event_on()
-                    self.event_off()
-                    self.update_ascii_grid()
-                    self.seven_segment_display.activate_segments(self.micro_sim.seven_segment_binary())
 
-                toast('Runnin instruction in step-by-step mode. Step ' + str(self.step_index) + ' is running')
+                toast('Runnin instruction in step-by-step mode. Step ' +
+                      str(self.step_index) + ' is running')
                 for i in self.micro_sim.micro_instructions:
                     if i != 'NOP':
                         print(i)
 
     def update_ascii_grid(self):
-        self.ascii_label_1.text = '[color=000000]' + chr(int(RAM[ASCII_TABLE['port']], 16)) + '[/color]'
-        self.ascii_label_2.text = '[color=000000]' + chr(int(RAM[ASCII_TABLE['port'] + 1], 16)) + '[/color]'
-        self.ascii_label_3.text = '[color=000000]' + chr(int(RAM[ASCII_TABLE['port'] + 2], 16)) + '[/color]'
-        self.ascii_label_4.text = '[color=000000]' + chr(int(RAM[ASCII_TABLE['port'] + 3], 16)) + '[/color]'
-        self.ascii_label_5.text = '[color=000000]' + chr(int(RAM[ASCII_TABLE['port'] + 4], 16)) + '[/color]'
-        self.ascii_label_6.text = '[color=000000]' + chr(int(RAM[ASCII_TABLE['port'] + 5], 16)) + '[/color]'
-        self.ascii_label_7.text = '[color=000000]' + chr(int(RAM[ASCII_TABLE['port'] + 6], 16)) + '[/color]'
-        self.ascii_label_8.text = '[color=000000]' + chr(int(RAM[ASCII_TABLE['port'] + 7], 16)) + '[/color]'
-
+        self.ascii_label_1.text = '[color=000000]' + \
+            chr(int(RAM[ASCII_TABLE['port']], 16)) + '[/color]'
+        self.ascii_label_2.text = '[color=000000]' + \
+            chr(int(RAM[ASCII_TABLE['port'] + 1], 16)) + '[/color]'
+        self.ascii_label_3.text = '[color=000000]' + \
+            chr(int(RAM[ASCII_TABLE['port'] + 2], 16)) + '[/color]'
+        self.ascii_label_4.text = '[color=000000]' + \
+            chr(int(RAM[ASCII_TABLE['port'] + 3], 16)) + '[/color]'
+        self.ascii_label_5.text = '[color=000000]' + \
+            chr(int(RAM[ASCII_TABLE['port'] + 4], 16)) + '[/color]'
+        self.ascii_label_6.text = '[color=000000]' + \
+            chr(int(RAM[ASCII_TABLE['port'] + 5], 16)) + '[/color]'
+        self.ascii_label_7.text = '[color=000000]' + \
+            chr(int(RAM[ASCII_TABLE['port'] + 6], 16)) + '[/color]'
+        self.ascii_label_8.text = '[color=000000]' + \
+            chr(int(RAM[ASCII_TABLE['port'] + 7], 16)) + '[/color]'
 
 
 class MainWindow(BoxLayout):
@@ -452,7 +441,7 @@ class NavDrawer(MDNavigationDrawer):
         self.drawer_logo = 'images/logo.jpg'
         self.manager_open = False
         self.manager = None
-
+        self.light = TrafficLights()
 
         self.add_widget(NavigationDrawerSubheader(text='Menu:'))
         self.add_widget(NavigationDrawerIconButton(icon='paperclip',
@@ -480,7 +469,6 @@ class NavDrawer(MDNavigationDrawer):
                                events_callback=self.save_io_ports)
         dialog.open()
 
-
     def save_io_ports(self, *args):
         if args[0] == 'Save':
             title = args[1].title
@@ -492,26 +480,33 @@ class NavDrawer(MDNavigationDrawer):
                 else:
                     if is_valid_port(port):
                         if title == TRAFFIC_LIGHT['menu_title']:
-                            update_reserved_ports(TRAFFIC_LIGHT, TRAFFIC_LIGHT['port'], port)
-                            toast_message = 'Changed Traffic Light I/O port number to ' + str(port)
+                            update_reserved_ports(
+                                TRAFFIC_LIGHT, TRAFFIC_LIGHT['port'], port)
+                            toast_message = 'Changed Traffic Light I/O port number to ' + \
+                                str(port)
 
                         elif title == SEVEN_SEGMENT_DISPLAY['menu_title']:
-                            update_reserved_ports(SEVEN_SEGMENT_DISPLAY, SEVEN_SEGMENT_DISPLAY['port'], port)
-                            toast_message = 'Changed Seven Segment I/O port number to ' + str(port)
+                            update_reserved_ports(
+                                SEVEN_SEGMENT_DISPLAY, SEVEN_SEGMENT_DISPLAY['port'], port)
+                            toast_message = 'Changed Seven Segment I/O port number to ' + \
+                                str(port)
 
                         elif title == ASCII_TABLE['menu_title']:
                             if port > 4088:
                                 toast_message = 'Invalid port for ASCII Table. Valid ports [0-4088]'
                             else:
-                                update_reserved_ports(ASCII_TABLE, ASCII_TABLE['port'], port)
+                                update_reserved_ports(
+                                    ASCII_TABLE, ASCII_TABLE['port'], port)
                                 ASCII_TABLE['port'] = port
-                                toast_message = 'Changed ASCII Table I/O port number to ' + str(port)
-
+                                toast_message = 'Changed ASCII Table I/O port number to ' + \
+                                    str(port)
 
                         else:
-                            update_reserved_ports(HEX_KEYBOARD, HEX_KEYBOARD['port'], port)
+                            update_reserved_ports(
+                                HEX_KEYBOARD, HEX_KEYBOARD['port'], port)
                             HEX_KEYBOARD['port'] = port
-                            toast_message = 'Changed HEX Keyboard I/O port number to ' + str(port)
+                            toast_message = 'Changed HEX Keyboard I/O port number to ' + \
+                                str(port)
 
                         toast(toast_message)
                     else:
@@ -522,7 +517,8 @@ class NavDrawer(MDNavigationDrawer):
 
     def file_manager_open(self, instance):
         if not self.manager:
-            self.manager = ModalView(size_hint=(dp(1), dp(1)), auto_dismiss=False)
+            self.manager = ModalView(size_hint=(
+                dp(1), dp(1)), auto_dismiss=False)
             self.file_manager = MDFileManager(exit_manager=self.exit_manager,
                                               select_path=self.select_path,
                                               ext=['.asm', '.obj'])
@@ -595,7 +591,6 @@ class RegisterTable(RecycleView):
             i += 2
 
         self.data = _data
-
 
 
 class MemoryTable(RecycleView):
@@ -830,7 +825,6 @@ class SevenSegmentDisplay(Widget):
                         self.rightG = (.41, .41, .41)
                     else:
                         self.rightG = (1, 0, 0)
-
 
 
 class ASCIIGrid(Widget):
