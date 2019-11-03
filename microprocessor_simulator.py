@@ -247,11 +247,11 @@ class MicroSim:
                     self.index = address
                     REGISTER['pc'] = convert_to_hex(address, 12)
                 elif opcode == 'jcondrin':
-                    REGISTER['pc'] = REGISTER[ra.lower()] if REGISTER['cond'] else convert_to_hex(
+                    REGISTER['pc'] = REGISTER[ra.lower()] if int(REGISTER['cond']) else convert_to_hex(
                         int(REGISTER['pc'], 16) + 2,
                         12)
                 elif opcode == 'jcondaddr':
-                    REGISTER['pc'] = convert_to_hex(address, 3) if REGISTER['cond'] else convert_to_hex(
+                    REGISTER['pc'] = convert_to_hex(address, 3) if int(REGISTER['cond']) else convert_to_hex(
                         int(REGISTER['pc'], 16) + 2, 12)
                 elif opcode == 'call':
                     REGISTER['sp'] = convert_to_hex(
