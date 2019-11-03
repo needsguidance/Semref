@@ -444,6 +444,7 @@ class NavDrawer(MDNavigationDrawer):
         self.manager = None
         self.light = TrafficLights()
 
+
         self.add_widget(NavigationDrawerSubheader(text='Menu:'))
         self.add_widget(NavigationDrawerIconButton(icon='paperclip',
                                                    text='Load File',
@@ -469,6 +470,7 @@ class NavDrawer(MDNavigationDrawer):
                                text_button_cancel='Cancel',
                                events_callback=self.save_io_ports)
         dialog.open()
+
 
     def save_io_ports(self, *args):
         if args[0] == 'Save':
@@ -654,7 +656,7 @@ class TrafficLights(Widget):
     # Parameter dt is the scheduling time
     def intermittent_off(self, dt):
         # First traffic light
-        if self.binary[self.control_bit_1] == '1':
+        if self.binary[self.control_bit_1] == '1' and self.binary[self.control_bit_2] == '1':
             if self.binary[0] == '1':
                 self.red_2 = (0, 0, 0)
             if self.binary[1] == '1':
@@ -662,7 +664,6 @@ class TrafficLights(Widget):
             if self.binary[2] == '1':
                 self.green_2 = (0, 0, 0)
         # Second traffic ligth
-        if self.binary[self.control_bit_2] == '1':
             if self.binary[3] == '1':
                 self.red_1 = (0, 0, 0)
             if self.binary[4] == '1':
@@ -675,7 +676,7 @@ class TrafficLights(Widget):
     def intermittent_on(self, dt):
 
         # First traffic light
-        if self.binary[self.control_bit_1] == '1':
+        if self.binary[self.control_bit_1] == '1' and self.binary[self.control_bit_2] == '1':
             if self.binary[0] == '1':
                 self.red_2 = (1, 0, 0)
             if self.binary[1] == '1':
@@ -683,7 +684,6 @@ class TrafficLights(Widget):
             if self.binary[2] == '1':
                 self.green_2 = (0, 1, 0)
         # Second traffic ligth
-        if self.binary[self.control_bit_2] == '1':
             if self.binary[3] == '1':
                 self.red_1 = (1, 0, 0)
             if self.binary[4] == '1':
@@ -694,7 +694,6 @@ class TrafficLights(Widget):
     # Iterates through the binary at the Input location (RAM) to determine which are 1s and which are 0s
     # Then, changes colors accordingly.
     def change_color(self, binary):
-
         self.binary = binary
         for bit in range(len(binary)):
 
