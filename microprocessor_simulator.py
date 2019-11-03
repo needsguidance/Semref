@@ -154,7 +154,7 @@ class MicroSim:
                 elif opcode == 'storerind':
                     REGISTER[rb.lower()] = RAM[REGISTER[ra.lower()]]
                 elif opcode == 'grt':
-                    REGISTER['cond'] = int(REGISTER[ra.lower()] > REGISTER[rb.lower()])
+                    REGISTER['cond'] = str(int(REGISTER[ra.lower()] > REGISTER[rb.lower()]))
                 elif opcode == 'add':
                     REGISTER[ra.lower()] = convert_to_hex(int(REGISTER[rb.lower()], 16) + int(REGISTER[rc.lower()], 16),
                                                           8)
@@ -194,14 +194,14 @@ class MicroSim:
                 elif opcode == 'jmprind':
                     self.program_counter = int(REGISTER[ra.lower()], 16)
                 elif opcode == 'grteq':
-                    REGISTER['cond'] = int(int(REGISTER[ra.lower()], 16) >= int(
-                        REGISTER[rb.lower()], 16))
+                    REGISTER['cond'] = str(int(int(REGISTER[ra.lower()], 16) >= int(
+                        REGISTER[rb.lower()], 16)))
                 elif opcode == 'eq':
-                    REGISTER['cond'] = int(int(REGISTER[ra.lower()], 16) == int(
-                        REGISTER[rb.lower()], 16))
+                    REGISTER['cond'] = str(int(int(REGISTER[ra.lower()], 16) == int(
+                        REGISTER[rb.lower()], 16)))
                 elif opcode == 'neq':
-                    REGISTER['cond'] = int(int(REGISTER[ra.lower()], 16) != int(
-                        REGISTER[rb.lower()], 16))
+                    REGISTER['cond'] = str(int(int(REGISTER[ra.lower()], 16) != int(
+                        REGISTER[rb.lower()], 16)))
                 elif opcode == 'nop':
                     # Do nothing
                     pass
