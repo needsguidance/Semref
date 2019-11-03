@@ -24,7 +24,6 @@ class MicroSim:
         self.decoded_micro_instructions = []
         self.index = 0
         self.is_running = True
-        self.cond = False
         self.prev_index = -1
         self.counter = 0
 
@@ -122,7 +121,6 @@ class MicroSim:
         self.decoded_micro_instructions = []
         self.index = 0
         self.is_running = True
-        self.cond = False
         self.prev_index = -1
         self.counter = 0
         for m in range(4096):
@@ -133,6 +131,8 @@ class MicroSim:
                 REGISTER[k] = f'{0:03x}'
             elif k == 'ir':
                 REGISTER[k] = f'{0:04x}'
+            elif k == 'cond':
+                REGISTER[k] = f'{0:01x}'
             else:
                 REGISTER[k] = f'{0:02x}'
 
@@ -153,7 +153,7 @@ class MicroSim:
                 elif opcode == 'storerind':
                     REGISTER[rb.lower()] = RAM[REGISTER[ra.lower()]]
                 elif opcode == 'grt':
-                    self.cond = REGISTER[ra.lower()] > REGISTER[rb.lower()]
+                    REGISTER['cond'] = str(int(REGISTER[ra.lower()] > REGISTER[rb.lower()]))
                 elif opcode == 'add':
                     REGISTER[ra.lower()] = convert_to_hex(int(REGISTER[rb.lower()], 16) + int(REGISTER[rc.lower()], 16),
                                                           8)
@@ -168,7 +168,7 @@ class MicroSim:
                         REGISTER[rb.lower()] + REGISTER[rc.lower()], 8)
                 elif opcode == 'xor':
                     _xor = REGISTER[rb.lower()] + REGISTER[rc.lower()] - \
-                        2 * REGISTER[rb.lower()] * REGISTER[rc.lower()]
+                           2 * REGISTER[rb.lower()] * REGISTER[rc.lower()]
                     REGISTER[ra.lower()] = convert_to_hex(_xor, 8)
                 elif opcode == 'not':
                     REGISTER[ra.lower()] = convert_to_hex(
@@ -193,14 +193,14 @@ class MicroSim:
                 elif opcode == 'jmprind':
                     self.program_counter = int(REGISTER[ra.lower()], 16)
                 elif opcode == 'grteq':
-                    self.cond = int(REGISTER[ra.lower()], 16) >= int(
-                        REGISTER[rb.lower()], 16)
+                    REGISTER['cond'] = str(int(int(REGISTER[ra.lower()], 16) >= int(
+                        REGISTER[rb.lower()], 16)))
                 elif opcode == 'eq':
-                    self.cond = int(REGISTER[ra.lower()], 16) == int(
-                        REGISTER[rb.lower()], 16)
+                    REGISTER['cond'] = str(int(int(REGISTER[ra.lower()], 16) == int(
+                        REGISTER[rb.lower()], 16)))
                 elif opcode == 'neq':
-                    self.cond = int(REGISTER[ra.lower()], 16) != int(
-                        REGISTER[rb.lower()], 16)
+                    REGISTER['cond'] = str(int(int(REGISTER[ra.lower()], 16) != int(
+                        REGISTER[rb.lower()], 16)))
                 elif opcode == 'nop':
                     # Do nothing
                     pass
@@ -246,10 +246,11 @@ class MicroSim:
                     self.index = address
                     REGISTER['pc'] = convert_to_hex(address, 12)
                 elif opcode == 'jcondrin':
-                    REGISTER['pc'] = REGISTER[ra.lower()] if self.cond else convert_to_hex(int(REGISTER['pc'], 16) + 2,
-                                                                                           12)
+                    REGISTER['pc'] = REGISTER[ra.lower()] if int(REGISTER['cond']) else convert_to_hex(
+                        int(REGISTER['pc'], 16) + 2,
+                        12)
                 elif opcode == 'jcondaddr':
-                    REGISTER['pc'] = convert_to_hex(address, 3) if self.cond else convert_to_hex(
+                    REGISTER['pc'] = convert_to_hex(address, 3) if int(REGISTER['cond']) else convert_to_hex(
                         int(REGISTER['pc'], 16) + 2, 12)
                 elif opcode == 'call':
                     REGISTER['sp'] = convert_to_hex(
