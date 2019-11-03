@@ -126,7 +126,7 @@ class HexKeyboard(GridLayout):
         with self.lock:
             RAM[HEX_KEYBOARD['port']] = convert_to_hex(
                 int(f'{self.queue.get()}0001', 2), 8)
-            
+
             self.mem_table.data_list.clear()
             self.mem_table.get_data()
 
@@ -216,7 +216,7 @@ class RunWindow(FloatLayout):
         self.event_off = Clock.schedule_interval(
             self.light.intermittent_on, 0.3)
 
-        # Creates a clock thread that updates all tables and i/o's every 2 seconds. Does not get cancelled.
+        # Creates a clock thread that updates all tables and i/o's every 0.2 seconds. Does not get cancelled.
         self.event_io = Clock.schedule_interval(self.update_io, 0.2)
 
         # Since the instancing of the events actually starts the scheduling, needs to be canceled right away
@@ -320,7 +320,6 @@ class RunWindow(FloatLayout):
                         self.event_on()
                         self.event_off()
 
-
                         while self.micro_sim.is_running:
                             self.micro_sim.run_micro_instructions()
                             self.inst_table.get_data(self.micro_sim.index, self.header,
@@ -378,7 +377,7 @@ class RunWindow(FloatLayout):
                     self.inst_table.get_data(self.micro_sim.index, self.header,
                                              self.micro_sim.disassembled_instruction())
                     self.first_inst = False
-                    
+
                 else:
                     self.reg_table.get_data()
                     self.mem_table.data_list.clear()
@@ -444,7 +443,6 @@ class NavDrawer(MDNavigationDrawer):
         self.manager = None
         self.light = TrafficLights()
 
-
         self.add_widget(NavigationDrawerSubheader(text='Menu:'))
         self.add_widget(NavigationDrawerIconButton(icon='paperclip',
                                                    text='Load File',
@@ -470,7 +468,6 @@ class NavDrawer(MDNavigationDrawer):
                                text_button_cancel='Cancel',
                                events_callback=self.save_io_ports)
         dialog.open()
-
 
     def save_io_ports(self, *args):
         if args[0] == 'Save':
