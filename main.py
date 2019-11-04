@@ -28,16 +28,4 @@ def assembler():
             read_files = not read_files
             i = 0
 
-# TODO: Validate if micro_sim is necessary
-def micro_sim():
-    read_files = False
-    i = 0
-    while read_files:
-        file = input('Input obj file path: ')
-        sim = MicroSim()
-        sim.read_obj_file(file)
-
-
-# assembler()  # Test assembler
-# micro_sim()
 SemrefApp().run()  # Comment this code to test assembler/microprocessor simulator
