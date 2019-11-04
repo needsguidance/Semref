@@ -123,17 +123,17 @@ TRAFFIC_LIGHT = {
 
 SEVEN_SEGMENT_DISPLAY = {
     'menu_title': 'Configure 7 Segment Display Port',
-    'port': 0
+    'port': 1
 }
 
 ASCII_TABLE = {
     'menu_title': 'Configure ASCII Table Port',
-    'port': 0
+    'port': 3
 }
 
 HEX_KEYBOARD = {
     'menu_title': 'Configure Hex Keyboard Port',
-    'port': 0
+    'port': 2
 }
 
 RESERVED_PORTS = [
