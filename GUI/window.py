@@ -2,6 +2,10 @@ from pathlib import Path
 from queue import Queue
 from threading import Lock, Thread, Semaphore, Condition
 from time import sleep
+from assembler import Assembler, verify_ram_content, hexify_ram_content, clear_ram
+from assembler import RAM as RAM_assembler
+import ntpath
+import os
 
 from kivy.metrics import dp, sp
 
@@ -354,6 +358,7 @@ class RunWindow(FloatLayout):
             self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
         self.header = True
         self.first_inst = True
+        clear_ram()
 
         # Cancels last scheduling thread for clean event
         self.event_on.cancel()
@@ -437,11 +442,12 @@ class NavDrawer(MDNavigationDrawer):
 
     def __init__(self, **kwargs):
         self.micro_sim = kwargs.pop('micro_sim')
+        self.app = kwargs.pop('app')
         super().__init__(**kwargs)
         self.drawer_logo = 'images/logo.jpg'
         self.manager_open = False
         self.manager = None
-        self.light = TrafficLights()
+        self.run = RunWindow(app=self.app, micro_sim=self.micro_sim)
 
         self.add_widget(NavigationDrawerSubheader(text='Menu:'))
         self.add_widget(NavigationDrawerIconButton(icon='paperclip',
@@ -526,8 +532,37 @@ class NavDrawer(MDNavigationDrawer):
             # output manager to the screen
             self.file_manager.show(str(Path.home()))
         self.manager_open = True
+        self.run.clear(instance)
         self.manager.open()
 
+
+
+    def assembler(self, file):
+        i = 0
+        filename = os.path.splitext(ntpath.basename(file))[0] # Obtains last name on path string using ntpath and then strips file extension using os.path.splitext
+                                                              # Should work across different OS
+
+        try:
+            asm = Assembler(file)
+            asm.read_source()
+            asm.store_instructions_in_ram()
+            verify_ram_content()
+            hexify_ram_content()
+            output_file_location = 'output/' + filename + '.obj'
+
+            f = open(output_file_location, 'w')
+            for m in range(50):
+                f.write(f'{RAM_assembler[i]} {RAM_assembler[i + 1]}' + '\n')
+                i += 2
+            f.close()
+
+            self.run_micro_sim(output_file_location) # Runs simulator using generated .obj file
+            toast(f'Instructions at {file} assembled successfully')
+
+        except (AssertionError, FileNotFoundError, ValueError, MemoryError, KeyError, SyntaxError) as e:
+            print(e)
+            toast(f'{e}')
+        
     def select_path(self, path):
         """It will be called when you click on the file name
         or the catalog selection button.
@@ -537,8 +572,14 @@ class NavDrawer(MDNavigationDrawer):
 
         """
         self.exit_manager()
-        self.run_micro_sim(path)
-        toast(f'{path} loaded successfully')
+
+        if path.endswith('.obj'): # If file is an .obj file, runs simulator 
+            self.run_micro_sim(path)
+            toast(f'{path} loaded successfully')
+
+        else:                     # If file is an .asm file, runs assembler, then simulator
+            self.assembler(path)
+        
 
     def exit_manager(self, *args):
         """Called when the user reaches the root of the directory tree."""
@@ -556,7 +597,7 @@ class NavDrawer(MDNavigationDrawer):
 
     def run_micro_sim(self, file):
         self.micro_sim.read_obj_file(file)
-
+        
 
 class RegisterTable(RecycleView):
     data_list = ListProperty([])
@@ -839,7 +880,7 @@ class GUI(NavigationLayout):
         super().__init__(**kwargs)
         self.app = App.get_running_app()
         self.micro_sim = MicroSim()
-        self.add_widget(NavDrawer(micro_sim=self.micro_sim))
+        self.add_widget(NavDrawer(micro_sim=self.micro_sim, app=self.app))
         self.add_widget(MainWindow(nav_drawer=self,
                                    app=self.app, micro_sim=self.micro_sim))
 
