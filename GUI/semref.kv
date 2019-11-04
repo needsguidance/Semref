@@ -2,57 +2,12 @@
     id: data_list
     pos_hint:{'x': dp(0), 'center_y': dp(1.5)}
     RecycleGridLayout:
-        canvas.before:
-            Color:
-                rgba: .50, .50, .50, 1
-            Line:
-                width: 2.
-                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height)) 
-
-            Line:
-                width: 2.
-                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 30 ))
-            Line:
-                width: 2.
-                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 60 ))
-            Line:
-                width: 2.
-                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 90 ))
-            Line:
-                width: 2.
-                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 120))
-            Line:
-                width: 2.
-                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 150 ))
-            Line:
-                width: 2.
-                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 180 ))
-            Line:
-                width: 2.
-                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 210))
-            Line:
-                width: 2.
-                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 240 ))
-            Line:
-                width: 2.
-                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 270 ))
-            Line:
-                width: 2.
-                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 300 ))
-            Line:
-                width: 2.
-                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 330 ))
-            Line:
-                width: 2.
-                rectangle: (dp(self.x), dp(self.y), dp(self.width/2), dp(self.height))
-
         cols: 2
         default_size: None, dp(30)
         default_size_hint: dp(1), None
         size_hint_y: None
         size_hint_x: dp(0.2)
         height: dp(self.minimum_height)
-        orientation: 'vertical'
 
 <InstructionTable>:
     id: data_list
@@ -64,85 +19,12 @@
         size_hint_y: None
         size_hint_x: dp(0.5)
         height: dp(self.minimum_height)
-        orientation: 'vertical'
 
 
 <MemoryTable>:
     id: data_list
     pos_hint:{'x': dp(0.75), 'center_y': dp(1.5)}
     RecycleGridLayout:
-        canvas:
-            Color:
-                rgba: .50, .50, .50, 1
-            Line:
-                width: 2.
-                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height)) 
-            Line:
-                width: 2.
-                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 30 ))
-            Line:
-                width: 2.
-                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 60 ))
-            Line:
-                width: 2.
-                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 90 ))
-            Line:
-                width: 2.
-                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 120))
-            Line:
-                width: 2.
-                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 150 ))
-            Line:
-                width: 2.
-                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 180 ))
-            Line:
-                width: 2.
-                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 210))
-            Line:
-                width: 2.
-                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 240 ))
-            Line:
-                width: 2.
-                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 270 ))
-            Line:
-                width: 2.
-                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 300 ))
-            Line:
-                width: 2.
-                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 330 ))
-            Line:
-                width: 2.
-                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 360 ))
-            Line:
-                width: 2.
-                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 390 ))
-            Line:
-                width: 2.
-                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 420))
-            Line:
-                width: 2.
-                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 450 ))
-            Line:
-                width: 2.
-                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 480 ))
-            Line:
-                width: 2.
-                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 510))
-            Line:
-                width: 2.
-                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 540 ))
-            Line:
-                width: 2.
-                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 570 ))
-            Line:
-                width: 2.
-                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 600 ))
-            Line:
-                width: 2.
-                rectangle: (dp(self.x), dp(self.y), dp(self.width), dp(self.height - 630 ))
-            Line:
-                width: 2.
-                rectangle: (dp(self.x), dp(self.y), dp(self.width/2), dp(self.height))
         cols: 2
         default_size: None, dp(30)
         default_size_hint: sp(1), None

@@ -40,8 +40,6 @@ class HexKeyboard(GridLayout):
 
     def __init__(self, **kwargs):
         self.mem_table = kwargs.pop('mem_table')
-        self.light = kwargs.pop('light')
-        self.micro_sim = kwargs.pop('micro_sim')
         self.event_on = kwargs.pop('event_on')
         self.event_off = kwargs.pop('event_off')
 
@@ -66,43 +64,25 @@ class HexKeyboard(GridLayout):
             Rectangle(pos=(dp(307), dp(76)), size=(dp(353), dp(143)))
 
             Color(.50, .50, .50, 1)
-            Line(rectangle=(dp(307), dp(183), dp(87), dp(35)), width=dp(dp(0.8)))
-
-            Line(rectangle=(dp(396), dp(183), dp(87), dp(35)), width=dp(dp(0.8)))
-
-            Line(rectangle=(dp(485), dp(183), dp(87), dp(35)), width=dp(0.8))
-
-            Line(rectangle=(dp(574), dp(183), dp(87), dp(35)), width=dp(0.8))
-
-            Line(rectangle=(dp(307), dp(148), dp(87), dp(35)), width=dp(0.8))
-
-            Line(rectangle=(dp(396), dp(148), dp(87), dp(35)), width=dp(0.8))
-
-            Line(rectangle=(dp(485), dp(148), dp(87), dp(35)), width=dp(0.8))
-
-            Line(rectangle=(dp(574), dp(148), dp(87), dp(35)), width=dp(0.8))
-
-            Line(rectangle=(dp(307), dp(113), dp(87), dp(35)), width=dp(0.8))
-
-            Line(rectangle=(dp(396), dp(113), dp(87), dp(35)), width=dp(0.8))
-
-            Line(rectangle=(dp(485), dp(113), dp(87), dp(35)), width=dp(0.8))
-
-            Line(rectangle=(dp(574), dp(113), dp(87), dp(35)), width=dp(0.8))
-
-            Line(rectangle=(dp(307), dp(78), dp(87), dp(35)), width=dp(0.8))
-
-            Line(rectangle=(dp(396), dp(78), dp(87), dp(35)), width=dp(0.8))
-
-            Line(rectangle=(dp(485), dp(78), dp(87), dp(35)), width=dp(0.8))
-
-            Line(rectangle=(dp(574), dp(78), dp(87), dp(35)), width=dp(0.8))
+            for i in range(16):
+                if i < 4:
+                    Line(rectangle=(dp(307 + (89 * (i % 4))),
+                                    dp(183), dp(87), dp(35)), width=dp(0.8))
+                elif i >= 4 and i < 8:
+                    Line(rectangle=(dp(307 + (89 * (i % 4))),
+                                    dp(148), dp(87), dp(35)), width=dp(0.8))
+                elif i >= 8 and i < 12:
+                    Line(rectangle=(dp(307 + (89 * (i % 4))),
+                                    dp(113), dp(87), dp(35)), width=dp(0.8))
+                else:
+                    Line(rectangle=(dp(307 + (89 * (i % 4))),
+                                    dp(78), dp(87), dp(35)), width=dp(0.8))
 
         for i in range(16):
             if i > 9:
                 i = str(chr(i + 55))
-            self.add_widget(MDFlatButton(text=f'{i}',
-                                         on_release=self.hex_key_press))
+            self.add_widget(MDFlatButton(
+                text=f'{i}', on_release=self.hex_key_press))
 
     def hex_key_press(self, instance):
         """
@@ -156,43 +136,67 @@ class RunWindow(FloatLayout):
                                                     icon='run',
                                                     size_hint=(None, None),
                                                     pos_hint={
-                                                        'center_x': dp(.7), 'center_y': dp(2.12)},
+                                                        'center_x': dp(.7),
+                                                        'center_y': dp(2.12)
+                                                    },
                                                     on_release=self.run_micro_instructions)
         self.debug_button = MDFillRoundFlatIconButton(text='Debug',
                                                       icon='android-debug-bridge',
                                                       size_hint=(None, None),
                                                       pos_hint={
-                                                          'center_x': dp(.9), 'center_y': dp(2.12)},
+                                                          'center_x': dp(.9),
+                                                          'center_y': dp(2.12)
+                                                      },
                                                       on_release=self.run_micro_instructions_step)
         self.refresh_button = MDFillRoundFlatIconButton(text='Clear',
                                                         icon='refresh',
                                                         size_hint=(None, None),
                                                         pos_hint={
-                                                            'center_x': dp(.5), 'center_y': dp(2.12)},
+                                                            'center_x': dp(.5),
+                                                            'center_y': dp(2.12)
+                                                        },
                                                         on_release=self.clear)
         self.save_button = MDFillRoundFlatIconButton(text='Save File',
                                                      icon='download',
                                                      size_hint=(None, None),
                                                      pos_hint={
-                                                         'center_x': dp(.35), 'center_y': dp(2.12)},
+                                                         'center_x': dp(.35),
+                                                         'center_y': dp(2.12)
+                                                     },
                                                      on_release=self.open_save_dialog)
 
-        self.ascii_label_1 = Label(text='[color=000000]' + chr(int(RAM[4088], 16)) + '[/color]', pos=(dp(-187), dp(-105)),
-                                   font_size=sp(40), markup=True)
-        self.ascii_label_2 = Label(text='[color=000000]' + chr(int(RAM[4089], 16)) + '[/color]', pos=(dp(-146), dp(-105)),
-                                   font_size=sp(40), markup=True)
-        self.ascii_label_3 = Label(text='[color=000000]' + chr(int(RAM[4090], 16)) + '[/color]', pos=(dp(-100), dp(-105)),
-                                   font_size=sp(40), markup=True)
-        self.ascii_label_4 = Label(text='[color=000000]' + chr(int(RAM[4091], 16)) + '[/color]', pos=(dp(-54), dp(-105)),
-                                   font_size=sp(40), markup=True)
-        self.ascii_label_5 = Label(text='[color=000000]' + chr(int(RAM[4092], 16)) + '[/color]', pos=(dp(-8), dp(-105)),
-                                   font_size=sp(40), markup=True)
-        self.ascii_label_6 = Label(text='[color=000000]' + chr(int(RAM[4093], 16)) + '[/color]', pos=(dp(38), dp(-105)),
-                                   font_size=sp(40), markup=True)
-        self.ascii_label_7 = Label(text='[color=000000]' + chr(int(RAM[4094], 16)) + '[/color]', pos=(dp(84), dp(-105)),
-                                   font_size=sp(40), markup=True)
-        self.ascii_label_8 = Label(text='[color=000000]' + chr(int(RAM[4095], 16)) + '[/color]', pos=(dp(130), dp(-105)),
-                                   font_size=sp(40), markup=True)
+        self.ascii_label_1 = Label(text='[color=000000]' + chr(int(RAM[4088], 16)) + '[/color]',
+                                   pos=(dp(-187), dp(-105)),
+                                   font_size=sp(40),
+                                   markup=True)
+        self.ascii_label_2 = Label(text='[color=000000]' + chr(int(RAM[4089], 16)) + '[/color]',
+                                   pos=(dp(-146), dp(-105)),
+                                   font_size=sp(40),
+                                   markup=True)
+        self.ascii_label_3 = Label(text='[color=000000]' + chr(int(RAM[4090], 16)) + '[/color]',
+                                   pos=(dp(-100), dp(-105)),
+                                   font_size=sp(40),
+                                   markup=True)
+        self.ascii_label_4 = Label(text='[color=000000]' + chr(int(RAM[4091], 16)) + '[/color]',
+                                   pos=(dp(-54), dp(-105)),
+                                   font_size=sp(40),
+                                   markup=True)
+        self.ascii_label_5 = Label(text='[color=000000]' + chr(int(RAM[4092], 16)) + '[/color]',
+                                   pos=(dp(-8), dp(-105)),
+                                   font_size=sp(40),
+                                   markup=True)
+        self.ascii_label_6 = Label(text='[color=000000]' + chr(int(RAM[4093], 16)) + '[/color]',
+                                   pos=(dp(38), dp(-105)),
+                                   font_size=sp(40),
+                                   markup=True)
+        self.ascii_label_7 = Label(text='[color=000000]' + chr(int(RAM[4094], 16)) + '[/color]',
+                                   pos=(dp(84), dp(-105)),
+                                   font_size=sp(40),
+                                   markup=True)
+        self.ascii_label_8 = Label(text='[color=000000]' + chr(int(RAM[4095], 16)) + '[/color]',
+                                   pos=(dp(130), dp(-105)),
+                                   font_size=sp(40),
+                                   markup=True)
 
         self.ascii = ASCIIGrid()
         self.reg_table = RegisterTable()
@@ -204,21 +208,24 @@ class RunWindow(FloatLayout):
         self.reg_table.get_data()
         self.mem_table.data_list.clear()
         self.mem_table.get_data()
-        self.inst_table.get_data(
-            self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
+        self.inst_table.get_data(self.micro_sim.index,
+                                 self.header,
+                                 self.micro_sim.disassembled_instruction())
         self.header = True
         self.hex_keyboard_label = Label(text='HEX KEYBOARD',
                                         font_size=sp(20),
                                         color=(0, 0, 0, 1),
-                                        # size_hint=(1, 0.17),
-                                        pos_hint={'x': dp(-0.025), 'y': dp(0.35)})
+                                        pos_hint={
+                                            'x': dp(-0.025),
+                                            'y': dp(0.35)
+                                        })
 
         # Create variable of scheduling instance so that it can be turned on and off,
         # to avoid repeat of the same thread
-        self.event_on = Clock.schedule_interval(
-            self.light.intermittent_off, 0.5)
-        self.event_off = Clock.schedule_interval(
-            self.light.intermittent_on, 0.3)
+        self.event_on = Clock.schedule_interval(self.light.intermittent_off,
+                                                0.5)
+        self.event_off = Clock.schedule_interval(self.light.intermittent_on,
+                                                 0.3)
 
         # Creates a clock thread that updates all tables and i/o's every 0.2 seconds. Does not get cancelled.
         self.event_io = Clock.schedule_interval(self.update_io, 0.2)
@@ -227,8 +234,8 @@ class RunWindow(FloatLayout):
         self.event_on.cancel()
         self.event_off.cancel()
 
-        self.hex_keyboard_layout = HexKeyboard(mem_table=self.mem_table, light=self.light,
-                                               micro_sim=self.micro_sim, event_on=self.event_on,
+        self.hex_keyboard_layout = HexKeyboard(mem_table=self.mem_table,
+                                               event_on=self.event_on,
                                                event_off=self.event_off)
         self.add_widget(self.save_button)
         self.add_widget(self.run_button)
@@ -326,7 +333,8 @@ class RunWindow(FloatLayout):
 
                         while self.micro_sim.is_running:
                             self.micro_sim.run_micro_instructions()
-                            self.inst_table.get_data(self.micro_sim.index, self.header,
+                            self.inst_table.get_data(self.micro_sim.index,
+                                                     self.header,
                                                      self.micro_sim.disassembled_instruction())
 
                             if self.micro_sim.prev_index == self.micro_sim.index:
@@ -354,8 +362,9 @@ class RunWindow(FloatLayout):
         self.mem_table.data_list.clear()
         self.mem_table.get_data()
         self.inst_table.data_list.clear()
-        self.inst_table.get_data(
-            self.micro_sim.index, self.header, self.micro_sim.disassembled_instruction())
+        self.inst_table.get_data(self.micro_sim.index,
+                                 self.header,
+                                 self.micro_sim.disassembled_instruction())
         self.header = True
         self.first_inst = True
         clear_ram()
@@ -389,32 +398,35 @@ class RunWindow(FloatLayout):
                     self.mem_table.get_data()
                     self.micro_sim.run_micro_instructions_step(self.step_index)
 
-                    self.inst_table.get_data(self.micro_sim.index, self.header,
+                    self.inst_table.get_data(self.micro_sim.index,
+                                             self.header,
                                              self.micro_sim.disassembled_instruction())
 
-                toast('Runnin instruction in step-by-step mode. Step ' +
-                      str(self.step_index) + ' is running')
+                toast(
+                    f'Runnin instruction in step-by-step mode. Step {self.step_index} is running')
                 for i in self.micro_sim.micro_instructions:
                     if i != 'NOP':
                         print(i)
 
     def update_ascii_grid(self):
-        self.ascii_label_1.text = '[color=000000]' + \
-            chr(int(RAM[ASCII_TABLE['port']], 16)) + '[/color]'
-        self.ascii_label_2.text = '[color=000000]' + \
-            chr(int(RAM[ASCII_TABLE['port'] + 1], 16)) + '[/color]'
-        self.ascii_label_3.text = '[color=000000]' + \
-            chr(int(RAM[ASCII_TABLE['port'] + 2], 16)) + '[/color]'
-        self.ascii_label_4.text = '[color=000000]' + \
-            chr(int(RAM[ASCII_TABLE['port'] + 3], 16)) + '[/color]'
-        self.ascii_label_5.text = '[color=000000]' + \
-            chr(int(RAM[ASCII_TABLE['port'] + 4], 16)) + '[/color]'
-        self.ascii_label_6.text = '[color=000000]' + \
-            chr(int(RAM[ASCII_TABLE['port'] + 5], 16)) + '[/color]'
-        self.ascii_label_7.text = '[color=000000]' + \
-            chr(int(RAM[ASCII_TABLE['port'] + 6], 16)) + '[/color]'
-        self.ascii_label_8.text = '[color=000000]' + \
-            chr(int(RAM[ASCII_TABLE['port'] + 7], 16)) + '[/color]'
+        labels = [
+            f'[color=000000]{chr(int(RAM[ASCII_TABLE["port"]], 16))}[/color]',
+            f'[color=000000]{chr(int(RAM[ASCII_TABLE["port"] + 1], 16))}[/color]',
+            f'[color=000000]{chr(int(RAM[ASCII_TABLE["port"] + 2], 16))}[/color]',
+            f'[color=000000]{chr(int(RAM[ASCII_TABLE["port"] + 3], 16))}[/color]',
+            f'[color=000000]{chr(int(RAM[ASCII_TABLE["port"] + 4], 16))}[/color]',
+            f'[color=000000]{chr(int(RAM[ASCII_TABLE["port"] + 5], 16))}[/color]',
+            f'[color=000000]{chr(int(RAM[ASCII_TABLE["port"] + 6], 16))}[/color]',
+            f'[color=000000]{chr(int(RAM[ASCII_TABLE["port"] + 7], 16))}[/color]'
+        ]
+        self.ascii_label_1.text = labels[0]
+        self.ascii_label_2.text = labels[1]
+        self.ascii_label_3.text = labels[2]
+        self.ascii_label_4.text = labels[3]
+        self.ascii_label_5.text = labels[4]
+        self.ascii_label_6.text = labels[5]
+        self.ascii_label_7.text = labels[6]
+        self.ascii_label_8.text = labels[7]
 
 
 class MainWindow(BoxLayout):
@@ -486,33 +498,31 @@ class NavDrawer(MDNavigationDrawer):
                 else:
                     if is_valid_port(port):
                         if title == TRAFFIC_LIGHT['menu_title']:
-                            update_reserved_ports(
-                                TRAFFIC_LIGHT, TRAFFIC_LIGHT['port'], port)
-                            toast_message = 'Changed Traffic Light I/O port number to ' + \
-                                str(port)
+                            update_reserved_ports(TRAFFIC_LIGHT,
+                                                  TRAFFIC_LIGHT['port'],
+                                                  port)
+                            toast_message = f'Changed Traffic Light I/O port number to {port}'
 
                         elif title == SEVEN_SEGMENT_DISPLAY['menu_title']:
-                            update_reserved_ports(
-                                SEVEN_SEGMENT_DISPLAY, SEVEN_SEGMENT_DISPLAY['port'], port)
-                            toast_message = 'Changed Seven Segment I/O port number to ' + \
-                                str(port)
+                            update_reserved_ports(SEVEN_SEGMENT_DISPLAY,
+                                                  SEVEN_SEGMENT_DISPLAY['port'],
+                                                  port)
+                            toast_message = f'Changed Seven Segment I/O port number to {port}'
 
                         elif title == ASCII_TABLE['menu_title']:
                             if port > 4088:
                                 toast_message = 'Invalid port for ASCII Table. Valid ports [0-4088]'
                             else:
-                                update_reserved_ports(
-                                    ASCII_TABLE, ASCII_TABLE['port'], port)
-                                ASCII_TABLE['port'] = port
-                                toast_message = 'Changed ASCII Table I/O port number to ' + \
-                                    str(port)
+                                update_reserved_ports(ASCII_TABLE,
+                                                      ASCII_TABLE['port'],
+                                                      port)
+                                toast_message = f'Changed ASCII Table I/O port number to {port}'
 
                         else:
-                            update_reserved_ports(
-                                HEX_KEYBOARD, HEX_KEYBOARD['port'], port)
-                            HEX_KEYBOARD['port'] = port
-                            toast_message = 'Changed HEX Keyboard I/O port number to ' + \
-                                str(port)
+                            update_reserved_ports(HEX_KEYBOARD,
+                                                  HEX_KEYBOARD['port'],
+                                                  port)
+                            toast_message = f'Changed HEX Keyboard I/O port number to {port}'
 
                         toast(toast_message)
                     else:
@@ -523,8 +533,8 @@ class NavDrawer(MDNavigationDrawer):
 
     def file_manager_open(self, instance):
         if not self.manager:
-            self.manager = ModalView(size_hint=(
-                dp(1), dp(1)), auto_dismiss=False)
+            self.manager = ModalView(size_hint=(dp(1), dp(1)),
+                                     auto_dismiss=False)
             self.file_manager = MDFileManager(exit_manager=self.exit_manager,
                                               select_path=self.select_path,
                                               ext=['.asm', '.obj'])
@@ -605,6 +615,11 @@ class RegisterTable(RecycleView):
     def __init__(self, **kwargs):
         super(RegisterTable, self).__init__(**kwargs)
         self.viewclass = 'Label'
+        with self.children[0].canvas.before:
+            Color(.50, .50, .50, 1)
+            for i in range(13):
+                Line(width=2, rectangle=(dp(0), dp(0), dp(200), dp(390 - (30 * i))))
+            Line(width=2, rectangle=(dp(0), dp(0), dp(100), dp(390)))
 
     def get_data(self):
         _data_list = self.data_list.copy()
@@ -640,6 +655,12 @@ class MemoryTable(RecycleView):
     def __init__(self, **kwargs):
         super(MemoryTable, self).__init__(**kwargs)
         self.viewclass = 'Label'
+        with self.children[0].canvas.before:
+            Color(.50, .50, .50, 1)
+            for i in range(51):
+                Line(width=2, rectangle=(
+                    dp(0), dp(0), dp(255), dp(1530 - (30 * i))))
+            Line(width=2, rectangle=(dp(0), dp(0), dp(127.5), dp(1530)))
 
     def get_data(self):
         self.data_list.append('MEMORY BYTE')
@@ -869,9 +890,7 @@ class SevenSegmentDisplay(Widget):
 
 
 class ASCIIGrid(Widget):
-
-    def __init__(self, **kwargs):
-        super(ASCIIGrid, self).__init__(**kwargs)
+    pass
 
 
 class GUI(NavigationLayout):
