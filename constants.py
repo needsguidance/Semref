@@ -137,7 +137,17 @@ HEX_KEYBOARD = {
 }
 
 RESERVED_PORTS = [
-
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
 ]
 
 
@@ -152,16 +162,28 @@ def is_valid_port(port):
     return port not in RESERVED_PORTS
 
 
-def update_reserved_ports(device, port_to_remove, port_to_add):
+def update_reserved_ports(device, port_to_remove, port_to_add, reserve_block=False):
     """
     Update RESERVED_PORTS List.
     
+    :param reserve_block: bool
     :param device: dict
     :param port_to_remove: int
     :param port_to_add: int
     """
-    if port_to_remove in RESERVED_PORTS:
-        RESERVED_PORTS.remove(port_to_remove)
+    if not reserve_block:
+        if port_to_remove in RESERVED_PORTS:
+            RESERVED_PORTS.remove(port_to_remove)
 
-    RESERVED_PORTS.append(port_to_add)
+        RESERVED_PORTS.append(port_to_add)
+    else:
+        for i in range(8):
+            if port_to_add + i in RESERVED_PORTS:
+                raise MemoryError('Illegal port')
+        for i in range(8):
+            if port_to_remove + i in RESERVED_PORTS:
+                RESERVED_PORTS.remove(port_to_remove + i)
+
+            RESERVED_PORTS.append(port_to_add + i)
+
     device['port'] = port_to_add
