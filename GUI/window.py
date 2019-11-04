@@ -325,9 +325,7 @@ class RunWindow(FloatLayout):
                         self.micro_sim.prev_index = -1
                         self.event_on.cancel()
                         self.event_off.cancel()
-                        self.reg_table.get_data()
-                        self.mem_table.data_list.clear()
-                        self.mem_table.get_data()
+
                         self.event_on()
                         self.event_off()
 
@@ -341,7 +339,9 @@ class RunWindow(FloatLayout):
                                 self.micro_sim.is_running = False
                             else:
                                 self.micro_sim.prev_index = self.micro_sim.index
-
+                self.reg_table.get_data()
+                self.mem_table.data_list.clear()
+                self.mem_table.get_data()
                 toast('File executed successfully')
                 for i in self.micro_sim.micro_instructions:
                     if i != 'NOP':
@@ -393,9 +393,7 @@ class RunWindow(FloatLayout):
                     self.first_inst = False
 
                 else:
-                    self.reg_table.get_data()
-                    self.mem_table.data_list.clear()
-                    self.mem_table.get_data()
+
                     self.micro_sim.run_micro_instructions_step(self.step_index)
 
                     self.inst_table.get_data(self.micro_sim.index,
@@ -404,6 +402,9 @@ class RunWindow(FloatLayout):
 
                 toast(
                     f'Runnin instruction in step-by-step mode. Step {self.step_index} is running')
+                self.reg_table.get_data()
+                self.mem_table.data_list.clear()
+                self.mem_table.get_data()
                 for i in self.micro_sim.micro_instructions:
                     if i != 'NOP':
                         print(i)
@@ -459,7 +460,6 @@ class NavDrawer(MDNavigationDrawer):
         self.drawer_logo = 'images/logo.jpg'
         self.manager_open = False
         self.manager = None
-        self.run = RunWindow(app=self.app, micro_sim=self.micro_sim)
 
         self.add_widget(NavigationDrawerSubheader(text='Menu:'))
         self.add_widget(NavigationDrawerIconButton(icon='paperclip',
@@ -542,7 +542,6 @@ class NavDrawer(MDNavigationDrawer):
             # output manager to the screen
             self.file_manager.show(str(Path.home()))
         self.manager_open = True
-        self.run.clear(instance)
         self.manager.open()
 
 
