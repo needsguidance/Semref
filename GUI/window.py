@@ -513,10 +513,13 @@ class NavDrawer(MDNavigationDrawer):
                             if port > 4088:
                                 toast_message = 'Invalid port for ASCII Table. Valid ports [0-4088]'
                             else:
-                                update_reserved_ports(ASCII_TABLE,
-                                                      ASCII_TABLE['port'],
-                                                      port)
-                                toast_message = f'Changed ASCII Table I/O port number to {port}'
+                                try:
+                                    update_reserved_ports(ASCII_TABLE,
+                                                          ASCII_TABLE['port'],
+                                                          port, True)
+                                    toast_message = f'Changed ASCII Table I/O port number to {port}'
+                                except MemoryError as e:
+                                    toast_message = str(e)
 
                         else:
                             update_reserved_ports(HEX_KEYBOARD,
@@ -544,12 +547,11 @@ class NavDrawer(MDNavigationDrawer):
         self.manager_open = True
         self.manager.open()
 
-
-
     def assembler(self, file):
         i = 0
-        filename = os.path.splitext(ntpath.basename(file))[0] # Obtains last name on path string using ntpath and then strips file extension using os.path.splitext
-                                                              # Should work across different OS
+        filename = os.path.splitext(ntpath.basename(file))[
+            0]  # Obtains last name on path string using ntpath and then strips file extension using os.path.splitext
+        # Should work across different OS
 
         try:
             asm = Assembler(file)
@@ -565,13 +567,13 @@ class NavDrawer(MDNavigationDrawer):
                 i += 2
             f.close()
 
-            self.run_micro_sim(output_file_location) # Runs simulator using generated .obj file
+            self.run_micro_sim(output_file_location)  # Runs simulator using generated .obj file
             toast(f'Instructions at {file} assembled successfully')
 
         except (AssertionError, FileNotFoundError, ValueError, MemoryError, KeyError, SyntaxError) as e:
             print(e)
             toast(f'{e}')
-        
+
     def select_path(self, path):
         """It will be called when you click on the file name
         or the catalog selection button.
@@ -582,13 +584,12 @@ class NavDrawer(MDNavigationDrawer):
         """
         self.exit_manager()
 
-        if path.endswith('.obj'): # If file is an .obj file, runs simulator 
+        if path.endswith('.obj'):  # If file is an .obj file, runs simulator
             self.run_micro_sim(path)
             toast(f'{path} loaded successfully')
 
-        else:                     # If file is an .asm file, runs assembler, then simulator
+        else:  # If file is an .asm file, runs assembler, then simulator
             self.assembler(path)
-        
 
     def exit_manager(self, *args):
         """Called when the user reaches the root of the directory tree."""
@@ -606,7 +607,7 @@ class NavDrawer(MDNavigationDrawer):
 
     def run_micro_sim(self, file):
         self.micro_sim.read_obj_file(file)
-        
+
 
 class RegisterTable(RecycleView):
     data_list = ListProperty([])
@@ -721,7 +722,7 @@ class TrafficLights(Widget):
                 self.yellow_2 = (0, 0, 0)
             if self.binary[2] == '1':
                 self.green_2 = (0, 0, 0)
-        # Second traffic ligth
+            # Second traffic ligth
             if self.binary[3] == '1':
                 self.red_1 = (0, 0, 0)
             if self.binary[4] == '1':
@@ -741,7 +742,7 @@ class TrafficLights(Widget):
                 self.yellow_2 = (1, 1, 0)
             if self.binary[2] == '1':
                 self.green_2 = (0, 1, 0)
-        # Second traffic ligth
+            # Second traffic ligth
             if self.binary[3] == '1':
                 self.red_1 = (1, 0, 0)
             if self.binary[4] == '1':
