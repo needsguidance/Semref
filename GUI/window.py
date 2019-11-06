@@ -132,38 +132,6 @@ class RunWindow(FloatLayout):
         self.header = False
         self.first_inst = True
         super(RunWindow, self).__init__(**kwargs)
-        # self.run_button = MDFillRoundFlatIconButton(text='Run',
-        #                                             icon='run',
-        #                                             size_hint=(None, None),
-        #                                             pos_hint={
-        #                                                 'center_x': dp(.7),
-        #                                                 'center_y': dp(2.12)
-        #                                             },
-        #                                             on_release=self.run_micro_instructions)
-        # self.debug_button = MDFillRoundFlatIconButton(text='Debug',
-        #                                               icon='android-debug-bridge',
-        #                                               size_hint=(None, None),
-        #                                               pos_hint={
-        #                                                   'center_x': dp(.9),
-        #                                                   'center_y': dp(2.12)
-        #                                               },
-        #                                               on_release=self.run_micro_instructions_step)
-        # self.refresh_button = MDFillRoundFlatIconButton(text='Clear',
-        #                                                 icon='refresh',
-        #                                                 size_hint=(None, None),
-        #                                                 pos_hint={
-        #                                                     'center_x': dp(.5),
-        #                                                     'center_y': dp(2.12)
-        #                                                 },
-        #                                                 on_release=self.clear)
-        # self.save_button = MDFillRoundFlatIconButton(text='Save File',
-        #                                              icon='download',
-        #                                              size_hint=(None, None),
-        #                                              pos_hint={
-        #                                                  'center_x': dp(.35),
-        #                                                  'center_y': dp(2.12)
-        #                                              },
-        #                                              on_release=self.open_save_dialog)
 
         self.ascii_label_1 = Label(text='[color=000000]' + chr(int(RAM[4088], 16)) + '[/color]',
                                    pos=(dp(-187), dp(-105)),
@@ -237,10 +205,10 @@ class RunWindow(FloatLayout):
         self.hex_keyboard_layout = HexKeyboard(mem_table=self.mem_table,
                                                event_on=self.event_on,
                                                event_off=self.event_off)
-        self.add_widget(self.save_button)
-        self.add_widget(self.run_button)
-        self.add_widget(self.debug_button)
-        self.add_widget(self.refresh_button)
+        # self.add_widget(self.save_button)
+        # self.add_widget(self.run_button)
+        # self.add_widget(self.debug_button)
+        # self.add_widget(self.refresh_button)
         self.add_widget(self.reg_table)
         self.add_widget(self.inst_table)
         self.add_widget(self.mem_table)
@@ -257,20 +225,6 @@ class RunWindow(FloatLayout):
         self.add_widget(self.ascii_label_6)
         self.add_widget(self.ascii_label_7)
         self.add_widget(self.ascii_label_8)
-
-    def open_save_dialog(self, instance):
-        """It will be called when user click on the save file button.
-
-        :param instance: used as event handler for button click;
-
-        """
-        dialog = MDInputDialog(
-            title='Save file: Enter file name', hint_text='Enter file name', size_hint=(.3, .3),
-            text_button_ok='Save',
-            text_button_cancel='Cancel',
-            events_callback=self.save_file)
-        toast('Save Register and Memory Content')
-        dialog.open()
 
     def save_file(self, *args):
         """It is called when user clicks on 'Save' or 'Cancel' button of dialog.
@@ -304,110 +258,11 @@ class RunWindow(FloatLayout):
         else:
             toast('File save cancelled')
 
-    def run_micro_instructions(self, instance):
-        if not self.micro_sim.is_running:
-            toast('Infinite loop encountered. Program stopped')
-        else:
-            if not self.micro_sim.is_ram_loaded:
-                toast('Must load file first before running')
-            else:
-                for m in range(2):
-                    if self.first_inst:
-                        self.inst_table.data_list.clear()
-                        self.header = False
-                        self.inst_table.get_data(self.micro_sim.index, self.header,
-                                                 self.micro_sim.disassembled_instruction())
-                        self.header = True
-                        self.inst_table.get_data(self.micro_sim.index, self.header,
-                                                 self.micro_sim.disassembled_instruction())
-                        self.first_inst = False
-                    else:
-                        self.micro_sim.prev_index = -1
-                        self.event_on.cancel()
-                        self.event_off.cancel()
-
-                        self.event_on()
-                        self.event_off()
-
-                        while self.micro_sim.is_running:
-                            self.micro_sim.run_micro_instructions()
-                            self.inst_table.get_data(self.micro_sim.index,
-                                                     self.header,
-                                                     self.micro_sim.disassembled_instruction())
-
-                            if self.micro_sim.prev_index == self.micro_sim.index:
-                                self.micro_sim.is_running = False
-                            else:
-                                self.micro_sim.prev_index = self.micro_sim.index
-                self.reg_table.get_data()
-                self.mem_table.data_list.clear()
-                self.mem_table.get_data()
-                toast('File executed successfully')
-                for i in self.micro_sim.micro_instructions:
-                    if i != 'NOP':
-                        print(i)
-
     def update_io(self, dt):
         self.light.change_color(self.micro_sim.traffic_lights_binary())
         self.seven_segment_display.activate_segments(
             self.micro_sim.seven_segment_binary())
         self.update_ascii_grid()
-
-    def clear(self, instance):
-        self.header = False
-        self.step_index = 0
-        self.micro_sim.micro_clear()
-        self.reg_table.data_list.clear()
-        self.reg_table.get_data()
-        self.mem_table.data_list.clear()
-        self.mem_table.get_data()
-        self.inst_table.data_list.clear()
-        self.inst_table.get_data(self.micro_sim.index,
-                                 self.header,
-                                 self.micro_sim.disassembled_instruction())
-        self.header = True
-        self.first_inst = True
-        clear_ram()
-
-        # Cancels last scheduling thread for clean event
-        self.event_on.cancel()
-        self.event_off.cancel()
-
-        self.light.change_color(self.micro_sim.traffic_lights_binary())
-        self.update_ascii_grid()
-        self.seven_segment_display.activate_segments(
-            self.micro_sim.seven_segment_binary())
-        toast('Micro memory cleared! Load new data')
-
-    def run_micro_instructions_step(self, instance):
-        if not self.micro_sim.is_running:
-            toast("Infinite loop encountered. Program stopped")
-        else:
-            if not self.micro_sim.is_ram_loaded:
-                toast('Must load file first before running')
-            else:
-                self.step_index += 1
-                if self.first_inst:
-                    self.inst_table.get_data(self.micro_sim.index, self.header,
-                                             self.micro_sim.disassembled_instruction())
-                    self.first_inst = False
-
-                else:
-
-                    self.micro_sim.run_micro_instructions_step(self.step_index)
-
-                    self.inst_table.get_data(self.micro_sim.index,
-                                             self.header,
-                                             self.micro_sim.disassembled_instruction())
-
-                toast(
-                    f'Runnin instruction in step-by-step mode. Step {self.step_index} is running')
-                self.reg_table.get_data()
-                self.mem_table.data_list.clear()
-                self.mem_table.get_data()
-                for i in self.micro_sim.micro_instructions:
-                    if i != 'NOP':
-                        print(i)
 
     def update_ascii_grid(self):
         labels = [
@@ -454,32 +309,153 @@ class MainWindow(BoxLayout):
                                                     size_hint=(None, None),
                                                     pos_hint={
                                                         'y': buttons_y_pos
-                                                    })
+                                                    },
+                                                    on_release=self.run_micro_instructions)
         self.debug_button = MDFillRoundFlatIconButton(text='Debug',
                                                       icon='android-debug-bridge',
                                                       size_hint=(None, None),
                                                       pos_hint={
                                                           'y': buttons_y_pos
-                                                      })
+                                                      },
+                                                      on_release=self.run_micro_instructions_step)
         self.refresh_button = MDFillRoundFlatIconButton(text='Clear',
                                                         icon='refresh',
                                                         size_hint=(None, None),
                                                         pos_hint={
                                                             'y': buttons_y_pos
-                                                        })
+                                                        },
+                                                        on_release=self.clear)
         self.save_button = MDFillRoundFlatIconButton(text='Save File',
                                                      icon='download',
                                                      size_hint=(None, None),
                                                      pos_hint={
                                                          'y': buttons_y_pos
-                                                     })
+                                                     },
+                                                     on_release=self.open_save_dialog)
         self.md_toolbar.add_widget(self.run_button)
         self.md_toolbar.add_widget(self.debug_button)
         self.md_toolbar.add_widget(self.refresh_button)
         self.md_toolbar.add_widget(self.save_button)
         self.add_widget(self.md_toolbar)
-        self.add_widget(BoxLayout())  # Bumps up navigation bar to the top
-        # self.add_widget(RunWindow(app=self.app, micro_sim=self.micro_sim))
+        # self.add_widget(BoxLayout())  # Bumps up navigation bar to the top
+        self.add_widget(RunWindow(app=self.app, micro_sim=self.micro_sim))
+
+    def run_micro_instructions(self, instance):
+        print('Run button pressed')
+        # if not self.micro_sim.is_running:
+        #     toast('Infinite loop encountered. Program stopped')
+        # else:
+        #     if not self.micro_sim.is_ram_loaded:
+        #         toast('Must load file first before running')
+        #     else:
+        #         for m in range(2):
+        #             if self.first_inst:
+        #                 self.inst_table.data_list.clear()
+        #                 self.header = False
+        #                 self.inst_table.get_data(self.micro_sim.index, self.header,
+        #                                          self.micro_sim.disassembled_instruction())
+        #                 self.header = True
+        #                 self.inst_table.get_data(self.micro_sim.index, self.header,
+        #                                          self.micro_sim.disassembled_instruction())
+        #                 self.first_inst = False
+        #             else:
+        #                 self.micro_sim.prev_index = -1
+        #                 self.event_on.cancel()
+        #                 self.event_off.cancel()
+
+        #                 self.event_on()
+        #                 self.event_off()
+
+        #                 while self.micro_sim.is_running:
+        #                     self.micro_sim.run_micro_instructions()
+        #                     self.inst_table.get_data(self.micro_sim.index,
+        #                                              self.header,
+        #                                              self.micro_sim.disassembled_instruction())
+
+        #                     if self.micro_sim.prev_index == self.micro_sim.index:
+        #                         self.micro_sim.is_running = False
+        #                     else:
+        #                         self.micro_sim.prev_index = self.micro_sim.index
+        #         self.reg_table.get_data()
+        #         self.mem_table.data_list.clear()
+        #         self.mem_table.get_data()
+        #         toast('File executed successfully')
+        #         for i in self.micro_sim.micro_instructions:
+        #             if i != 'NOP':
+        #                 print(i)
+
+    def run_micro_instructions_step(self, instance):
+        print('debug mode')
+        # if not self.micro_sim.is_running:
+        #     toast("Infinite loop encountered. Program stopped")
+        # else:
+        #     if not self.micro_sim.is_ram_loaded:
+        #         toast('Must load file first before running')
+        #     else:
+        #         self.step_index += 1
+        #         if self.first_inst:
+        #             self.inst_table.get_data(self.micro_sim.index, self.header,
+        #                                      self.micro_sim.disassembled_instruction())
+        #             self.first_inst = False
+
+        #         else:
+
+        #             self.micro_sim.run_micro_instructions_step(self.step_index)
+
+        #             self.inst_table.get_data(self.micro_sim.index,
+        #                                      self.header,
+        #                                      self.micro_sim.disassembled_instruction())
+
+        #         toast(
+        #             f'Runnin instruction in step-by-step mode. Step {self.step_index} is running')
+        #         self.reg_table.get_data()
+        #         self.mem_table.data_list.clear()
+        #         self.mem_table.get_data()
+        #         for i in self.micro_sim.micro_instructions:
+        #             if i != 'NOP':
+        #                 print(i)
+
+    def clear(self, instance):
+        print('Clear button pressed')
+        # self.header = False
+        # self.step_index = 0
+        # self.micro_sim.micro_clear()
+        # self.reg_table.data_list.clear()
+        # self.reg_table.get_data()
+        # self.mem_table.data_list.clear()
+        # self.mem_table.get_data()
+        # self.inst_table.data_list.clear()
+        # self.inst_table.get_data(self.micro_sim.index,
+        #                          self.header,
+        #                          self.micro_sim.disassembled_instruction())
+        # self.header = True
+        # self.first_inst = True
+        # clear_ram()
+
+        # # Cancels last scheduling thread for clean event
+        # self.event_on.cancel()
+        # self.event_off.cancel()
+
+        # self.light.change_color(self.micro_sim.traffic_lights_binary())
+        # self.update_ascii_grid()
+        # self.seven_segment_display.activate_segments(
+        #     self.micro_sim.seven_segment_binary())
+        # toast('Micro memory cleared! Load new data')
+
+    def open_save_dialog(self, instance):
+        """It will be called when user click on the save file button.
+
+        :param instance: used as event handler for button click;
+
+        """
+        print('Save button pressed')
+        # dialog = MDInputDialog(
+        #     title='Save file: Enter file name', hint_text='Enter file name', size_hint=(.3, .3),
+        #     text_button_ok='Save',
+        #     text_button_cancel='Cancel',
+        #     events_callback=self.save_file)
+        # toast('Save Register and Memory Content')
+        # dialog.open()
 
 
 class NavDrawer(MDNavigationDrawer):
