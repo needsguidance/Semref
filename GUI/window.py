@@ -1,18 +1,15 @@
+import ntpath
+import os
 from pathlib import Path
 from queue import Queue
 from threading import Lock, Thread, Semaphore, Condition
 from time import sleep
-from assembler import Assembler, verify_ram_content, hexify_ram_content, clear_ram
-from assembler import RAM as RAM_assembler
-import ntpath
-import os
-
-from kivy.metrics import dp, sp
 
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.graphics.context_instructions import Color
 from kivy.graphics.vertex_instructions import Rectangle, Line
+from kivy.metrics import dp, sp, MetricsBase
 from kivy.properties import (ListProperty)
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
@@ -31,6 +28,8 @@ from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
                                          NavigationDrawerSubheader,
                                          NavigationLayout)
 
+from assembler import Assembler, verify_ram_content, hexify_ram_content, clear_ram
+from assembler import RAM as RAM_assembler
 from constants import REGISTER, hex_to_binary, convert_to_hex, is_valid_port, update_reserved_ports
 from constants import TRAFFIC_LIGHT, SEVEN_SEGMENT_DISPLAY, ASCII_TABLE, HEX_KEYBOARD
 from microprocessor_simulator import MicroSim, RAM
@@ -452,7 +451,9 @@ class MainWindow(BoxLayout):
                                                              icon='run',
                                                              size_hint=(
                                                                  None, None),
-                                                             pos_hint={'y': dp(0.1)}))
+                                                             pos_hint={'y': sp(0.1)}))
+        a = MetricsBase()
+        print(a.dpi)
         self.add_widget(self.md_toolbar)
 
         self.add_widget(BoxLayout())  # Bumps up navigation bar to the top
