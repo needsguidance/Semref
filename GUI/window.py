@@ -10,7 +10,7 @@ from kivy.clock import Clock
 from kivy.graphics.context_instructions import Color
 from kivy.graphics.vertex_instructions import Rectangle, Line
 from kivy.metrics import dp, sp, MetricsBase
-from kivy.properties import (ListProperty)
+from kivy.properties import (ListProperty, ObjectProperty, NumericProperty)
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
@@ -127,10 +127,11 @@ class RunWindow(FloatLayout):
     def __init__(self, **kwargs):
         self.app = kwargs.pop('app')
         self.micro_sim = kwargs.pop('micro_sim')
+        self.dpi = kwargs.pop('dpi')
+        super(RunWindow, self).__init__(**kwargs)
         self.step_index = 0
         self.header = False
         self.first_inst = True
-        super(RunWindow, self).__init__(**kwargs)
 
         self.ascii_label_1 = Label(text='[color=000000]' + chr(int(RAM[4088], 16)) + '[/color]',
                                    pos=(dp(-187), dp(-105)),
@@ -166,7 +167,7 @@ class RunWindow(FloatLayout):
                                    markup=True)
 
         self.ascii = ASCIIGrid()
-        self.reg_table = RegisterTable()
+        self.reg_table = RegisterTable(dpi=self.dpi)
         self.mem_table = MemoryTable()
         self.inst_table = InstructionTable()
         self.light = TrafficLights()
@@ -290,8 +291,9 @@ class MainWindow(BoxLayout):
         self.nav_drawer = kwargs.pop('nav_drawer')
         self.app = kwargs.pop('app')
         self.micro_sim = kwargs.pop('micro_sim')
+        self.dpi = kwargs.pop('dpi')
         super().__init__(**kwargs)
-        buttons_y_pos = dp(0.2) if MetricsBase().dpi < 192 else dp(0.1)
+        buttons_y_pos = dp(0.2) if self.dpi < 192 else dp(0.1)
 
         self.ids['left_actions'] = BoxLayout()
         self.orientation = 'vertical'
@@ -303,7 +305,11 @@ class MainWindow(BoxLayout):
                                     elevation=10,
                                     ids=self.ids,
                                     left_action_items=[
-                                        ['dots-vertical', lambda x: self.nav_drawer.toggle_nav_drawer()]])
+                                        [
+                                            'dots-vertical',
+                                            lambda x: self.nav_drawer.toggle_nav_drawer()
+                                        ]
+                                    ])
         self.run_button = MDFillRoundFlatIconButton(text='Run',
                                                     icon='run',
                                                     size_hint=(None, None),
@@ -338,7 +344,9 @@ class MainWindow(BoxLayout):
         self.md_toolbar.add_widget(self.save_button)
         self.add_widget(self.md_toolbar)
         # self.add_widget(BoxLayout())  # Bumps up navigation bar to the top
-        self.add_widget(RunWindow(app=self.app, micro_sim=self.micro_sim))
+        self.add_widget(RunWindow(app=self.app,
+                                  micro_sim=self.micro_sim,
+                                  dpi=self.dpi))
 
     def run_micro_instructions(self, instance):
         print('Run button pressed')
@@ -463,6 +471,7 @@ class NavDrawer(MDNavigationDrawer):
     def __init__(self, **kwargs):
         self.micro_sim = kwargs.pop('micro_sim')
         self.app = kwargs.pop('app')
+        self.dpi = kwargs.pop('dpi')
         super().__init__(**kwargs)
         self.drawer_logo = 'images/logo.jpg'
         self.spacing = 0
@@ -539,8 +548,9 @@ class NavDrawer(MDNavigationDrawer):
 
     def file_manager_open(self, instance):
         if not self.manager:
+            manager_size = (dp(1), 1) if self.dpi < 192 else (dp(0.5), 1)
             self.manager = ModalView(auto_dismiss=False,
-                                     size_hint=(dp(1), 1),
+                                     size_hint=manager_size,
                                      background_color=[1, 1, 1, 1])
             self.file_manager = MDFileManager(exit_manager=self.exit_manager,
                                               select_path=self.select_path,
@@ -612,15 +622,45 @@ class NavDrawer(MDNavigationDrawer):
 
 class RegisterTable(RecycleView):
     data_list = ListProperty([])
+    dpi = NumericProperty(0)
 
     def __init__(self, **kwargs):
+        self.dpi = kwargs.pop('dpi')
         super(RegisterTable, self).__init__(**kwargs)
         self.viewclass = 'Label'
-        with self.children[0].canvas.before:
-            Color(.50, .50, .50, 1)
-            for i in range(13):
-                Line(width=2, rectangle=(dp(0), dp(0), dp(200), dp(390 - (30 * i))))
-            Line(width=2, rectangle=(dp(0), dp(0), dp(100), dp(390)))
+        self.size_hint = (None, None)
+        self.recycle_grid_layout = self.children[0]
+        self.recycle_grid_layout.cols = 2
+        self.recycle_grid_layout.size_hint_y = None
+        self.recycle_grid_layout.default_size = (None, dp(30))
+        self.background_color = (0, 0, 0, 1)
+        # self.recycle_grid_layout.height = 10
+        if self.dpi < 192:
+            self.pos_hint = {
+                'x': dp(0),
+                'center_y': dp(1.5)
+            }
+            self.recycle_grid_layout.default_size_hint = (dp(1), None)
+            self.recycle_grid_layout.size_hint_x = dp(0.2)
+            with self.children[0].canvas.before:
+                Color(.50, .50, .50, 1)
+                for i in range(13):
+                    Line(width=2,
+                         rectangle=(dp(0), dp(0), dp(200), dp(390 - (30 * i))))
+                Line(width=2, rectangle=(dp(0), dp(0), dp(100), dp(390)))
+        else:
+            self.pos_hint = {
+                'x': dp(0),
+                'center_y': dp(0.479)
+            }
+            self.recycle_grid_layout.default_size_hint = (dp(0.5), None)
+            self.recycle_grid_layout.size_hint_x = dp(0.1)
+            with self.children[0].canvas.before:
+                Color(.50, .50, .50, 1)
+                for i in range(13):
+                    Line(width=2,
+                         rectangle=(dp(0), dp(0), dp(200), dp(585 - (30 * i))))
+                Line(width=2, rectangle=(dp(0), dp(0), dp(100), dp(585)))
 
     def get_data(self):
         _data_list = self.data_list.copy()
@@ -911,10 +951,14 @@ class GUI(NavigationLayout):
         super().__init__(**kwargs)
         self.app = App.get_running_app()
         self.micro_sim = MicroSim()
-        self.add_widget(NavDrawer(micro_sim=self.micro_sim, app=self.app))
+        self.dpi = MetricsBase().dpi
+        self.add_widget(NavDrawer(micro_sim=self.micro_sim,
+                                  app=self.app,
+                                  dpi=self.dpi))
         self.add_widget(MainWindow(nav_drawer=self,
                                    app=self.app,
-                                   micro_sim=self.micro_sim))
+                                   micro_sim=self.micro_sim,
+                                   dpi=self.dpi))
 
 
 class SemrefApp(App):

@@ -1,13 +1,12 @@
 <RegisterTable>:
-#    id: data_list
-#    pos_hint:{'x': dp(0), 'center_y': dp(1.5)}
+    canvas.before:
+        Color:
+            rgba: 0, 1, 1, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
     RecycleGridLayout:
-#        cols: 2
-#        default_size: None, dp(30)
-#        default_size_hint: dp(1), None
-#        size_hint_y: None
-#       size_hint_x: dp(0.2)
-#       height: dp(self.minimum_height)
+        height: dp(self.minimum_height)
 
 <InstructionTable>:
     id: data_list
