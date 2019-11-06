@@ -460,6 +460,7 @@ class NavDrawer(MDNavigationDrawer):
         self.drawer_logo = 'images/logo.jpg'
         self.manager_open = False
         self.manager = None
+        self.history = []
 
         self.add_widget(NavigationDrawerSubheader(text='Menu:'))
         self.add_widget(NavigationDrawerIconButton(icon='paperclip',
@@ -546,6 +547,8 @@ class NavDrawer(MDNavigationDrawer):
             self.file_manager.show(str(Path.home()))
         self.manager_open = True
         self.manager.open()
+        self.history = self.file_manager.history
+
 
     def assembler(self, file):
         i = 0
@@ -596,6 +599,7 @@ class NavDrawer(MDNavigationDrawer):
 
         self.manager.dismiss()
         self.manager_open = False
+        self.file_manager.history = self.history
 
     def events(self, instance, keyboard, keycode, text, modifiers):
         """Called when buttons are pressed on the mobile device.."""
