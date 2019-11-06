@@ -1,15 +1,18 @@
-import ntpath
-import os
 from pathlib import Path
 from queue import Queue
 from threading import Lock, Thread, Semaphore, Condition
 from time import sleep
+from assembler import Assembler, verify_ram_content, hexify_ram_content, clear_ram
+from assembler import RAM as RAM_assembler
+import ntpath
+import os
+
+from kivy.metrics import dp, sp, MetricsBase
 
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.graphics.context_instructions import Color
 from kivy.graphics.vertex_instructions import Rectangle, Line
-from kivy.metrics import dp, sp, MetricsBase
 from kivy.properties import (ListProperty)
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
@@ -28,8 +31,6 @@ from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
                                          NavigationDrawerSubheader,
                                          NavigationLayout)
 
-from assembler import Assembler, verify_ram_content, hexify_ram_content, clear_ram
-from assembler import RAM as RAM_assembler
 from constants import REGISTER, hex_to_binary, convert_to_hex, is_valid_port, update_reserved_ports
 from constants import TRAFFIC_LIGHT, SEVEN_SEGMENT_DISPLAY, ASCII_TABLE, HEX_KEYBOARD
 from microprocessor_simulator import MicroSim, RAM
@@ -131,38 +132,38 @@ class RunWindow(FloatLayout):
         self.header = False
         self.first_inst = True
         super(RunWindow, self).__init__(**kwargs)
-        self.run_button = MDFillRoundFlatIconButton(text='Run',
-                                                    icon='run',
-                                                    size_hint=(None, None),
-                                                    pos_hint={
-                                                        'center_x': dp(.7),
-                                                        'center_y': dp(2.12)
-                                                    },
-                                                    on_release=self.run_micro_instructions)
-        self.debug_button = MDFillRoundFlatIconButton(text='Debug',
-                                                      icon='android-debug-bridge',
-                                                      size_hint=(None, None),
-                                                      pos_hint={
-                                                          'center_x': dp(.9),
-                                                          'center_y': dp(2.12)
-                                                      },
-                                                      on_release=self.run_micro_instructions_step)
-        self.refresh_button = MDFillRoundFlatIconButton(text='Clear',
-                                                        icon='refresh',
-                                                        size_hint=(None, None),
-                                                        pos_hint={
-                                                            'center_x': dp(.5),
-                                                            'center_y': dp(2.12)
-                                                        },
-                                                        on_release=self.clear)
-        self.save_button = MDFillRoundFlatIconButton(text='Save File',
-                                                     icon='download',
-                                                     size_hint=(None, None),
-                                                     pos_hint={
-                                                         'center_x': dp(.35),
-                                                         'center_y': dp(2.12)
-                                                     },
-                                                     on_release=self.open_save_dialog)
+        # self.run_button = MDFillRoundFlatIconButton(text='Run',
+        #                                             icon='run',
+        #                                             size_hint=(None, None),
+        #                                             pos_hint={
+        #                                                 'center_x': dp(.7),
+        #                                                 'center_y': dp(2.12)
+        #                                             },
+        #                                             on_release=self.run_micro_instructions)
+        # self.debug_button = MDFillRoundFlatIconButton(text='Debug',
+        #                                               icon='android-debug-bridge',
+        #                                               size_hint=(None, None),
+        #                                               pos_hint={
+        #                                                   'center_x': dp(.9),
+        #                                                   'center_y': dp(2.12)
+        #                                               },
+        #                                               on_release=self.run_micro_instructions_step)
+        # self.refresh_button = MDFillRoundFlatIconButton(text='Clear',
+        #                                                 icon='refresh',
+        #                                                 size_hint=(None, None),
+        #                                                 pos_hint={
+        #                                                     'center_x': dp(.5),
+        #                                                     'center_y': dp(2.12)
+        #                                                 },
+        #                                                 on_release=self.clear)
+        # self.save_button = MDFillRoundFlatIconButton(text='Save File',
+        #                                              icon='download',
+        #                                              size_hint=(None, None),
+        #                                              pos_hint={
+        #                                                  'center_x': dp(.35),
+        #                                                  'center_y': dp(2.12)
+        #                                              },
+        #                                              on_release=self.open_save_dialog)
 
         self.ascii_label_1 = Label(text='[color=000000]' + chr(int(RAM[4088], 16)) + '[/color]',
                                    pos=(dp(-187), dp(-105)),
@@ -436,10 +437,11 @@ class MainWindow(BoxLayout):
         self.app = kwargs.pop('app')
         self.micro_sim = kwargs.pop('micro_sim')
         super().__init__(**kwargs)
+        buttons_y_pos = dp(0.2) if MetricsBase().dpi < 192 else dp(0.1)
+
         self.ids['left_actions'] = BoxLayout()
         self.orientation = 'vertical'
         self.toolbar_layout = BoxLayout(orientation='vertical')
-        # self.toolbar_layout.size_hint = (dp(1), dp(10))
         self.md_toolbar = MDToolbar(title='Semref Micro Sim',
                                     md_bg_color=self.app.theme_cls.primary_color,
                                     background_palette='Primary',
@@ -447,15 +449,35 @@ class MainWindow(BoxLayout):
                                     elevation=10,
                                     ids=self.ids,
                                     left_action_items=[['dots-vertical', lambda x: self.nav_drawer.toggle_nav_drawer()]])
-        self.md_toolbar.add_widget(MDFillRoundFlatIconButton(text='Run',
-                                                             icon='run',
-                                                             size_hint=(
-                                                                 None, None),
-                                                             pos_hint={'y': sp(0.1)}))
-        a = MetricsBase()
-        print(a.dpi)
+        self.run_button = MDFillRoundFlatIconButton(text='Run',
+                                                    icon='run',
+                                                    size_hint=(None, None),
+                                                    pos_hint={
+                                                        'y': buttons_y_pos
+                                                    })
+        self.debug_button = MDFillRoundFlatIconButton(text='Debug',
+                                                      icon='android-debug-bridge',
+                                                      size_hint=(None, None),
+                                                      pos_hint={
+                                                          'y': buttons_y_pos
+                                                      })
+        self.refresh_button = MDFillRoundFlatIconButton(text='Clear',
+                                                        icon='refresh',
+                                                        size_hint=(None, None),
+                                                        pos_hint={
+                                                            'y': buttons_y_pos
+                                                        })
+        self.save_button = MDFillRoundFlatIconButton(text='Save File',
+                                                     icon='download',
+                                                     size_hint=(None, None),
+                                                     pos_hint={
+                                                         'y': buttons_y_pos
+                                                     })
+        self.md_toolbar.add_widget(self.run_button)
+        self.md_toolbar.add_widget(self.debug_button)
+        self.md_toolbar.add_widget(self.refresh_button)
+        self.md_toolbar.add_widget(self.save_button)
         self.add_widget(self.md_toolbar)
-
         self.add_widget(BoxLayout())  # Bumps up navigation bar to the top
         # self.add_widget(RunWindow(app=self.app, micro_sim=self.micro_sim))
 
