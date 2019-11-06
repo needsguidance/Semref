@@ -1,18 +1,15 @@
+import ntpath
+import os
 from pathlib import Path
 from queue import Queue
 from threading import Lock, Thread, Semaphore, Condition
 from time import sleep
-from assembler import Assembler, verify_ram_content, hexify_ram_content, clear_ram
-from assembler import RAM as RAM_assembler
-import ntpath
-import os
-
-from kivy.metrics import dp, sp, MetricsBase
 
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.graphics.context_instructions import Color
 from kivy.graphics.vertex_instructions import Rectangle, Line
+from kivy.metrics import dp, sp, MetricsBase
 from kivy.properties import (ListProperty)
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
@@ -31,6 +28,8 @@ from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
                                          NavigationDrawerSubheader,
                                          NavigationLayout)
 
+from assembler import Assembler, verify_ram_content, hexify_ram_content
+from assembler import RAM as RAM_ASSEMBLER
 from constants import REGISTER, hex_to_binary, convert_to_hex, is_valid_port, update_reserved_ports
 from constants import TRAFFIC_LIGHT, SEVEN_SEGMENT_DISPLAY, ASCII_TABLE, HEX_KEYBOARD
 from microprocessor_simulator import MicroSim, RAM
@@ -303,7 +302,8 @@ class MainWindow(BoxLayout):
                                     background_hue='500',
                                     elevation=10,
                                     ids=self.ids,
-                                    left_action_items=[['dots-vertical', lambda x: self.nav_drawer.toggle_nav_drawer()]])
+                                    left_action_items=[
+                                        ['dots-vertical', lambda x: self.nav_drawer.toggle_nav_drawer()]])
         self.run_button = MDFillRoundFlatIconButton(text='Run',
                                                     icon='run',
                                                     size_hint=(None, None),
@@ -567,7 +567,7 @@ class NavDrawer(MDNavigationDrawer):
 
             f = open(output_file_location, 'w')
             for m in range(50):
-                f.write(f'{RAM_assembler[i]} {RAM_assembler[i + 1]}' + '\n')
+                f.write(f'{RAM_ASSEMBLER[i]} {RAM_ASSEMBLER[i + 1]}' + '\n')
                 i += 2
             f.close()
 
