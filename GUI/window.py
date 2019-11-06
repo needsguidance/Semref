@@ -628,13 +628,10 @@ class RegisterTable(RecycleView):
         self.dpi = kwargs.pop('dpi')
         super(RegisterTable, self).__init__(**kwargs)
         self.viewclass = 'Label'
-        self.size_hint = (None, None)
         self.recycle_grid_layout = self.children[0]
         self.recycle_grid_layout.cols = 2
         self.recycle_grid_layout.size_hint_y = None
         self.recycle_grid_layout.default_size = (None, dp(30))
-        self.background_color = (0, 0, 0, 1)
-        # self.recycle_grid_layout.height = 10
         if self.dpi < 192:
             self.pos_hint = {
                 'x': dp(0),
@@ -651,16 +648,18 @@ class RegisterTable(RecycleView):
         else:
             self.pos_hint = {
                 'x': dp(0),
-                'center_y': dp(0.479)
+                'center_y': dp(0.368)
             }
+            self.size_hint_x = dp(0.12)
+            self.size_hint_y = dp(0.265)
             self.recycle_grid_layout.default_size_hint = (dp(0.5), None)
-            self.recycle_grid_layout.size_hint_x = dp(0.1)
+            self.recycle_grid_layout.size_hint_x = dp(0.47)
             with self.children[0].canvas.before:
                 Color(.50, .50, .50, 1)
                 for i in range(13):
                     Line(width=2,
-                         rectangle=(dp(0), dp(0), dp(200), dp(585 - (30 * i))))
-                Line(width=2, rectangle=(dp(0), dp(0), dp(100), dp(585)))
+                         rectangle=(dp(0), dp(30 * i), dp(245), dp(585)))
+                Line(width=2, rectangle=(dp(0), dp(0), dp(115), dp(585)))
 
     def get_data(self):
         _data_list = self.data_list.copy()

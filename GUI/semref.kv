@@ -1,12 +1,7 @@
 <RegisterTable>:
-    canvas.before:
-        Color:
-            rgba: 0, 1, 1, 1
-        Rectangle:
-            pos: self.pos
-            size: self.size
+    size_hint: None, None
     RecycleGridLayout:
-        height: dp(self.minimum_height)
+        height: dp(self.minimum_height) if root.dpi < 192 else dp(self.minimum_height / 2)
 
 <InstructionTable>:
     id: data_list
