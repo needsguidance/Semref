@@ -460,6 +460,7 @@ class NavDrawer(MDNavigationDrawer):
         self.drawer_logo = 'images/logo.jpg'
         self.manager_open = False
         self.manager = None
+        self.spacing = 0
 
         self.add_widget(NavigationDrawerSubheader(text='Menu:'))
         self.add_widget(NavigationDrawerIconButton(icon='paperclip',
@@ -536,8 +537,9 @@ class NavDrawer(MDNavigationDrawer):
 
     def file_manager_open(self, instance):
         if not self.manager:
-            self.manager = ModalView(size_hint=(dp(1), dp(1)),
-                                     auto_dismiss=False)
+            self.manager = ModalView(auto_dismiss=False, size_hint=(dp(1), 1), background_color=[1, 1, 1, 1])
+            self.manager.size_hint = (dp(1), 1)
+            self.manager.background_color = [1, 1, 1, 1]
             self.file_manager = MDFileManager(exit_manager=self.exit_manager,
                                               select_path=self.select_path,
                                               ext=['.asm', '.obj'])
@@ -900,8 +902,8 @@ class GUI(NavigationLayout):
         self.app = App.get_running_app()
         self.micro_sim = MicroSim()
         self.add_widget(NavDrawer(micro_sim=self.micro_sim, app=self.app))
-        self.add_widget(MainWindow(nav_drawer=self,
-                                   app=self.app, micro_sim=self.micro_sim))
+        # self.add_widget(MainWindow(nav_drawer=self,
+        #                            app=self.app, micro_sim=self.micro_sim))
 
 
 class SemrefApp(App):
