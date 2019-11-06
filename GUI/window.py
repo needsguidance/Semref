@@ -439,16 +439,24 @@ class MainWindow(BoxLayout):
         super().__init__(**kwargs)
         self.ids['left_actions'] = BoxLayout()
         self.orientation = 'vertical'
-        self.add_widget(MDToolbar(title='Semref Micro Sim',
-                                  md_bg_color=self.app.theme_cls.primary_color,
-                                  background_palette='Primary',
-                                  background_hue='500',
-                                  elevation=10,
-                                  ids=self.ids,
-                                  left_action_items=[['dots-vertical', lambda x: self.nav_drawer.toggle_nav_drawer()]]))
+        self.toolbar_layout = BoxLayout(orientation='vertical')
+        # self.toolbar_layout.size_hint = (dp(1), dp(10))
+        self.md_toolbar = MDToolbar(title='Semref Micro Sim',
+                                    md_bg_color=self.app.theme_cls.primary_color,
+                                    background_palette='Primary',
+                                    background_hue='500',
+                                    elevation=10,
+                                    ids=self.ids,
+                                    left_action_items=[['dots-vertical', lambda x: self.nav_drawer.toggle_nav_drawer()]])
+        self.md_toolbar.add_widget(MDFillRoundFlatIconButton(text='Run',
+                                                             icon='run',
+                                                             size_hint=(
+                                                                 None, None),
+                                                             pos_hint={'y': dp(0.1)}))
+        self.add_widget(self.md_toolbar)
 
         self.add_widget(BoxLayout())  # Bumps up navigation bar to the top
-        self.add_widget(RunWindow(app=self.app, micro_sim=self.micro_sim))
+        # self.add_widget(RunWindow(app=self.app, micro_sim=self.micro_sim))
 
 
 class NavDrawer(MDNavigationDrawer):
@@ -458,9 +466,9 @@ class NavDrawer(MDNavigationDrawer):
         self.app = kwargs.pop('app')
         super().__init__(**kwargs)
         self.drawer_logo = 'images/logo.jpg'
+        self.spacing = 0
         self.manager_open = False
         self.manager = None
-        self.spacing = 0
 
         self.add_widget(NavigationDrawerSubheader(text='Menu:'))
         self.add_widget(NavigationDrawerIconButton(icon='paperclip',
@@ -503,13 +511,11 @@ class NavDrawer(MDNavigationDrawer):
                                                   TRAFFIC_LIGHT['port'],
                                                   port)
                             toast_message = f'Changed Traffic Light I/O port number to {port}'
-
                         elif title == SEVEN_SEGMENT_DISPLAY['menu_title']:
                             update_reserved_ports(SEVEN_SEGMENT_DISPLAY,
                                                   SEVEN_SEGMENT_DISPLAY['port'],
                                                   port)
                             toast_message = f'Changed Seven Segment I/O port number to {port}'
-
                         elif title == ASCII_TABLE['menu_title']:
                             if port > 4088:
                                 toast_message = 'Invalid port for ASCII Table. Valid ports [0-4088]'
@@ -521,25 +527,22 @@ class NavDrawer(MDNavigationDrawer):
                                     toast_message = f'Changed ASCII Table I/O port number to {port}'
                                 except MemoryError as e:
                                     toast_message = str(e)
-
                         else:
                             update_reserved_ports(HEX_KEYBOARD,
                                                   HEX_KEYBOARD['port'],
                                                   port)
                             toast_message = f'Changed HEX Keyboard I/O port number to {port}'
-
                         toast(toast_message)
                     else:
                         toast('Invalid input. That port is reserved!')
-
             else:
                 toast('Invalid input. Not a number!')
 
     def file_manager_open(self, instance):
         if not self.manager:
-            self.manager = ModalView(auto_dismiss=False, size_hint=(dp(1), 1), background_color=[1, 1, 1, 1])
-            self.manager.size_hint = (dp(1), 1)
-            self.manager.background_color = [1, 1, 1, 1]
+            self.manager = ModalView(auto_dismiss=False,
+                                     size_hint=(dp(1), 1),
+                                     background_color=[1, 1, 1, 1])
             self.file_manager = MDFileManager(exit_manager=self.exit_manager,
                                               select_path=self.select_path,
                                               ext=['.asm', '.obj'])
@@ -551,10 +554,10 @@ class NavDrawer(MDNavigationDrawer):
 
     def assembler(self, file):
         i = 0
-        filename = os.path.splitext(ntpath.basename(file))[
-            0]  # Obtains last name on path string using ntpath and then strips file extension using os.path.splitext
+        # Obtains last name on path string using ntpath and then
+        # strips file extension using os.path.splitext
         # Should work across different OS
-
+        filename = os.path.splitext(ntpath.basename(file))[0]
         try:
             asm = Assembler(file)
             asm.read_source()
@@ -569,11 +572,10 @@ class NavDrawer(MDNavigationDrawer):
                 i += 2
             f.close()
 
-            self.run_micro_sim(output_file_location)  # Runs simulator using generated .obj file
+            # Runs simulator using generated .obj file
+            self.run_micro_sim(output_file_location)
             toast(f'Instructions at {file} assembled successfully')
-
         except (AssertionError, FileNotFoundError, ValueError, MemoryError, KeyError, SyntaxError) as e:
-            print(e)
             toast(f'{e}')
 
     def select_path(self, path):
@@ -589,13 +591,11 @@ class NavDrawer(MDNavigationDrawer):
         if path.endswith('.obj'):  # If file is an .obj file, runs simulator
             self.run_micro_sim(path)
             toast(f'{path} loaded successfully')
-
         else:  # If file is an .asm file, runs assembler, then simulator
             self.assembler(path)
 
     def exit_manager(self, *args):
         """Called when the user reaches the root of the directory tree."""
-
         self.manager.dismiss()
         self.manager_open = False
 
@@ -637,17 +637,24 @@ class RegisterTable(RecycleView):
         for j in range(int(len(self.data_list) / 2)):
             if _data_list and len(_data_list) > 2 and _data_list[i] == self.data_list[i] and _data_list[i + 1] != \
                     self.data_list[i + 1]:
-                _data.append({'text': self.data_list[i].upper(), 'color': (
-                    177 / 255, 62 / 255, 88 / 255, 1)})
-                _data.append(
-                    {'text': self.data_list[i + 1].upper(), 'color': (177 / 255, 62 / 255, 88 / 255, 1)})
+                _data.append({
+                    'text': self.data_list[i].upper(),
+                    'color': (177 / 255, 62 / 255, 88 / 255, 1)
+                })
+                _data.append({
+                    'text': self.data_list[i + 1].upper(),
+                    'color': (177 / 255, 62 / 255, 88 / 255, 1)
+                })
             else:
-                _data.append(
-                    {'text': self.data_list[i].upper(), 'color': (.1, .1, .1, 1)})
-                _data.append(
-                    {'text': self.data_list[i + 1].upper(), 'color': (.1, .1, .1, 1)})
+                _data.append({
+                    'text': self.data_list[i].upper(),
+                    'color': (.1, .1, .1, 1)
+                })
+                _data.append({
+                    'text': self.data_list[i + 1].upper(),
+                    'color': (.1, .1, .1, 1)
+                })
             i += 2
-
         self.data = _data
 
 
@@ -660,8 +667,8 @@ class MemoryTable(RecycleView):
         with self.children[0].canvas.before:
             Color(.50, .50, .50, 1)
             for i in range(51):
-                Line(width=2, rectangle=(
-                    dp(0), dp(0), dp(255), dp(1530 - (30 * i))))
+                Line(width=2,
+                     rectangle=(dp(0), dp(0), dp(255), dp(1530 - (30 * i))))
             Line(width=2, rectangle=(dp(0), dp(0), dp(127.5), dp(1530)))
 
     def get_data(self):
@@ -673,8 +680,10 @@ class MemoryTable(RecycleView):
             self.data_list.append(f'{RAM[i + 1]}')
             i += 2
 
-        self.data = [{"text": str(x.upper()), "color": (.1, .1, .1, 1)}
-                     for x in self.data_list]
+        self.data = [{
+            "text": str(x.upper()),
+            "color": (.1, .1, .1, 1)
+        } for x in self.data_list]
 
 
 class InstructionTable(RecycleView):
@@ -694,8 +703,10 @@ class InstructionTable(RecycleView):
             self.data_list.append(f'{RAM[address]}')
             self.data_list.append(instruction.upper())
 
-        self.data = [{"text": str(x.upper()), "color": (.1, .1, .1, 1)}
-                     for x in self.data_list]
+        self.data = [{
+            "text": str(x.upper()),
+            "color": (.1, .1, .1, 1)
+        } for x in self.data_list]
 
 
 class TrafficLights(Widget):
@@ -902,8 +913,9 @@ class GUI(NavigationLayout):
         self.app = App.get_running_app()
         self.micro_sim = MicroSim()
         self.add_widget(NavDrawer(micro_sim=self.micro_sim, app=self.app))
-        # self.add_widget(MainWindow(nav_drawer=self,
-        #                            app=self.app, micro_sim=self.micro_sim))
+        self.add_widget(MainWindow(nav_drawer=self,
+                                   app=self.app,
+                                   micro_sim=self.micro_sim))
 
 
 class SemrefApp(App):
