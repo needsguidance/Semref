@@ -20,7 +20,7 @@ from kivy.uix.recycleview import RecycleView
 from kivy.uix.widget import Widget
 from kivymd.theming import ThemeManager
 from kivymd.toast import toast
-from kivymd.uix.button import MDFillRoundFlatIconButton, MDFlatButton
+from kivymd.uix.button import MDFillRoundFlatIconButton, MDFlatButton, MDIconButton
 from kivymd.uix.dialog import MDInputDialog
 from kivymd.uix.filemanager import MDFileManager
 from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
@@ -259,7 +259,7 @@ class MainWindow(BoxLayout):
         self.micro_sim = kwargs.pop('micro_sim')
         self.dpi = kwargs.pop('dpi')
         super().__init__(**kwargs)
-        buttons_y_pos = dp(0.2) if self.dpi < 192 else dp(0.1)
+        self.buttons_y_pos = dp(0.2) if self.dpi < 192 else dp(0.1)
 
         self.first_inst = True
         self.step_index = 0
@@ -282,28 +282,28 @@ class MainWindow(BoxLayout):
                                                     icon='run',
                                                     size_hint=(None, None),
                                                     pos_hint={
-                                                        'y': buttons_y_pos
+                                                        'y': self.buttons_y_pos
                                                     },
                                                     on_release=self.run_micro_instructions)
         self.debug_button = MDFillRoundFlatIconButton(text='Debug',
                                                       icon='android-debug-bridge',
                                                       size_hint=(None, None),
                                                       pos_hint={
-                                                          'y': buttons_y_pos
+                                                          'y': self.buttons_y_pos
                                                       },
                                                       on_release=self.run_micro_instructions_step)
         self.refresh_button = MDFillRoundFlatIconButton(text='Clear',
                                                         icon='refresh',
                                                         size_hint=(None, None),
                                                         pos_hint={
-                                                            'y': buttons_y_pos
+                                                            'y': self.buttons_y_pos
                                                         },
                                                         on_release=self.clear)
         self.save_button = MDFillRoundFlatIconButton(text='Save File',
                                                      icon='download',
                                                      size_hint=(None, None),
                                                      pos_hint={
-                                                         'y': buttons_y_pos
+                                                         'y': self.buttons_y_pos
                                                      },
                                                      on_release=self.open_save_dialog)
         self.run_window = RunWindow(app=self.app,
@@ -459,6 +459,7 @@ class NavDrawer(MDNavigationDrawer):
         self.micro_sim = kwargs.pop('micro_sim')
         self.app = kwargs.pop('app')
         self.dpi = kwargs.pop('dpi')
+        self.main_window = kwargs.pop('main_window')
         super().__init__(**kwargs)
         self.drawer_logo = 'images/logo.jpg'
         self.spacing = 0
@@ -550,7 +551,6 @@ class NavDrawer(MDNavigationDrawer):
         self.manager.open()
         self.history = self.file_manager.history
 
-
     def assembler(self, file):
         i = 0
         # Obtains last name on path string using ntpath and then
@@ -609,6 +609,14 @@ class NavDrawer(MDNavigationDrawer):
 
     def run_micro_sim(self, file):
         self.micro_sim.read_obj_file(file)
+        if self.micro_sim.is_ram_loaded:
+            # If file is loaded, then add a file-check icon on main_window for visual indicator.
+            self.main_window.add_widget(MDIconButton(icon='file-check',
+                                                     size_hint=(None, None),
+                                                     pos_hint={
+                                                         'y': self.main_window.buttons_y_pos
+                                                     }, theme_text_color='Custom',
+                                                     text_color=self.app.theme_cls.primary_color))
 
 
 class RegisterTable(RecycleView):
@@ -975,13 +983,14 @@ class GUI(NavigationLayout):
         self.app = App.get_running_app()
         self.micro_sim = MicroSim()
         self.dpi = MetricsBase().dpi
+        self.main_window = MainWindow(nav_drawer=self,
+                                      app=self.app,
+                                      micro_sim=self.micro_sim,
+                                      dpi=self.dpi)
         self.add_widget(NavDrawer(micro_sim=self.micro_sim,
                                   app=self.app,
-                                  dpi=self.dpi))
-        self.add_widget(MainWindow(nav_drawer=self,
-                                   app=self.app,
-                                   micro_sim=self.micro_sim,
-                                   dpi=self.dpi))
+                                  dpi=self.dpi, main_window=self.main_window))
+        self.add_widget(self.main_window)
 
 
 class SemrefApp(App):
