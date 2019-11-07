@@ -375,8 +375,7 @@ class RunWindow(FloatLayout):
 
         self.light.change_color(self.micro_sim.traffic_lights_binary())
         self.update_ascii_grid()
-        self.seven_segment_display.activate_segments(
-            self.micro_sim.seven_segment_binary())
+        self.seven_segment_display.clear_seven_segment()
         toast('Micro memory cleared! Load new data')
 
     def run_micro_instructions_step(self, instance):
@@ -891,6 +890,23 @@ class SevenSegmentDisplay(Widget):
                         self.rightG = (.41, .41, .41)
                     else:
                         self.rightG = (1, 0, 0)
+
+    def clear_seven_segment(self):
+        self.leftA = (.41, .41, .41)
+        self.leftB = (.41, .41, .41)
+        self.leftC = (.41, .41, .41)
+        self.leftD = (.41, .41, .41)
+        self.leftE = (.41, .41, .41)
+        self.leftF = (.41, .41, .41)
+        self.leftG = (.41, .41, .41)
+
+        self.rightA = (.41, .41, .41)
+        self.rightB = (.41, .41, .41)
+        self.rightC = (.41, .41, .41)
+        self.rightD = (.41, .41, .41)
+        self.rightE = (.41, .41, .41)
+        self.rightF = (.41, .41, .41)
+        self.rightG = (.41, .41, .41)
 
 
 class ASCIIGrid(Widget):
