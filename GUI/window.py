@@ -628,10 +628,12 @@ class MemoryTable(RecycleView):
         if self.dpi < 192:
             self.pos_hint = {
                 'x': dp(0.75),
-                'center_y': dp(1.5)
+                'center_y': dp(0.75)
             }
-            self.recycle_grid_layout.default_size_hint = (sp(1), None)
-            self.recycle_grid_layout.size_hint_x: dp(0.25)
+            self.size_hint_x = dp(0.3)
+            self.size_hint_y = dp(0.5)
+            self.recycle_grid_layout.default_size_hint = (dp(0.5), None)
+            self.recycle_grid_layout.size_hint_x = dp(0.83)
             with self.children[0].canvas.before:
                 Color(.50, .50, .50, 1)
                 for i in range(51):
