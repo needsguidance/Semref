@@ -556,16 +556,16 @@ class RegisterTable(RecycleView):
         if self.dpi < 192:
             self.pos_hint = {
                 'x': dp(0),
-                'center_y': dp(1.5)
+                'center_y': dp(0.75)
             }
-            self.recycle_grid_layout.default_size_hint = (dp(1), None)
-            self.recycle_grid_layout.size_hint_x = dp(0.2)
+            self.size_hint_x = dp(0.2)
+            self.size_hint_y = dp(0.5)
             with self.children[0].canvas.before:
                 Color(.50, .50, .50, 1)
                 for i in range(13):
                     Line(width=2,
-                         rectangle=(dp(0), dp(0), dp(200), dp(390 - (30 * i))))
-                Line(width=2, rectangle=(dp(0), dp(0), dp(100), dp(390)))
+                         rectangle=(dp(0), dp(0), dp(205), dp(390 - (30 * i))))
+                Line(width=2, rectangle=(dp(0), dp(0), dp(102.5), dp(390)))
         else:
             self.pos_hint = {
                 'x': dp(0),
@@ -677,9 +677,9 @@ class InstructionTable(RecycleView):
         super(InstructionTable, self).__init__(**kwargs)
         self.viewclass = 'Label'
         if self.dpi < 192:
+            pass
             self.pos_hint = {
-                'x': dp(0.2),
-                'center_y': dp(1.5)
+                'x': dp(0.24)
             }
         else:
             self.pos_hint = {
