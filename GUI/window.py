@@ -167,7 +167,7 @@ class RunWindow(FloatLayout):
         self.ascii = ASCIIGrid()
         self.reg_table = RegisterTable(dpi=self.dpi)
         self.mem_table = MemoryTable()
-        self.inst_table = InstructionTable()
+        self.inst_table = InstructionTable(dpi=self.dpi)
         self.light = TrafficLights()
         self.seven_segment_display = SevenSegmentDisplay()
 
@@ -416,7 +416,7 @@ class MainWindow(BoxLayout):
         """
         dialog = MDInputDialog(title='Save file: Enter file name',
                                hint_text='Enter file name',
-                               size_hint = (.3, .3),
+                               size_hint=(.3, .3),
                                text_button_ok='Save',
                                text_button_cancel='Cancel',
                                events_callback=self.save_file)
@@ -723,14 +723,28 @@ class InstructionTable(RecycleView):
     data_list = ListProperty([])
 
     def __init__(self, **kwargs):
+        self.dpi = kwargs.pop('dpi')
         super(InstructionTable, self).__init__(**kwargs)
         self.viewclass = 'Label'
+        if self.dpi < 192:
+            self.pos_hint = {
+                'x': dp(0.2),
+                'center_y': dp(1.5)
+            }
+        else:
+            self.pos_hint = {
+                'x': dp(0.12),
+                'center_y': dp(0.368)
+            }
+            self.size_hint_x = dp(0.25)
+            self.size_hint_y = dp(0.265)
+
 
     def get_data(self, address, header, instruction):
         if not header:
             self.data_list.append('ADDRESS')
             self.data_list.append('CONTENT')
-            self.data_list.append('DISASSEMBLED INSTRUCTION')
+            self.data_list.append('DISASSEMBLY')
         else:
             self.data_list.append((f'{address:02x}').upper())
             self.data_list.append(f'{RAM[address]}')
