@@ -41,19 +41,25 @@ class HexKeyboard(GridLayout):
         self.mem_table = kwargs.pop('mem_table')
         self.event_on = kwargs.pop('event_on')
         self.event_off = kwargs.pop('event_off')
-
+        self.dpi = kwargs.pop('dpi')
         super(HexKeyboard, self).__init__(**kwargs)
-        self.cols = 4
-        self.size_hint = (dp(0.4), dp(0.4))
-        self.pos_hint = {'x': dp(0.30), 'y': dp(0.35)}
+
         self.queue = Queue(maxsize=10)
         self.lock = Lock()
         self.semaphore = Semaphore()
         self.condition = Condition()
-
-        with self.canvas.before:
-            Color(.50, .50, .50, 1)
-            Rectangle(pos=(dp(303), dp(72)), size=(dp(362), dp(208)))
+        if self.dpi < 192:
+            self.size_hint = (dp(0.4), dp(0.4))
+            self.pos_hint = {
+                'x': dp(0.30),
+                'y': dp(0.35)
+            }
+        else:
+            self.size_hint = (dp(0.2), dp(0.2))
+            self.pos_hint = {
+                'x': dp(0.15),
+                'y': dp(-0.014)
+            }
 
         with self.canvas:
             Color(1, 1, 1, 1)
@@ -199,7 +205,8 @@ class RunWindow(FloatLayout):
 
         self.hex_keyboard_layout = HexKeyboard(mem_table=self.mem_table,
                                                event_on=self.event_on,
-                                               event_off=self.event_off)
+                                               event_off=self.event_off,
+                                               dpi=self.dpi)
         self.add_widget(self.reg_table)
         self.add_widget(self.inst_table)
         self.add_widget(self.mem_table)
@@ -691,7 +698,7 @@ class MemoryTable(RecycleView):
                 Color(.50, .50, .50, 1)
                 for i in range(51):
                     Line(width=2,
-                        rectangle=(dp(0), dp(0), dp(255), dp(1530 - (30 * i))))
+                         rectangle=(dp(0), dp(0), dp(255), dp(1530 - (30 * i))))
                 Line(width=2, rectangle=(dp(0), dp(0), dp(127.5), dp(1530)))
         else:
             self.pos_hint = {
@@ -706,7 +713,7 @@ class MemoryTable(RecycleView):
                 Color(.50, .50, .50, 1)
                 for i in range(51):
                     Line(width=2,
-                        rectangle=(dp(0), dp(0), dp(270), dp(1530 - (30 * i))))
+                         rectangle=(dp(0), dp(0), dp(270), dp(1530 - (30 * i))))
                 Line(width=2, rectangle=(dp(0), dp(0), dp(135), dp(1530)))
 
     def get_data(self):
