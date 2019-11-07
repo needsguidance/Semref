@@ -135,41 +135,7 @@ class RunWindow(FloatLayout):
         self.micro_sim = kwargs.pop('micro_sim')
         self.dpi = kwargs.pop('dpi')
         super(RunWindow, self).__init__(**kwargs)
-
-        self.ascii_label_1 = Label(text='[color=000000]' + chr(int(RAM[4088], 16)) + '[/color]',
-                                   pos=(dp(-187), dp(-105)),
-                                   font_size=sp(40),
-                                   markup=True)
-        self.ascii_label_2 = Label(text='[color=000000]' + chr(int(RAM[4089], 16)) + '[/color]',
-                                   pos=(dp(-146), dp(-105)),
-                                   font_size=sp(40),
-                                   markup=True)
-        self.ascii_label_3 = Label(text='[color=000000]' + chr(int(RAM[4090], 16)) + '[/color]',
-                                   pos=(dp(-100), dp(-105)),
-                                   font_size=sp(40),
-                                   markup=True)
-        self.ascii_label_4 = Label(text='[color=000000]' + chr(int(RAM[4091], 16)) + '[/color]',
-                                   pos=(dp(-54), dp(-105)),
-                                   font_size=sp(40),
-                                   markup=True)
-        self.ascii_label_5 = Label(text='[color=000000]' + chr(int(RAM[4092], 16)) + '[/color]',
-                                   pos=(dp(-8), dp(-105)),
-                                   font_size=sp(40),
-                                   markup=True)
-        self.ascii_label_6 = Label(text='[color=000000]' + chr(int(RAM[4093], 16)) + '[/color]',
-                                   pos=(dp(38), dp(-105)),
-                                   font_size=sp(40),
-                                   markup=True)
-        self.ascii_label_7 = Label(text='[color=000000]' + chr(int(RAM[4094], 16)) + '[/color]',
-                                   pos=(dp(84), dp(-105)),
-                                   font_size=sp(40),
-                                   markup=True)
-        self.ascii_label_8 = Label(text='[color=000000]' + chr(int(RAM[4095], 16)) + '[/color]',
-                                   pos=(dp(130), dp(-105)),
-                                   font_size=sp(40),
-                                   markup=True)
-
-        self.ascii = ASCIIGrid()
+        self.ascii = ASCIIGrid(dpi=self.dpi)
         self.reg_table = RegisterTable(dpi=self.dpi)
         self.mem_table = MemoryTable(dpi=self.dpi)
         self.inst_table = InstructionTable(dpi=self.dpi)
@@ -215,40 +181,12 @@ class RunWindow(FloatLayout):
         self.add_widget(self.hex_keyboard_label)
         self.add_widget(self.seven_segment_display)
         self.add_widget(self.ascii)
-        self.add_widget(self.ascii_label_1)
-        self.add_widget(self.ascii_label_2)
-        self.add_widget(self.ascii_label_3)
-        self.add_widget(self.ascii_label_4)
-        self.add_widget(self.ascii_label_5)
-        self.add_widget(self.ascii_label_6)
-        self.add_widget(self.ascii_label_7)
-        self.add_widget(self.ascii_label_8)
 
     def update_io(self, dt):
         self.light.change_color(self.micro_sim.traffic_lights_binary())
         self.seven_segment_display.activate_segments(
             self.micro_sim.seven_segment_binary())
-        self.update_ascii_grid()
-
-    def update_ascii_grid(self):
-        labels = [
-            f'[color=000000]{chr(int(RAM[ASCII_TABLE["port"]], 16))}[/color]',
-            f'[color=000000]{chr(int(RAM[ASCII_TABLE["port"] + 1], 16))}[/color]',
-            f'[color=000000]{chr(int(RAM[ASCII_TABLE["port"] + 2], 16))}[/color]',
-            f'[color=000000]{chr(int(RAM[ASCII_TABLE["port"] + 3], 16))}[/color]',
-            f'[color=000000]{chr(int(RAM[ASCII_TABLE["port"] + 4], 16))}[/color]',
-            f'[color=000000]{chr(int(RAM[ASCII_TABLE["port"] + 5], 16))}[/color]',
-            f'[color=000000]{chr(int(RAM[ASCII_TABLE["port"] + 6], 16))}[/color]',
-            f'[color=000000]{chr(int(RAM[ASCII_TABLE["port"] + 7], 16))}[/color]'
-        ]
-        self.ascii_label_1.text = labels[0]
-        self.ascii_label_2.text = labels[1]
-        self.ascii_label_3.text = labels[2]
-        self.ascii_label_4.text = labels[3]
-        self.ascii_label_5.text = labels[4]
-        self.ascii_label_6.text = labels[5]
-        self.ascii_label_7.text = labels[6]
-        self.ascii_label_8.text = labels[7]
+        self.ascii.update_ascii_grid()
 
 
 class MainWindow(BoxLayout):
@@ -395,7 +333,7 @@ class MainWindow(BoxLayout):
 
         self.run_window.light.change_color(
             self.micro_sim.traffic_lights_binary())
-        self.run_window.update_ascii_grid()
+        self.run_window.ascii.update_ascii_grid()
         self.run_window.seven_segment_display.activate_segments(
             self.micro_sim.seven_segment_binary())
         toast('Micro memory cleared! Load new data')
@@ -976,8 +914,37 @@ class SevenSegmentDisplay(Widget):
                         self.rightG = (1, 0, 0)
 
 
-class ASCIIGrid(Widget):
-    pass
+class ASCIIGrid(GridLayout):
+
+    def __init__(self, **kwargs):
+        self.dpi = kwargs.pop('dpi')
+        super().__init__(**kwargs)
+        self.labels = [
+            Label(text='A', color=(0, 0, 0, 1), font_size=sp(30)),
+            Label(text='B', color=(0, 0, 0, 1), font_size=sp(30)),
+            Label(text='C', color=(0, 0, 0, 1), font_size=sp(30)),
+            Label(text='D', color=(0, 0, 0, 1), font_size=sp(30)),
+            Label(text='E', color=(0, 0, 0, 1), font_size=sp(30)),
+            Label(text='F', color=(0, 0, 0, 1), font_size=sp(30)),
+            Label(text='G', color=(0, 0, 0, 1), font_size=sp(30)),
+            Label(text='H', color=(0, 0, 0, 1), font_size=sp(30))
+        ]
+        if self.dpi < 192:
+            pass
+        else:
+            self.size_hint = (0.35, 0.1)
+            self.pos_hint = {
+                'x': dp(0.148),
+                'y': dp(0.006)
+            }
+        for label in self.labels:
+            self.add_widget(label)
+
+    def update_ascii_grid(self):
+        i = 0
+        while i < len(self.labels):
+            self.labels[i].text = chr(int(RAM[ASCII_TABLE["port"] + i], 16))
+            i += 1
 
 
 class GUI(NavigationLayout):
