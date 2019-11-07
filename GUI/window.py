@@ -20,6 +20,7 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
+from kivy.uix.textinput import TextInput
 from kivy.uix.modalview import ModalView
 from kivy.uix.recycleview import RecycleView
 from kivy.uix.widget import Widget
@@ -213,6 +214,7 @@ class RunWindow(FloatLayout):
         self.mem_table = MemoryTable()
         self.inst_table = InstructionTable()
         self.light = TrafficLights()
+        self.editor = TextEditor()
         self.seven_segment_display = SevenSegmentDisplay()
 
         self.reg_table.get_data()
@@ -252,8 +254,9 @@ class RunWindow(FloatLayout):
         box.add_widget(self.hex_keyboard_layout)
         box.add_widget(self.hex_keyboard_label)
         self.popup = Popup(title='Hex Keyboard',
-                      content=box,
-                      size_hint=(None, None), size=(450, 400), background='images\plain-white-background.jpg', title_color = (0,0,0,0), separator_color = (1,1,1,1))
+                           content=box,
+                           size_hint=(None, None), size=(450, 400), background='images\plain-white-background.jpg', title_color=(0, 0, 0, 0), separator_color=(1, 1, 1, 1))
+        self.add_widget(self.editor)
         self.add_widget(self.pop_button)
         self.add_widget(self.save_button)
         self.add_widget(self.run_button)
@@ -277,7 +280,6 @@ class RunWindow(FloatLayout):
     def open_keyboard(self, instance):
 
         self.popup.open()
-
 
     def open_save_dialog(self, instance):
         """It will be called when user click on the save file button.
@@ -916,6 +918,13 @@ class SevenSegmentDisplay(Widget):
 
 class ASCIIGrid(Widget):
     pass
+
+class TextEditor(TextInput):
+
+    def __init__(self, **kwargs):
+        super(TextEditor, self).__init__(**kwargs)
+        
+        
 
 
 class GUI(NavigationLayout):
