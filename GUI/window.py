@@ -11,6 +11,7 @@ from kivy.metrics import dp, sp
 
 from kivy.app import App
 from kivy.clock import Clock
+from kivy.uix.behaviors import DragBehavior
 from kivy.graphics.context_instructions import Color
 from kivy.graphics.vertex_instructions import Rectangle, Line
 from kivy.properties import (ListProperty)
@@ -18,6 +19,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
+from kivy.uix.popup import Popup
 from kivy.uix.modalview import ModalView
 from kivy.uix.recycleview import RecycleView
 from kivy.uix.widget import Widget
@@ -46,7 +48,7 @@ class HexKeyboard(GridLayout):
         super(HexKeyboard, self).__init__(**kwargs)
         self.cols = 4
         self.size_hint = (dp(0.4), dp(0.4))
-        self.pos_hint = {'x': dp(0.30), 'y': dp(0.35)}
+        self.pos_hint = {'x': dp(0.10), 'y': dp(0.35)}
         self.queue = Queue(maxsize=10)
         self.lock = Lock()
         self.semaphore = Semaphore()
@@ -54,29 +56,29 @@ class HexKeyboard(GridLayout):
 
         with self.canvas.before:
             Color(.50, .50, .50, 1)
-            Rectangle(pos=(dp(303), dp(72)), size=(dp(362), dp(208)))
+            Rectangle(pos=(dp(336), dp(249)), size=(dp(362), dp(208)))
 
         with self.canvas:
             Color(1, 1, 1, 1)
-            Rectangle(pos=(dp(307), dp(77)), size=(dp(354), dp(199)))
+            Rectangle(pos=(dp(340), dp(254)), size=(dp(354), dp(199)))
 
             Color(.75, .75, .75, 1)
-            Rectangle(pos=(dp(307), dp(76)), size=(dp(353), dp(143)))
+            Rectangle(pos=(dp(340), dp(250)), size=(dp(353), dp(143)))
 
             Color(.50, .50, .50, 1)
             for i in range(16):
                 if i < 4:
-                    Line(rectangle=(dp(307 + (89 * (i % 4))),
-                                    dp(183), dp(87), dp(35)), width=dp(0.8))
+                    Line(rectangle=(dp(340 + (89 * (i % 4))),
+                                    dp(357), dp(87), dp(35)), width=dp(0.8))
                 elif i >= 4 and i < 8:
-                    Line(rectangle=(dp(307 + (89 * (i % 4))),
-                                    dp(148), dp(87), dp(35)), width=dp(0.8))
+                    Line(rectangle=(dp(340 + (89 * (i % 4))),
+                                    dp(322), dp(87), dp(35)), width=dp(0.8))
                 elif i >= 8 and i < 12:
-                    Line(rectangle=(dp(307 + (89 * (i % 4))),
-                                    dp(113), dp(87), dp(35)), width=dp(0.8))
+                    Line(rectangle=(dp(340 + (89 * (i % 4))),
+                                    dp(287), dp(87), dp(35)), width=dp(0.8))
                 else:
-                    Line(rectangle=(dp(307 + (89 * (i % 4))),
-                                    dp(78), dp(87), dp(35)), width=dp(0.8))
+                    Line(rectangle=(dp(340 + (89 * (i % 4))),
+                                    dp(252), dp(87), dp(35)), width=dp(0.8))
 
         for i in range(16):
             if i > 9:
@@ -164,6 +166,14 @@ class RunWindow(FloatLayout):
                                                          'center_y': dp(2.12)
                                                      },
                                                      on_release=self.open_save_dialog)
+        self.pop_button = MDFillRoundFlatIconButton(text='Popup',
+                                                    icon='download',
+                                                    size_hint=(None, None),
+                                                    pos_hint={
+                                                         'center_x': dp(.25),
+                                                         'center_y': dp(2.12)
+                                                    },
+                                                    on_release=self.open_keyboard)
 
         self.ascii_label_1 = Label(text='[color=000000]' + chr(int(RAM[4088], 16)) + '[/color]',
                                    pos=(dp(-187), dp(-105)),
@@ -216,7 +226,7 @@ class RunWindow(FloatLayout):
                                         font_size=sp(20),
                                         color=(0, 0, 0, 1),
                                         pos_hint={
-                                            'x': dp(-0.025),
+                                            'x': dp(0.01),
                                             'y': dp(0.35)
                                         })
 
@@ -237,6 +247,14 @@ class RunWindow(FloatLayout):
         self.hex_keyboard_layout = HexKeyboard(mem_table=self.mem_table,
                                                event_on=self.event_on,
                                                event_off=self.event_off)
+
+        box = FloatLayout()
+        box.add_widget(self.hex_keyboard_layout)
+        box.add_widget(self.hex_keyboard_label)
+        self.popup = Popup(title='Hex Keyboard',
+                      content=box,
+                      size_hint=(None, None), size=(450, 400), background='images\plain-white-background.jpg', title_color = (0,0,0,0), separator_color = (1,1,1,1))
+        self.add_widget(self.pop_button)
         self.add_widget(self.save_button)
         self.add_widget(self.run_button)
         self.add_widget(self.debug_button)
@@ -245,8 +263,6 @@ class RunWindow(FloatLayout):
         self.add_widget(self.inst_table)
         self.add_widget(self.mem_table)
         self.add_widget(self.light)
-        self.add_widget(self.hex_keyboard_layout)
-        self.add_widget(self.hex_keyboard_label)
         self.add_widget(self.seven_segment_display)
         self.add_widget(self.ascii)
         self.add_widget(self.ascii_label_1)
@@ -257,6 +273,11 @@ class RunWindow(FloatLayout):
         self.add_widget(self.ascii_label_6)
         self.add_widget(self.ascii_label_7)
         self.add_widget(self.ascii_label_8)
+
+    def open_keyboard(self, instance):
+
+        self.popup.open()
+
 
     def open_save_dialog(self, instance):
         """It will be called when user click on the save file button.
@@ -549,7 +570,6 @@ class NavDrawer(MDNavigationDrawer):
         self.manager.open()
         self.history = self.file_manager.history
 
-
     def assembler(self, file):
         i = 0
         filename = os.path.splitext(ntpath.basename(file))[
@@ -570,7 +590,8 @@ class NavDrawer(MDNavigationDrawer):
                 i += 2
             f.close()
 
-            self.run_micro_sim(output_file_location)  # Runs simulator using generated .obj file
+            # Runs simulator using generated .obj file
+            self.run_micro_sim(output_file_location)
             toast(f'Instructions at {file} assembled successfully')
 
         except (AssertionError, FileNotFoundError, ValueError, MemoryError, KeyError, SyntaxError) as e:
