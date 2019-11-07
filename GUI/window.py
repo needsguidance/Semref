@@ -30,8 +30,8 @@ from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
 
 from assembler import Assembler, verify_ram_content, hexify_ram_content
 from assembler import RAM as RAM_ASSEMBLER
-from constants import REGISTER, hex_to_binary, convert_to_hex, is_valid_port, update_reserved_ports
-from constants import TRAFFIC_LIGHT, SEVEN_SEGMENT_DISPLAY, ASCII_TABLE, HEX_KEYBOARD
+from utils import REGISTER, hex_to_binary, convert_to_hex, is_valid_port, update_reserved_ports, update_indicators
+from utils import TRAFFIC_LIGHT, SEVEN_SEGMENT_DISPLAY, ASCII_TABLE, HEX_KEYBOARD
 from microprocessor_simulator import MicroSim, RAM
 
 
@@ -247,6 +247,19 @@ class MainWindow(BoxLayout):
         self.run_window = RunWindow(app=self.app,
                                     micro_sim=self.micro_sim,
                                     dpi=self.dpi)
+        self.loaded_file = MDIconButton(icon='file-check',
+                                        size_hint=(None, None),
+                                        pos_hint={
+                                            'y': self.buttons_y_pos
+                                        }, theme_text_color='Custom',
+                                        text_color=self.app.theme_cls.primary_color)
+        self.not_loaded_file = MDIconButton(icon='file-alert',
+                                            size_hint=(None, None),
+                                            pos_hint={
+                                                'y': self.buttons_y_pos
+                                            }, theme_text_color='Custom',
+                                            text_color=self.app.theme_cls.accent_dark)
+
         self.md_toolbar.add_widget(self.run_button)
         self.md_toolbar.add_widget(self.debug_button)
         self.md_toolbar.add_widget(self.refresh_button)
@@ -254,6 +267,7 @@ class MainWindow(BoxLayout):
         self.add_widget(self.md_toolbar)
         # self.add_widget(BoxLayout())  # Bumps up navigation bar to the top
         self.add_widget(self.run_window)
+        self.add_widget(self.not_loaded_file)
 
     def run_micro_instructions(self, instance):
         if not self.micro_sim.is_running:
@@ -318,6 +332,7 @@ class MainWindow(BoxLayout):
     def clear(self, instance):
         self.step_index = 0
         self.micro_sim.micro_clear()
+        update_indicators(self, self.micro_sim.is_ram_loaded)
         self.run_window.reg_table.data_list.clear()
         self.run_window.reg_table.get_data()
         self.run_window.mem_table.data_list.clear()
@@ -551,14 +566,7 @@ class NavDrawer(MDNavigationDrawer):
 
     def run_micro_sim(self, file):
         self.micro_sim.read_obj_file(file)
-        if self.micro_sim.is_ram_loaded:
-            # If file is loaded, then add a file-check icon on main_window for visual indicator.
-            self.main_window.add_widget(MDIconButton(icon='file-check',
-                                                     size_hint=(None, None),
-                                                     pos_hint={
-                                                         'y': self.main_window.buttons_y_pos
-                                                     }, theme_text_color='Custom',
-                                                     text_color=self.app.theme_cls.primary_color))
+        update_indicators(self.main_window, self.micro_sim.is_ram_loaded)
 
 
 class RegisterTable(RecycleView):
