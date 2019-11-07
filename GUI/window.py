@@ -128,7 +128,6 @@ class RunWindow(FloatLayout):
         self.app = kwargs.pop('app')
         self.micro_sim = kwargs.pop('micro_sim')
         self.dpi = kwargs.pop('dpi')
-        self.header = kwargs.pop('header')
         super(RunWindow, self).__init__(**kwargs)
 
         self.ascii_label_1 = Label(text='[color=000000]' + chr(int(RAM[4088], 16)) + '[/color]',
@@ -175,9 +174,7 @@ class RunWindow(FloatLayout):
         self.mem_table.data_list.clear()
         self.mem_table.get_data()
         self.inst_table.get_data(self.micro_sim.index,
-                                 self.header,
                                  self.micro_sim.disassembled_instruction())
-        self.header = True
         self.hex_keyboard_label = Label(text='HEX KEYBOARD',
                                         font_size=sp(20),
                                         color=(0, 0, 0, 1),
@@ -258,7 +255,6 @@ class MainWindow(BoxLayout):
         buttons_y_pos = dp(0.2) if self.dpi < 192 else dp(0.1)
 
         self.first_inst = True
-        self.header = False
         self.step_index = 0
         self.ids['left_actions'] = BoxLayout()
         self.orientation = 'vertical'
@@ -305,8 +301,7 @@ class MainWindow(BoxLayout):
                                                      on_release=self.open_save_dialog)
         self.run_window = RunWindow(app=self.app,
                                     micro_sim=self.micro_sim,
-                                    dpi=self.dpi,
-                                    header=self.header)
+                                    dpi=self.dpi)
         self.md_toolbar.add_widget(self.run_button)
         self.md_toolbar.add_widget(self.debug_button)
         self.md_toolbar.add_widget(self.refresh_button)
@@ -325,13 +320,9 @@ class MainWindow(BoxLayout):
                 for m in range(2):
                     if self.first_inst:
                         self.run_window.inst_table.data_list.clear()
-                        self.header = False
                         self.run_window.inst_table.get_data(self.micro_sim.index,
-                                                            self.header,
                                                             self.micro_sim.disassembled_instruction())
-                        self.header = True
                         self.run_window.inst_table.get_data(self.micro_sim.index,
-                                                            self.header,
                                                             self.micro_sim.disassembled_instruction())
                         self.first_inst = False
                     else:
@@ -345,7 +336,6 @@ class MainWindow(BoxLayout):
                         while self.micro_sim.is_running:
                             self.micro_sim.run_micro_instructions()
                             self.run_window.inst_table.get_data(self.micro_sim.index,
-                                                                self.header,
                                                                 self.micro_sim.disassembled_instruction())
 
                             if self.micro_sim.prev_index == self.micro_sim.index:
@@ -367,13 +357,11 @@ class MainWindow(BoxLayout):
                 self.step_index += 1
                 if self.first_inst:
                     self.run_window.inst_table.get_data(self.micro_sim.index,
-                                                        self.header,
                                                         self.micro_sim.disassembled_instruction())
                     self.first_inst = False
                 else:
                     self.micro_sim.run_micro_instructions_step(self.step_index)
                     self.run_window.inst_table.get_data(self.micro_sim.index,
-                                                        self.header,
                                                         self.micro_sim.disassembled_instruction())
 
                 toast(
@@ -383,7 +371,6 @@ class MainWindow(BoxLayout):
                 self.run_window.mem_table.get_data()
 
     def clear(self, instance):
-        self.header = False
         self.step_index = 0
         self.micro_sim.micro_clear()
         self.run_window.reg_table.data_list.clear()
@@ -392,9 +379,7 @@ class MainWindow(BoxLayout):
         self.run_window.mem_table.get_data()
         self.run_window.inst_table.data_list.clear()
         self.run_window.inst_table.get_data(self.micro_sim.index,
-                                            self.header,
                                             self.micro_sim.disassembled_instruction())
-        self.header = True
         self.first_inst = True
 
         # Cancels last scheduling thread for clean event
@@ -740,8 +725,8 @@ class InstructionTable(RecycleView):
             self.size_hint_y = dp(0.265)
 
 
-    def get_data(self, address, header, instruction):
-        if not header:
+    def get_data(self, address, instruction):
+        if not self.data_list:
             self.data_list.append('ADDRESS')
             self.data_list.append('CONTENT')
             self.data_list.append('DISASSEMBLY')
