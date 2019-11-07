@@ -7,17 +7,16 @@ from time import sleep
 
 from kivy.app import App
 from kivy.clock import Clock
-from kivy.uix.behaviors import DragBehavior
 from kivy.graphics.context_instructions import Color
 from kivy.graphics.vertex_instructions import Rectangle, Line
 from kivy.metrics import dp, sp, MetricsBase
-from kivy.properties import (ListProperty, ObjectProperty, NumericProperty)
+from kivy.properties import (ListProperty)
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
-from kivy.uix.popup import Popup
 from kivy.uix.modalview import ModalView
+from kivy.uix.popup import Popup
 from kivy.uix.recycleview import RecycleView
 from kivy.uix.widget import Widget
 from kivymd.theming import ThemeManager
@@ -137,7 +136,6 @@ class RunWindow(FloatLayout):
         self.inst_table = InstructionTable(dpi=self.dpi)
         self.light = TrafficLights()
         self.seven_segment_display = SevenSegmentDisplay()
-        
 
         self.reg_table.get_data()
         self.mem_table.data_list.clear()
@@ -175,8 +173,8 @@ class RunWindow(FloatLayout):
         box.add_widget(self.hex_keyboard_label)
         self.popup = Popup(title='Hex Keyboard',
                            content=box,
-                           size_hint=(None, None), size=(450, 400), background='images\plain-white-background.jpg', title_color=(0, 0, 0, 0), separator_color=(1, 1, 1, 1))
-        self.add_widget(self.pop_button)
+                           size_hint=(None, None), size=(450, 400), background='images\plain-white-background.jpg',
+                           title_color=(0, 0, 0, 0), separator_color=(1, 1, 1, 1))
         self.add_widget(self.reg_table)
         self.add_widget(self.inst_table)
         self.add_widget(self.mem_table)
@@ -185,7 +183,6 @@ class RunWindow(FloatLayout):
         self.add_widget(self.ascii)
 
     def open_keyboard(self, instance):
-
         self.popup.open()
 
     def update_io(self, dt):
@@ -210,6 +207,9 @@ class MainWindow(BoxLayout):
         self.ids['left_actions'] = BoxLayout()
         self.orientation = 'vertical'
         self.toolbar_layout = BoxLayout(orientation='vertical')
+        self.run_window = RunWindow(app=self.app,
+                                    micro_sim=self.micro_sim,
+                                    dpi=self.dpi)
         self.md_toolbar = MDToolbar(title='Semref Micro Sim',
                                     md_bg_color=self.app.theme_cls.primary_color,
                                     background_palette='Primary',
@@ -250,21 +250,18 @@ class MainWindow(BoxLayout):
                                                          'y': buttons_y_pos
                                                      },
                                                      on_release=self.open_save_dialog)
-        self.run_window = RunWindow(app=self.app,
-                                    micro_sim=self.micro_sim,
-                                    dpi=self.dpi)
         self.pop_button = MDFillRoundFlatIconButton(text='Popup',
                                                     icon='download',
                                                     size_hint=(None, None),
                                                     pos_hint={
-                                                         'center_x': dp(.25),
-                                                         'center_y': dp(2.12)
+                                                        'y': buttons_y_pos
                                                     },
-                                                    on_release=self.open_keyboard)
+                                                    on_release=self.run_window.open_keyboard)
         self.md_toolbar.add_widget(self.run_button)
         self.md_toolbar.add_widget(self.debug_button)
         self.md_toolbar.add_widget(self.refresh_button)
         self.md_toolbar.add_widget(self.save_button)
+        self.md_toolbar.add_widget(self.pop_button)
         self.add_widget(self.md_toolbar)
         # self.add_widget(BoxLayout())  # Bumps up navigation bar to the top
         self.add_widget(self.run_window)
@@ -933,7 +930,11 @@ class ASCIIGrid(GridLayout):
             Label(text='H', color=(0, 0, 0, 1), font_size=sp(30))
         ]
         if self.dpi < 192:
-            pass
+            self.size_hint = (0.35, 0.1)
+            self.pos_hint = {
+                'x': dp(0.297),
+                'y': dp(0.015)
+            }
         else:
             self.size_hint = (0.35, 0.1)
             self.pos_hint = {
