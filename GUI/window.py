@@ -165,7 +165,7 @@ class RunWindow(FloatLayout):
 
         self.ascii = ASCIIGrid()
         self.reg_table = RegisterTable(dpi=self.dpi)
-        self.mem_table = MemoryTable()
+        self.mem_table = MemoryTable(dpi=self.dpi)
         self.inst_table = InstructionTable(dpi=self.dpi)
         self.light = TrafficLights()
         self.seven_segment_display = SevenSegmentDisplay()
@@ -602,16 +602,12 @@ class NavDrawer(MDNavigationDrawer):
 
 class RegisterTable(RecycleView):
     data_list = ListProperty([])
-    dpi = NumericProperty(0)
 
     def __init__(self, **kwargs):
         self.dpi = kwargs.pop('dpi')
         super(RegisterTable, self).__init__(**kwargs)
         self.viewclass = 'Label'
         self.recycle_grid_layout = self.children[0]
-        self.recycle_grid_layout.cols = 2
-        self.recycle_grid_layout.size_hint_y = None
-        self.recycle_grid_layout.default_size = (None, dp(30))
         if self.dpi < 192:
             self.pos_hint = {
                 'x': dp(0),
@@ -680,14 +676,38 @@ class MemoryTable(RecycleView):
     data_list = ListProperty([])
 
     def __init__(self, **kwargs):
+        self.dpi = kwargs.pop('dpi')
         super(MemoryTable, self).__init__(**kwargs)
         self.viewclass = 'Label'
-        with self.children[0].canvas.before:
-            Color(.50, .50, .50, 1)
-            for i in range(51):
-                Line(width=2,
-                     rectangle=(dp(0), dp(0), dp(255), dp(1530 - (30 * i))))
-            Line(width=2, rectangle=(dp(0), dp(0), dp(127.5), dp(1530)))
+        self.recycle_grid_layout = self.children[0]
+        if self.dpi < 192:
+            self.pos_hint = {
+                'x': dp(0.75),
+                'center_y': dp(1.5)
+            }
+            self.recycle_grid_layout.default_size_hint = (sp(1), None)
+            self.recycle_grid_layout.size_hint_x: dp(0.25)
+            with self.children[0].canvas.before:
+                Color(.50, .50, .50, 1)
+                for i in range(51):
+                    Line(width=2,
+                        rectangle=(dp(0), dp(0), dp(255), dp(1530 - (30 * i))))
+                Line(width=2, rectangle=(dp(0), dp(0), dp(127.5), dp(1530)))
+        else:
+            self.pos_hint = {
+                'x': dp(0.37),
+                'center_y': dp(0.368)
+            }
+            self.size_hint_x = dp(0.135)
+            self.size_hint_y = dp(0.265)
+            self.recycle_grid_layout.default_size_hint = (dp(0.5), None)
+            self.recycle_grid_layout.size_hint_x = dp(0.47)
+            with self.children[0].canvas.before:
+                Color(.50, .50, .50, 1)
+                for i in range(51):
+                    Line(width=2,
+                        rectangle=(dp(0), dp(0), dp(270), dp(1530 - (30 * i))))
+                Line(width=2, rectangle=(dp(0), dp(0), dp(135), dp(1530)))
 
     def get_data(self):
         self.data_list.append('MEMORY BYTE')
@@ -723,7 +743,6 @@ class InstructionTable(RecycleView):
             }
             self.size_hint_x = dp(0.25)
             self.size_hint_y = dp(0.265)
-
 
     def get_data(self, address, instruction):
         if not self.data_list:
