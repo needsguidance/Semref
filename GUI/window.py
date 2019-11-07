@@ -39,6 +39,7 @@ from constants import TRAFFIC_LIGHT, SEVEN_SEGMENT_DISPLAY, ASCII_TABLE, HEX_KEY
 from microprocessor_simulator import MicroSim, RAM
 
 
+
 class HexKeyboard(GridLayout):
 
     def __init__(self, **kwargs):
@@ -278,8 +279,11 @@ class RunWindow(FloatLayout):
         self.add_widget(self.ascii_label_8)
 
     def open_keyboard(self, instance):
-
+        
         self.popup.open()
+
+    def load_file_to_editor(self):
+        self.editor.load_file('file_path')
 
     def open_save_dialog(self, instance):
         """It will be called when user click on the save file button.
@@ -462,6 +466,7 @@ class MainWindow(BoxLayout):
         super().__init__(**kwargs)
         self.ids['left_actions'] = BoxLayout()
         self.orientation = 'vertical'
+        self.run_window = RunWindow(app=self.app, micro_sim=self.micro_sim)
         self.add_widget(MDToolbar(title='Semref Micro Sim',
                                   md_bg_color=self.app.theme_cls.primary_color,
                                   background_palette='Primary',
@@ -484,6 +489,7 @@ class NavDrawer(MDNavigationDrawer):
         self.manager_open = False
         self.manager = None
         self.history = []
+        
 
         self.add_widget(NavigationDrawerSubheader(text='Menu:'))
         self.add_widget(NavigationDrawerIconButton(icon='paperclip',
@@ -923,7 +929,19 @@ class TextEditor(TextInput):
 
     def __init__(self, **kwargs):
         super(TextEditor, self).__init__(**kwargs)
+        self.bind(text=self.on_text)
         
+
+    def on_text(self, instance, value):
+        print(value)  
+
+    def load_file(self, file_text):
+        self.focus=True
+        self.insert_text(file_text)
+        self.text = file_text
+        self._trigger_refresh_text()
+
+    
         
 
 
