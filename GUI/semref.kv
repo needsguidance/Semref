@@ -1,37 +1,27 @@
 <RegisterTable>:
-    id: data_list
-    pos_hint:{'x': dp(0), 'center_y': dp(1.5)}
+    size_hint: None, None
     RecycleGridLayout:
         cols: 2
-        default_size: None, dp(30)
-        default_size_hint: dp(1), None
         size_hint_y: None
-        size_hint_x: dp(0.2)
-        height: dp(self.minimum_height)
+        default_size: (None, dp(30))
+        height: dp(self.minimum_height) if root.dpi < 192 else dp(self.minimum_height / 2)
 
 <InstructionTable>:
-    id: data_list
-    pos_hint:{'x': dp(0.2), 'center_y': dp(1.5)}
     RecycleGridLayout:
         cols: 3
         default_size: None, dp(30)
         default_size_hint: dp(1), None
         size_hint_y: None
         size_hint_x: dp(0.5)
-        height: dp(self.minimum_height)
+        height: dp(self.minimum_height) if root.dpi < 192 else dp(self.minimum_height / 2)
 
 
 <MemoryTable>:
-    id: data_list
-    pos_hint:{'x': dp(0.75), 'center_y': dp(1.5)}
     RecycleGridLayout:
         cols: 2
-        default_size: None, dp(30)
-        default_size_hint: sp(1), None
+        default_size: (None, dp(30))
         size_hint_y: None
-        size_hint_x: dp(0.25)
-        height: sp(self.minimum_height)
-        orientation: 'vertical'
+        height: dp(self.minimum_height) if root.dpi < 192 else dp(self.minimum_height / 2)
 
 <TrafficLights>
     canvas.before:
@@ -226,3 +216,11 @@
             pos: dp(140), dp(140)
             size: dp(40), dp(10)
 
+<HexKeyboard>:
+    cols: 4
+    canvas.before:
+        Color:
+            rgba: (.5, .5, .5, 1)
+        Rectangle:
+            pos: dp(303), dp(72)
+            size: dp(362), dp(208)
