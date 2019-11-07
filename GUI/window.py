@@ -472,16 +472,20 @@ class NavDrawer(MDNavigationDrawer):
                                                    text='Load File',
                                                    on_release=self.file_manager_open))
         self.add_widget(NavigationDrawerIconButton(icon='traffic-light',
-                                                   text=TRAFFIC_LIGHT['menu_title'],
+                                                   text=TRAFFIC_LIGHT['menu_title'] + '. Current Port: ' + str(
+                                                       TRAFFIC_LIGHT['port']),
                                                    on_release=self.io_config_open))
         self.add_widget(NavigationDrawerIconButton(icon='numeric-7-box-multiple',
-                                                   text=SEVEN_SEGMENT_DISPLAY['menu_title'],
+                                                   text=SEVEN_SEGMENT_DISPLAY['menu_title'] + '. Current Port: ' + str(
+                                                       SEVEN_SEGMENT_DISPLAY['port']),
                                                    on_release=self.io_config_open))
         self.add_widget(NavigationDrawerIconButton(icon='alphabetical-variant',
-                                                   text=ASCII_TABLE['menu_title'],
+                                                   text=ASCII_TABLE['menu_title'] + '. Current Port: ' + str(
+                                                       ASCII_TABLE['port']),
                                                    on_release=self.io_config_open))
         self.add_widget(NavigationDrawerIconButton(icon='keyboard',
-                                                   text=HEX_KEYBOARD['menu_title'],
+                                                   text=HEX_KEYBOARD['menu_title'] + '. Current Port: ' + str(
+                                                       HEX_KEYBOARD['port']),
                                                    on_release=self.io_config_open))
 
     def io_config_open(self, instance):
