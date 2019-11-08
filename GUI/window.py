@@ -10,12 +10,13 @@ from kivy.clock import Clock
 from kivy.graphics.context_instructions import Color
 from kivy.graphics.vertex_instructions import Rectangle, Line
 from kivy.metrics import dp, sp, MetricsBase
-from kivy.properties import (ListProperty, ObjectProperty, NumericProperty)
+from kivy.properties import (ListProperty)
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.modalview import ModalView
+from kivy.uix.popup import Popup
 from kivy.uix.recycleview import RecycleView
 from kivy.uix.widget import Widget
 from kivymd.theming import ThemeManager
@@ -43,7 +44,6 @@ class HexKeyboard(GridLayout):
         self.event_off = kwargs.pop('event_off')
         self.dpi = kwargs.pop('dpi')
         super(HexKeyboard, self).__init__(**kwargs)
-
         self.queue = Queue(maxsize=10)
         self.lock = Lock()
         self.semaphore = Semaphore()
@@ -51,37 +51,41 @@ class HexKeyboard(GridLayout):
         if self.dpi < 192:
             self.size_hint = (dp(0.4), dp(0.4))
             self.pos_hint = {
-                'x': dp(0.30),
+                'x': dp(0.10),
                 'y': dp(0.35)
             }
         else:
-            self.size_hint = (dp(0.2), dp(0.2))
+            self.size_hint = (dp(0.4), dp(0.2))
             self.pos_hint = {
-                'x': dp(0.15),
-                'y': dp(-0.014)
+                'x': dp(0.105),
+                'y': dp(0.1232)
             }
+
+        with self.canvas.before:
+            Color(.50, .50, .50, 1)
+            Rectangle(pos=(dp(336), dp(249)), size=(dp(362), dp(208)))
 
         with self.canvas:
             Color(1, 1, 1, 1)
-            Rectangle(pos=(dp(307), dp(77)), size=(dp(354), dp(199)))
+            Rectangle(pos=(dp(340), dp(254)), size=(dp(354), dp(199)))
 
             Color(.75, .75, .75, 1)
-            Rectangle(pos=(dp(307), dp(76)), size=(dp(353), dp(143)))
+            Rectangle(pos=(dp(340), dp(250)), size=(dp(353), dp(143)))
 
             Color(.50, .50, .50, 1)
             for i in range(16):
                 if i < 4:
-                    Line(rectangle=(dp(307 + (89 * (i % 4))),
-                                    dp(183), dp(87), dp(35)), width=dp(0.8))
+                    Line(rectangle=(dp(340 + (89 * (i % 4))),
+                                    dp(357), dp(87), dp(35)), width=dp(0.8))
                 elif i >= 4 and i < 8:
-                    Line(rectangle=(dp(307 + (89 * (i % 4))),
-                                    dp(148), dp(87), dp(35)), width=dp(0.8))
+                    Line(rectangle=(dp(340 + (89 * (i % 4))),
+                                    dp(322), dp(87), dp(35)), width=dp(0.8))
                 elif i >= 8 and i < 12:
-                    Line(rectangle=(dp(307 + (89 * (i % 4))),
-                                    dp(113), dp(87), dp(35)), width=dp(0.8))
+                    Line(rectangle=(dp(340 + (89 * (i % 4))),
+                                    dp(287), dp(87), dp(35)), width=dp(0.8))
                 else:
-                    Line(rectangle=(dp(307 + (89 * (i % 4))),
-                                    dp(78), dp(87), dp(35)), width=dp(0.8))
+                    Line(rectangle=(dp(340 + (89 * (i % 4))),
+                                    dp(252), dp(87), dp(35)), width=dp(0.8))
 
         for i in range(16):
             if i > 9:
@@ -149,11 +153,7 @@ class RunWindow(FloatLayout):
                                  self.micro_sim.disassembled_instruction())
         self.hex_keyboard_label = Label(text='HEX KEYBOARD',
                                         font_size=sp(20),
-                                        color=(0, 0, 0, 1),
-                                        pos_hint={
-                                            'x': dp(-0.025),
-                                            'y': dp(0.35)
-                                        })
+                                        color=(0, 0, 0, 1))
 
         # Create variable of scheduling instance so that it can be turned on and off,
         # to avoid repeat of the same thread
@@ -173,14 +173,43 @@ class RunWindow(FloatLayout):
                                                event_on=self.event_on,
                                                event_off=self.event_off,
                                                dpi=self.dpi)
+        box = FloatLayout()
+        box.add_widget(self.hex_keyboard_layout)
+        box.add_widget(self.hex_keyboard_label)
+        self.popup = Popup(title='Hex Keyboard',
+                           content=box,
+                           background='images\plain-white-background.jpg',
+                           title_color=(0, 0, 0, 0),
+                           separator_color=(1, 1, 1, 1))
+        if self.dpi < 192:
+            self.popup.size_hint = (None, None)
+            self.popup.size = (450, 400)
+
+            self.hex_keyboard_label.pos_hint = {
+                'x': dp(0.01),
+                'y': dp(0.35)
+            }
+        else:
+            self.popup.size_hint_x = dp(0.3)
+            self.popup.size_hint_y = dp(0.3)
+            self.popup.pos_hint = {
+                'x': dp(0.1),
+                'y': dp(0.13)
+            }
+
+            self.hex_keyboard_label.pos_hint = {
+                'x': dp(0.01),
+                'y': dp(0.13)
+            }
         self.add_widget(self.reg_table)
         self.add_widget(self.inst_table)
         self.add_widget(self.mem_table)
         self.add_widget(self.light)
-        self.add_widget(self.hex_keyboard_layout)
-        self.add_widget(self.hex_keyboard_label)
         self.add_widget(self.seven_segment_display)
         self.add_widget(self.ascii)
+
+    def open_keyboard(self, instance):
+        self.popup.open()
 
     def update_io(self, dt):
         self.light.change_color(self.micro_sim.traffic_lights_binary())
@@ -204,6 +233,9 @@ class MainWindow(BoxLayout):
         self.ids['left_actions'] = BoxLayout()
         self.orientation = 'vertical'
         self.toolbar_layout = BoxLayout(orientation='vertical')
+        self.run_window = RunWindow(app=self.app,
+                                    micro_sim=self.micro_sim,
+                                    dpi=self.dpi)
         self.md_toolbar = MDToolbar(title='Semref Micro Sim',
                                     md_bg_color=self.app.theme_cls.primary_color,
                                     background_palette='Primary',
@@ -244,9 +276,13 @@ class MainWindow(BoxLayout):
                                                          'y': self.buttons_y_pos
                                                      },
                                                      on_release=self.open_save_dialog)
-        self.run_window = RunWindow(app=self.app,
-                                    micro_sim=self.micro_sim,
-                                    dpi=self.dpi)
+        self.pop_button = MDFillRoundFlatIconButton(text='Hex Keyboard',
+                                                    icon='keyboard-outline',
+                                                    size_hint=(None, None),
+                                                    pos_hint={
+                                                        'y': buttons_y_pos
+                                                    },
+                                                    on_release=self.run_window.open_keyboard)
         self.loaded_file = MDIconButton(icon='file-check',
                                         size_hint=(None, None),
                                         pos_hint={
@@ -259,11 +295,11 @@ class MainWindow(BoxLayout):
                                                 'y': self.buttons_y_pos
                                             }, theme_text_color='Custom',
                                             text_color=self.app.theme_cls.accent_dark)
-
         self.md_toolbar.add_widget(self.run_button)
         self.md_toolbar.add_widget(self.debug_button)
         self.md_toolbar.add_widget(self.refresh_button)
         self.md_toolbar.add_widget(self.save_button)
+        self.md_toolbar.add_widget(self.pop_button)
         self.add_widget(self.md_toolbar)
         # self.add_widget(BoxLayout())  # Bumps up navigation bar to the top
         self.add_widget(self.run_window)
@@ -597,14 +633,13 @@ class RegisterTable(RecycleView):
             }
             self.size_hint_x = dp(0.12)
             self.size_hint_y = dp(0.265)
-            self.recycle_grid_layout.default_size_hint = (dp(0.5), None)
             self.recycle_grid_layout.size_hint_x = dp(0.47)
             with self.children[0].canvas.before:
                 Color(.50, .50, .50, 1)
                 for i in range(13):
                     Line(width=2,
-                         rectangle=(dp(0), dp(30 * i), dp(245), dp(585)))
-                Line(width=2, rectangle=(dp(0), dp(0), dp(115), dp(585)))
+                         rectangle=(dp(0), dp(0), dp(245), dp(390 - (30 * i))))
+                Line(width=2, rectangle=(dp(0), dp(0), dp(115), dp(390)))
 
     def get_data(self):
         _data_list = self.data_list.copy()
@@ -923,6 +958,23 @@ class SevenSegmentDisplay(Widget):
                     else:
                         self.rightG = (1, 0, 0)
 
+    def clear_seven_segment(self):
+        self.leftA = (.41, .41, .41)
+        self.leftB = (.41, .41, .41)
+        self.leftC = (.41, .41, .41)
+        self.leftD = (.41, .41, .41)
+        self.leftE = (.41, .41, .41)
+        self.leftF = (.41, .41, .41)
+        self.leftG = (.41, .41, .41)
+
+        self.rightA = (.41, .41, .41)
+        self.rightB = (.41, .41, .41)
+        self.rightC = (.41, .41, .41)
+        self.rightD = (.41, .41, .41)
+        self.rightE = (.41, .41, .41)
+        self.rightF = (.41, .41, .41)
+        self.rightG = (.41, .41, .41)
+
 
 class ASCIIGrid(GridLayout):
 
@@ -940,7 +992,11 @@ class ASCIIGrid(GridLayout):
             Label(text='H', color=(0, 0, 0, 1), font_size=sp(30))
         ]
         if self.dpi < 192:
-            pass
+            self.size_hint = (0.35, 0.1)
+            self.pos_hint = {
+                'x': dp(0.297),
+                'y': dp(0.015)
+            }
         else:
             self.size_hint = (0.35, 0.1)
             self.pos_hint = {
