@@ -613,7 +613,6 @@ class RegisterTable(RecycleView):
             }
             self.size_hint_x = dp(0.12)
             self.size_hint_y = dp(0.265)
-            self.recycle_grid_layout.default_size_hint = (dp(0.5), None)
             self.recycle_grid_layout.size_hint_x = dp(0.47)
             with self.children[0].canvas.before:
                 Color(.50, .50, .50, 1)
