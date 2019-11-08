@@ -593,8 +593,8 @@ class RegisterTable(RecycleView):
                 Color(.50, .50, .50, 1)
                 for i in range(13):
                     Line(width=2,
-                         rectangle=(dp(0), dp(30 * i), dp(245), dp(585)))
-                Line(width=2, rectangle=(dp(0), dp(0), dp(115), dp(585)))
+                         rectangle=(dp(0), dp(0), dp(245), dp(390 - (30 * i))))
+                Line(width=2, rectangle=(dp(0), dp(0), dp(115), dp(390)))
 
     def get_data(self):
         _data_list = self.data_list.copy()
