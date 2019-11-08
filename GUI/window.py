@@ -44,13 +44,22 @@ class HexKeyboard(GridLayout):
         self.event_off = kwargs.pop('event_off')
         self.dpi = kwargs.pop('dpi')
         super(HexKeyboard, self).__init__(**kwargs)
-        self.cols = 4
-        self.size_hint = (dp(0.4), dp(0.4))
-        self.pos_hint = {'x': dp(0.10), 'y': dp(0.35)}
         self.queue = Queue(maxsize=10)
         self.lock = Lock()
         self.semaphore = Semaphore()
         self.condition = Condition()
+        if self.dpi < 192:
+            self.size_hint = (dp(0.4), dp(0.4))
+            self.pos_hint = {
+                'x': dp(0.10),
+                'y': dp(0.35)
+            }
+        else:
+            self.size_hint = (dp(0.4), dp(0.2))
+            self.pos_hint = {
+                'x': dp(0.105),
+                'y': dp(0.1232)
+            }
 
         with self.canvas.before:
             Color(.50, .50, .50, 1)
@@ -144,11 +153,7 @@ class RunWindow(FloatLayout):
                                  self.micro_sim.disassembled_instruction())
         self.hex_keyboard_label = Label(text='HEX KEYBOARD',
                                         font_size=sp(20),
-                                        color=(0, 0, 0, 1),
-                                        pos_hint={
-                                            'x': dp(0.01),
-                                            'y': dp(0.35)
-                                        })
+                                        color=(0, 0, 0, 1))
 
         # Create variable of scheduling instance so that it can be turned on and off,
         # to avoid repeat of the same thread
@@ -173,8 +178,29 @@ class RunWindow(FloatLayout):
         box.add_widget(self.hex_keyboard_label)
         self.popup = Popup(title='Hex Keyboard',
                            content=box,
-                           size_hint=(None, None), size=(450, 400), background='images\plain-white-background.jpg',
-                           title_color=(0, 0, 0, 0), separator_color=(1, 1, 1, 1))
+                           background='images\plain-white-background.jpg',
+                           title_color=(0, 0, 0, 0),
+                           separator_color=(1, 1, 1, 1))
+        if self.dpi < 192:
+            self.popup.size_hint = (None, None)
+            self.popup.size = (450, 400)
+
+            self.hex_keyboard_label.pos_hint = {
+                'x': dp(0.01),
+                'y': dp(0.35)
+            }
+        else:
+            self.popup.size_hint_x = dp(0.3)
+            self.popup.size_hint_y = dp(0.3)
+            self.popup.pos_hint = {
+                'x': dp(0.1),
+                'y': dp(0.13)
+            }
+
+            self.hex_keyboard_label.pos_hint = {
+                'x': dp(0.01),
+                'y': dp(0.13)
+            }
         self.add_widget(self.reg_table)
         self.add_widget(self.inst_table)
         self.add_widget(self.mem_table)
@@ -250,8 +276,8 @@ class MainWindow(BoxLayout):
                                                          'y': buttons_y_pos
                                                      },
                                                      on_release=self.open_save_dialog)
-        self.pop_button = MDFillRoundFlatIconButton(text='Popup',
-                                                    icon='download',
+        self.pop_button = MDFillRoundFlatIconButton(text='Hex Keyboard',
+                                                    icon='keyboard-outline',
                                                     size_hint=(None, None),
                                                     pos_hint={
                                                         'y': buttons_y_pos
