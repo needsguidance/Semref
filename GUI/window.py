@@ -913,6 +913,23 @@ class SevenSegmentDisplay(Widget):
                     else:
                         self.rightG = (1, 0, 0)
 
+    def clear_seven_segment(self):
+        self.leftA = (.41, .41, .41)
+        self.leftB = (.41, .41, .41)
+        self.leftC = (.41, .41, .41)
+        self.leftD = (.41, .41, .41)
+        self.leftE = (.41, .41, .41)
+        self.leftF = (.41, .41, .41)
+        self.leftG = (.41, .41, .41)
+
+        self.rightA = (.41, .41, .41)
+        self.rightB = (.41, .41, .41)
+        self.rightC = (.41, .41, .41)
+        self.rightD = (.41, .41, .41)
+        self.rightE = (.41, .41, .41)
+        self.rightF = (.41, .41, .41)
+        self.rightG = (.41, .41, .41)
+
 
 class ASCIIGrid(GridLayout):
 
