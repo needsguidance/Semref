@@ -1,24 +1,22 @@
+import ntpath
+import os
 from pathlib import Path
 from queue import Queue
 from threading import Lock, Thread, Semaphore, Condition
 from time import sleep
-from assembler import Assembler, verify_ram_content, hexify_ram_content, clear_ram
-from assembler import RAM as RAM_assembler
-import ntpath
-import os
-
-from kivy.metrics import dp, sp
 
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.graphics.context_instructions import Color
 from kivy.graphics.vertex_instructions import Rectangle, Line
+from kivy.metrics import dp, sp, MetricsBase
 from kivy.properties import (ListProperty)
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.modalview import ModalView
+from kivy.uix.popup import Popup
 from kivy.uix.recycleview import RecycleView
 from kivy.uix.widget import Widget
 from kivymd.theming import ThemeManager
@@ -31,6 +29,8 @@ from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
                                          NavigationDrawerSubheader,
                                          NavigationLayout)
 
+from assembler import Assembler, verify_ram_content, hexify_ram_content
+from assembler import RAM as RAM_ASSEMBLER
 from constants import REGISTER, hex_to_binary, convert_to_hex, is_valid_port, update_reserved_ports
 from constants import TRAFFIC_LIGHT, SEVEN_SEGMENT_DISPLAY, ASCII_TABLE, HEX_KEYBOARD
 from microprocessor_simulator import MicroSim, RAM
@@ -42,41 +42,50 @@ class HexKeyboard(GridLayout):
         self.mem_table = kwargs.pop('mem_table')
         self.event_on = kwargs.pop('event_on')
         self.event_off = kwargs.pop('event_off')
-
+        self.dpi = kwargs.pop('dpi')
         super(HexKeyboard, self).__init__(**kwargs)
-        self.cols = 4
-        self.size_hint = (dp(0.4), dp(0.4))
-        self.pos_hint = {'x': dp(0.30), 'y': dp(0.35)}
         self.queue = Queue(maxsize=10)
         self.lock = Lock()
         self.semaphore = Semaphore()
         self.condition = Condition()
+        if self.dpi < 192:
+            self.size_hint = (dp(0.4), dp(0.4))
+            self.pos_hint = {
+                'x': dp(0.10),
+                'y': dp(0.35)
+            }
+        else:
+            self.size_hint = (dp(0.4), dp(0.2))
+            self.pos_hint = {
+                'x': dp(0.105),
+                'y': dp(0.1232)
+            }
 
         with self.canvas.before:
             Color(.50, .50, .50, 1)
-            Rectangle(pos=(dp(303), dp(72)), size=(dp(362), dp(208)))
+            Rectangle(pos=(dp(336), dp(249)), size=(dp(362), dp(208)))
 
         with self.canvas:
             Color(1, 1, 1, 1)
-            Rectangle(pos=(dp(307), dp(77)), size=(dp(354), dp(199)))
+            Rectangle(pos=(dp(340), dp(254)), size=(dp(354), dp(199)))
 
             Color(.75, .75, .75, 1)
-            Rectangle(pos=(dp(307), dp(76)), size=(dp(353), dp(143)))
+            Rectangle(pos=(dp(340), dp(250)), size=(dp(353), dp(143)))
 
             Color(.50, .50, .50, 1)
             for i in range(16):
                 if i < 4:
-                    Line(rectangle=(dp(307 + (89 * (i % 4))),
-                                    dp(183), dp(87), dp(35)), width=dp(0.8))
+                    Line(rectangle=(dp(340 + (89 * (i % 4))),
+                                    dp(357), dp(87), dp(35)), width=dp(0.8))
                 elif i >= 4 and i < 8:
-                    Line(rectangle=(dp(307 + (89 * (i % 4))),
-                                    dp(148), dp(87), dp(35)), width=dp(0.8))
+                    Line(rectangle=(dp(340 + (89 * (i % 4))),
+                                    dp(322), dp(87), dp(35)), width=dp(0.8))
                 elif i >= 8 and i < 12:
-                    Line(rectangle=(dp(307 + (89 * (i % 4))),
-                                    dp(113), dp(87), dp(35)), width=dp(0.8))
+                    Line(rectangle=(dp(340 + (89 * (i % 4))),
+                                    dp(287), dp(87), dp(35)), width=dp(0.8))
                 else:
-                    Line(rectangle=(dp(307 + (89 * (i % 4))),
-                                    dp(78), dp(87), dp(35)), width=dp(0.8))
+                    Line(rectangle=(dp(340 + (89 * (i % 4))),
+                                    dp(252), dp(87), dp(35)), width=dp(0.8))
 
         for i in range(16):
             if i > 9:
@@ -128,80 +137,12 @@ class RunWindow(FloatLayout):
     def __init__(self, **kwargs):
         self.app = kwargs.pop('app')
         self.micro_sim = kwargs.pop('micro_sim')
-        self.step_index = 0
-        self.header = False
-        self.first_inst = True
+        self.dpi = kwargs.pop('dpi')
         super(RunWindow, self).__init__(**kwargs)
-        self.run_button = MDFillRoundFlatIconButton(text='Run',
-                                                    icon='run',
-                                                    size_hint=(None, None),
-                                                    pos_hint={
-                                                        'center_x': dp(.7),
-                                                        'center_y': dp(2.12)
-                                                    },
-                                                    on_release=self.run_micro_instructions)
-        self.debug_button = MDFillRoundFlatIconButton(text='Debug',
-                                                      icon='android-debug-bridge',
-                                                      size_hint=(None, None),
-                                                      pos_hint={
-                                                          'center_x': dp(.9),
-                                                          'center_y': dp(2.12)
-                                                      },
-                                                      on_release=self.run_micro_instructions_step)
-        self.refresh_button = MDFillRoundFlatIconButton(text='Clear',
-                                                        icon='refresh',
-                                                        size_hint=(None, None),
-                                                        pos_hint={
-                                                            'center_x': dp(.5),
-                                                            'center_y': dp(2.12)
-                                                        },
-                                                        on_release=self.clear)
-        self.save_button = MDFillRoundFlatIconButton(text='Save File',
-                                                     icon='download',
-                                                     size_hint=(None, None),
-                                                     pos_hint={
-                                                         'center_x': dp(.35),
-                                                         'center_y': dp(2.12)
-                                                     },
-                                                     on_release=self.open_save_dialog)
-
-        self.ascii_label_1 = Label(text='[color=000000]' + chr(int(RAM[4088], 16)) + '[/color]',
-                                   pos=(dp(-187), dp(-105)),
-                                   font_size=sp(40),
-                                   markup=True)
-        self.ascii_label_2 = Label(text='[color=000000]' + chr(int(RAM[4089], 16)) + '[/color]',
-                                   pos=(dp(-146), dp(-105)),
-                                   font_size=sp(40),
-                                   markup=True)
-        self.ascii_label_3 = Label(text='[color=000000]' + chr(int(RAM[4090], 16)) + '[/color]',
-                                   pos=(dp(-100), dp(-105)),
-                                   font_size=sp(40),
-                                   markup=True)
-        self.ascii_label_4 = Label(text='[color=000000]' + chr(int(RAM[4091], 16)) + '[/color]',
-                                   pos=(dp(-54), dp(-105)),
-                                   font_size=sp(40),
-                                   markup=True)
-        self.ascii_label_5 = Label(text='[color=000000]' + chr(int(RAM[4092], 16)) + '[/color]',
-                                   pos=(dp(-8), dp(-105)),
-                                   font_size=sp(40),
-                                   markup=True)
-        self.ascii_label_6 = Label(text='[color=000000]' + chr(int(RAM[4093], 16)) + '[/color]',
-                                   pos=(dp(38), dp(-105)),
-                                   font_size=sp(40),
-                                   markup=True)
-        self.ascii_label_7 = Label(text='[color=000000]' + chr(int(RAM[4094], 16)) + '[/color]',
-                                   pos=(dp(84), dp(-105)),
-                                   font_size=sp(40),
-                                   markup=True)
-        self.ascii_label_8 = Label(text='[color=000000]' + chr(int(RAM[4095], 16)) + '[/color]',
-                                   pos=(dp(130), dp(-105)),
-                                   font_size=sp(40),
-                                   markup=True)
-
-        self.ascii = ASCIIGrid()
-        self.reg_table = RegisterTable()
-        self.mem_table = MemoryTable()
-        self.inst_table = InstructionTable()
+        self.ascii = ASCIIGrid(dpi=self.dpi)
+        self.reg_table = RegisterTable(dpi=self.dpi)
+        self.mem_table = MemoryTable(dpi=self.dpi)
+        self.inst_table = InstructionTable(dpi=self.dpi)
         self.light = TrafficLights()
         self.seven_segment_display = SevenSegmentDisplay()
 
@@ -209,16 +150,10 @@ class RunWindow(FloatLayout):
         self.mem_table.data_list.clear()
         self.mem_table.get_data()
         self.inst_table.get_data(self.micro_sim.index,
-                                 self.header,
                                  self.micro_sim.disassembled_instruction())
-        self.header = True
         self.hex_keyboard_label = Label(text='HEX KEYBOARD',
                                         font_size=sp(20),
-                                        color=(0, 0, 0, 1),
-                                        pos_hint={
-                                            'x': dp(-0.025),
-                                            'y': dp(0.35)
-                                        })
+                                        color=(0, 0, 0, 1))
 
         # Create variable of scheduling instance so that it can be turned on and off,
         # to avoid repeat of the same thread
@@ -236,27 +171,209 @@ class RunWindow(FloatLayout):
 
         self.hex_keyboard_layout = HexKeyboard(mem_table=self.mem_table,
                                                event_on=self.event_on,
-                                               event_off=self.event_off)
-        self.add_widget(self.save_button)
-        self.add_widget(self.run_button)
-        self.add_widget(self.debug_button)
-        self.add_widget(self.refresh_button)
+                                               event_off=self.event_off,
+                                               dpi=self.dpi)
+        box = FloatLayout()
+        box.add_widget(self.hex_keyboard_layout)
+        box.add_widget(self.hex_keyboard_label)
+        self.popup = Popup(title='Hex Keyboard',
+                           content=box,
+                           background='images\plain-white-background.jpg',
+                           title_color=(0, 0, 0, 0),
+                           separator_color=(1, 1, 1, 1))
+        if self.dpi < 192:
+            self.popup.size_hint = (None, None)
+            self.popup.size = (450, 400)
+
+            self.hex_keyboard_label.pos_hint = {
+                'x': dp(0.01),
+                'y': dp(0.35)
+            }
+        else:
+            self.popup.size_hint_x = dp(0.3)
+            self.popup.size_hint_y = dp(0.3)
+            self.popup.pos_hint = {
+                'x': dp(0.1),
+                'y': dp(0.13)
+            }
+
+            self.hex_keyboard_label.pos_hint = {
+                'x': dp(0.01),
+                'y': dp(0.13)
+            }
         self.add_widget(self.reg_table)
         self.add_widget(self.inst_table)
         self.add_widget(self.mem_table)
         self.add_widget(self.light)
-        self.add_widget(self.hex_keyboard_layout)
-        self.add_widget(self.hex_keyboard_label)
         self.add_widget(self.seven_segment_display)
         self.add_widget(self.ascii)
-        self.add_widget(self.ascii_label_1)
-        self.add_widget(self.ascii_label_2)
-        self.add_widget(self.ascii_label_3)
-        self.add_widget(self.ascii_label_4)
-        self.add_widget(self.ascii_label_5)
-        self.add_widget(self.ascii_label_6)
-        self.add_widget(self.ascii_label_7)
-        self.add_widget(self.ascii_label_8)
+
+    def open_keyboard(self, instance):
+        self.popup.open()
+
+    def update_io(self, dt):
+        self.light.change_color(self.micro_sim.traffic_lights_binary())
+        self.seven_segment_display.activate_segments(
+            self.micro_sim.seven_segment_binary())
+        self.ascii.update_ascii_grid()
+
+
+class MainWindow(BoxLayout):
+
+    def __init__(self, **kwargs):
+        self.nav_drawer = kwargs.pop('nav_drawer')
+        self.app = kwargs.pop('app')
+        self.micro_sim = kwargs.pop('micro_sim')
+        self.dpi = kwargs.pop('dpi')
+        super().__init__(**kwargs)
+        buttons_y_pos = dp(0.2) if self.dpi < 192 else dp(0.1)
+
+        self.first_inst = True
+        self.step_index = 0
+        self.ids['left_actions'] = BoxLayout()
+        self.orientation = 'vertical'
+        self.toolbar_layout = BoxLayout(orientation='vertical')
+        self.run_window = RunWindow(app=self.app,
+                                    micro_sim=self.micro_sim,
+                                    dpi=self.dpi)
+        self.md_toolbar = MDToolbar(title='Semref Micro Sim',
+                                    md_bg_color=self.app.theme_cls.primary_color,
+                                    background_palette='Primary',
+                                    background_hue='500',
+                                    elevation=10,
+                                    ids=self.ids,
+                                    left_action_items=[
+                                        [
+                                            'dots-vertical',
+                                            lambda x: self.nav_drawer.toggle_nav_drawer()
+                                        ]
+                                    ])
+        self.run_button = MDFillRoundFlatIconButton(text='Run',
+                                                    icon='run',
+                                                    size_hint=(None, None),
+                                                    pos_hint={
+                                                        'y': buttons_y_pos
+                                                    },
+                                                    on_release=self.run_micro_instructions)
+        self.debug_button = MDFillRoundFlatIconButton(text='Debug',
+                                                      icon='android-debug-bridge',
+                                                      size_hint=(None, None),
+                                                      pos_hint={
+                                                          'y': buttons_y_pos
+                                                      },
+                                                      on_release=self.run_micro_instructions_step)
+        self.refresh_button = MDFillRoundFlatIconButton(text='Clear',
+                                                        icon='refresh',
+                                                        size_hint=(None, None),
+                                                        pos_hint={
+                                                            'y': buttons_y_pos
+                                                        },
+                                                        on_release=self.clear)
+        self.save_button = MDFillRoundFlatIconButton(text='Save File',
+                                                     icon='download',
+                                                     size_hint=(None, None),
+                                                     pos_hint={
+                                                         'y': buttons_y_pos
+                                                     },
+                                                     on_release=self.open_save_dialog)
+        self.pop_button = MDFillRoundFlatIconButton(text='Hex Keyboard',
+                                                    icon='keyboard-outline',
+                                                    size_hint=(None, None),
+                                                    pos_hint={
+                                                        'y': buttons_y_pos
+                                                    },
+                                                    on_release=self.run_window.open_keyboard)
+        self.md_toolbar.add_widget(self.run_button)
+        self.md_toolbar.add_widget(self.debug_button)
+        self.md_toolbar.add_widget(self.refresh_button)
+        self.md_toolbar.add_widget(self.save_button)
+        self.md_toolbar.add_widget(self.pop_button)
+        self.add_widget(self.md_toolbar)
+        # self.add_widget(BoxLayout())  # Bumps up navigation bar to the top
+        self.add_widget(self.run_window)
+
+    def run_micro_instructions(self, instance):
+        if not self.micro_sim.is_running:
+            toast('Infinite loop encountered. Program stopped')
+        else:
+            if not self.micro_sim.is_ram_loaded:
+                toast('Must load file first before running')
+            else:
+                for m in range(2):
+                    if self.first_inst:
+                        self.run_window.inst_table.data_list.clear()
+                        self.run_window.inst_table.get_data(self.micro_sim.index,
+                                                            self.micro_sim.disassembled_instruction())
+                        self.run_window.inst_table.get_data(self.micro_sim.index,
+                                                            self.micro_sim.disassembled_instruction())
+                        self.first_inst = False
+                    else:
+                        self.micro_sim.prev_index = -1
+                        self.run_window.event_on.cancel()
+                        self.run_window.event_off.cancel()
+
+                        self.run_window.event_on()
+                        self.run_window.event_off()
+
+                        while self.micro_sim.is_running:
+                            self.micro_sim.run_micro_instructions()
+                            self.run_window.inst_table.get_data(self.micro_sim.index,
+                                                                self.micro_sim.disassembled_instruction())
+
+                            if self.micro_sim.prev_index == self.micro_sim.index:
+                                self.micro_sim.is_running = False
+                            else:
+                                self.micro_sim.prev_index = self.micro_sim.index
+                self.run_window.reg_table.get_data()
+                self.run_window.mem_table.data_list.clear()
+                self.run_window.mem_table.get_data()
+                toast('File executed successfully')
+
+    def run_micro_instructions_step(self, instance):
+        if not self.micro_sim.is_running:
+            toast("Infinite loop encountered. Program stopped")
+        else:
+            if not self.micro_sim.is_ram_loaded:
+                toast('Must load file first before running')
+            else:
+                self.step_index += 1
+                if self.first_inst:
+                    self.run_window.inst_table.get_data(self.micro_sim.index,
+                                                        self.micro_sim.disassembled_instruction())
+                    self.first_inst = False
+                else:
+                    self.micro_sim.run_micro_instructions_step(self.step_index)
+                    self.run_window.inst_table.get_data(self.micro_sim.index,
+                                                        self.micro_sim.disassembled_instruction())
+
+                toast(
+                    f'Runnin instruction in step-by-step mode. Step {self.step_index} is running')
+                self.run_window.reg_table.get_data()
+                self.run_window.mem_table.data_list.clear()
+                self.run_window.mem_table.get_data()
+
+    def clear(self, instance):
+        self.step_index = 0
+        self.micro_sim.micro_clear()
+        self.run_window.reg_table.data_list.clear()
+        self.run_window.reg_table.get_data()
+        self.run_window.mem_table.data_list.clear()
+        self.run_window.mem_table.get_data()
+        self.run_window.inst_table.data_list.clear()
+        self.run_window.inst_table.get_data(self.micro_sim.index,
+                                            self.micro_sim.disassembled_instruction())
+        self.first_inst = True
+
+        # Cancels last scheduling thread for clean event
+        self.run_window.event_on.cancel()
+        self.run_window.event_off.cancel()
+
+        self.run_window.light.change_color(
+            self.micro_sim.traffic_lights_binary())
+        self.run_window.ascii.update_ascii_grid()
+        self.run_window.seven_segment_display.activate_segments(
+            self.micro_sim.seven_segment_binary())
+        toast('Micro memory cleared! Load new data')
 
     def open_save_dialog(self, instance):
         """It will be called when user click on the save file button.
@@ -264,11 +381,17 @@ class RunWindow(FloatLayout):
         :param instance: used as event handler for button click;
 
         """
-        dialog = MDInputDialog(
-            title='Save file: Enter file name', hint_text='Enter file name', size_hint=(.3, .3),
-            text_button_ok='Save',
-            text_button_cancel='Cancel',
-            events_callback=self.save_file)
+        dialog = MDInputDialog(title='Save file: Enter file name',
+                               hint_text='Enter file name',
+                               size_hint=(.3, .3),
+                               text_button_ok='Save',
+                               text_button_cancel='Cancel',
+                               events_callback=self.save_file)
+        if self.dpi >= 192:
+            dialog.pos_hint = {
+                'x': dp(0.18),
+                'y': dp(0.18)
+            }
         toast('Save Register and Memory Content')
         dialog.open()
 
@@ -304,159 +427,16 @@ class RunWindow(FloatLayout):
         else:
             toast('File save cancelled')
 
-    def run_micro_instructions(self, instance):
-        if not self.micro_sim.is_running:
-            toast('Infinite loop encountered. Program stopped')
-        else:
-            if not self.micro_sim.is_ram_loaded:
-                toast('Must load file first before running')
-            else:
-                for m in range(2):
-                    if self.first_inst:
-                        self.inst_table.data_list.clear()
-                        self.header = False
-                        self.inst_table.get_data(self.micro_sim.index, self.header,
-                                                 self.micro_sim.disassembled_instruction())
-                        self.header = True
-                        self.inst_table.get_data(self.micro_sim.index, self.header,
-                                                 self.micro_sim.disassembled_instruction())
-                        self.first_inst = False
-                    else:
-                        self.micro_sim.prev_index = -1
-                        self.event_on.cancel()
-                        self.event_off.cancel()
-
-                        self.event_on()
-                        self.event_off()
-
-                        while self.micro_sim.is_running:
-                            self.micro_sim.run_micro_instructions()
-                            self.inst_table.get_data(self.micro_sim.index,
-                                                     self.header,
-                                                     self.micro_sim.disassembled_instruction())
-
-                            if self.micro_sim.prev_index == self.micro_sim.index:
-                                self.micro_sim.is_running = False
-                            else:
-                                self.micro_sim.prev_index = self.micro_sim.index
-                self.reg_table.get_data()
-                self.mem_table.data_list.clear()
-                self.mem_table.get_data()
-                toast('File executed successfully')
-                for i in self.micro_sim.micro_instructions:
-                    if i != 'NOP':
-                        print(i)
-
-    def update_io(self, dt):
-        self.light.change_color(self.micro_sim.traffic_lights_binary())
-        self.seven_segment_display.activate_segments(
-            self.micro_sim.seven_segment_binary())
-        self.update_ascii_grid()
-
-    def clear(self, instance):
-        self.header = False
-        self.step_index = 0
-        self.micro_sim.micro_clear()
-        self.reg_table.data_list.clear()
-        self.reg_table.get_data()
-        self.mem_table.data_list.clear()
-        self.mem_table.get_data()
-        self.inst_table.data_list.clear()
-        self.inst_table.get_data(self.micro_sim.index,
-                                 self.header,
-                                 self.micro_sim.disassembled_instruction())
-        self.header = True
-        self.first_inst = True
-        clear_ram()
-
-        # Cancels last scheduling thread for clean event
-        self.event_on.cancel()
-        self.event_off.cancel()
-
-        self.light.change_color(self.micro_sim.traffic_lights_binary())
-        self.update_ascii_grid()
-        self.seven_segment_display.clear_seven_segment()
-        toast('Micro memory cleared! Load new data')
-
-    def run_micro_instructions_step(self, instance):
-        if not self.micro_sim.is_running:
-            toast("Infinite loop encountered. Program stopped")
-        else:
-            if not self.micro_sim.is_ram_loaded:
-                toast('Must load file first before running')
-            else:
-                self.step_index += 1
-                if self.first_inst:
-                    self.inst_table.get_data(self.micro_sim.index, self.header,
-                                             self.micro_sim.disassembled_instruction())
-                    self.first_inst = False
-
-                else:
-
-                    self.micro_sim.run_micro_instructions_step(self.step_index)
-
-                    self.inst_table.get_data(self.micro_sim.index,
-                                             self.header,
-                                             self.micro_sim.disassembled_instruction())
-
-                toast(
-                    f'Runnin instruction in step-by-step mode. Step {self.step_index} is running')
-                self.reg_table.get_data()
-                self.mem_table.data_list.clear()
-                self.mem_table.get_data()
-                for i in self.micro_sim.micro_instructions:
-                    if i != 'NOP':
-                        print(i)
-
-    def update_ascii_grid(self):
-        labels = [
-            f'[color=000000]{chr(int(RAM[ASCII_TABLE["port"]], 16))}[/color]',
-            f'[color=000000]{chr(int(RAM[ASCII_TABLE["port"] + 1], 16))}[/color]',
-            f'[color=000000]{chr(int(RAM[ASCII_TABLE["port"] + 2], 16))}[/color]',
-            f'[color=000000]{chr(int(RAM[ASCII_TABLE["port"] + 3], 16))}[/color]',
-            f'[color=000000]{chr(int(RAM[ASCII_TABLE["port"] + 4], 16))}[/color]',
-            f'[color=000000]{chr(int(RAM[ASCII_TABLE["port"] + 5], 16))}[/color]',
-            f'[color=000000]{chr(int(RAM[ASCII_TABLE["port"] + 6], 16))}[/color]',
-            f'[color=000000]{chr(int(RAM[ASCII_TABLE["port"] + 7], 16))}[/color]'
-        ]
-        self.ascii_label_1.text = labels[0]
-        self.ascii_label_2.text = labels[1]
-        self.ascii_label_3.text = labels[2]
-        self.ascii_label_4.text = labels[3]
-        self.ascii_label_5.text = labels[4]
-        self.ascii_label_6.text = labels[5]
-        self.ascii_label_7.text = labels[6]
-        self.ascii_label_8.text = labels[7]
-
-
-class MainWindow(BoxLayout):
-
-    def __init__(self, **kwargs):
-        self.nav_drawer = kwargs.pop('nav_drawer')
-        self.app = kwargs.pop('app')
-        self.micro_sim = kwargs.pop('micro_sim')
-        super().__init__(**kwargs)
-        self.ids['left_actions'] = BoxLayout()
-        self.orientation = 'vertical'
-        self.add_widget(MDToolbar(title='Semref Micro Sim',
-                                  md_bg_color=self.app.theme_cls.primary_color,
-                                  background_palette='Primary',
-                                  background_hue='500',
-                                  elevation=10,
-                                  ids=self.ids,
-                                  left_action_items=[['dots-vertical', lambda x: self.nav_drawer.toggle_nav_drawer()]]))
-
-        self.add_widget(BoxLayout())  # Bumps up navigation bar to the top
-        self.add_widget(RunWindow(app=self.app, micro_sim=self.micro_sim))
-
 
 class NavDrawer(MDNavigationDrawer):
 
     def __init__(self, **kwargs):
         self.micro_sim = kwargs.pop('micro_sim')
         self.app = kwargs.pop('app')
+        self.dpi = kwargs.pop('dpi')
         super().__init__(**kwargs)
         self.drawer_logo = 'images/logo.jpg'
+        self.spacing = 0
         self.manager_open = False
         self.manager = None
         self.history = []
@@ -502,13 +482,11 @@ class NavDrawer(MDNavigationDrawer):
                                                   TRAFFIC_LIGHT['port'],
                                                   port)
                             toast_message = f'Changed Traffic Light I/O port number to {port}'
-
                         elif title == SEVEN_SEGMENT_DISPLAY['menu_title']:
                             update_reserved_ports(SEVEN_SEGMENT_DISPLAY,
                                                   SEVEN_SEGMENT_DISPLAY['port'],
                                                   port)
                             toast_message = f'Changed Seven Segment I/O port number to {port}'
-
                         elif title == ASCII_TABLE['menu_title']:
                             if port > 4088:
                                 toast_message = 'Invalid port for ASCII Table. Valid ports [0-4088]'
@@ -520,24 +498,23 @@ class NavDrawer(MDNavigationDrawer):
                                     toast_message = f'Changed ASCII Table I/O port number to {port}'
                                 except MemoryError as e:
                                     toast_message = str(e)
-
                         else:
                             update_reserved_ports(HEX_KEYBOARD,
                                                   HEX_KEYBOARD['port'],
                                                   port)
                             toast_message = f'Changed HEX Keyboard I/O port number to {port}'
-
                         toast(toast_message)
                     else:
                         toast('Invalid input. That port is reserved!')
-
             else:
                 toast('Invalid input. Not a number!')
 
     def file_manager_open(self, instance):
         if not self.manager:
-            self.manager = ModalView(size_hint=(dp(1), dp(1)),
-                                     auto_dismiss=False)
+            manager_size = (dp(1), 1) if self.dpi < 192 else (dp(0.5), 1)
+            self.manager = ModalView(auto_dismiss=False,
+                                     size_hint=manager_size,
+                                     background_color=[1, 1, 1, 1])
             self.file_manager = MDFileManager(exit_manager=self.exit_manager,
                                               select_path=self.select_path,
                                               ext=['.asm', '.obj'])
@@ -548,13 +525,12 @@ class NavDrawer(MDNavigationDrawer):
         self.manager.open()
         self.history = self.file_manager.history
 
-
     def assembler(self, file):
         i = 0
-        filename = os.path.splitext(ntpath.basename(file))[
-            0]  # Obtains last name on path string using ntpath and then strips file extension using os.path.splitext
+        # Obtains last name on path string using ntpath and then
+        # strips file extension using os.path.splitext
         # Should work across different OS
-
+        filename = os.path.splitext(ntpath.basename(file))[0]
         try:
             asm = Assembler(file)
             asm.read_source()
@@ -565,15 +541,14 @@ class NavDrawer(MDNavigationDrawer):
 
             f = open(output_file_location, 'w')
             for m in range(50):
-                f.write(f'{RAM_assembler[i]} {RAM_assembler[i + 1]}' + '\n')
+                f.write(f'{RAM_ASSEMBLER[i]} {RAM_ASSEMBLER[i + 1]}' + '\n')
                 i += 2
             f.close()
 
-            self.run_micro_sim(output_file_location)  # Runs simulator using generated .obj file
+            # Runs simulator using generated .obj file
+            self.run_micro_sim(output_file_location)
             toast(f'Instructions at {file} assembled successfully')
-
         except (AssertionError, FileNotFoundError, ValueError, MemoryError, KeyError, SyntaxError) as e:
-            print(e)
             toast(f'{e}')
 
     def select_path(self, path):
@@ -589,13 +564,11 @@ class NavDrawer(MDNavigationDrawer):
         if path.endswith('.obj'):  # If file is an .obj file, runs simulator
             self.run_micro_sim(path)
             toast(f'{path} loaded successfully')
-
         else:  # If file is an .asm file, runs assembler, then simulator
             self.assembler(path)
 
     def exit_manager(self, *args):
         """Called when the user reaches the root of the directory tree."""
-
         self.manager.dismiss()
         self.manager_open = False
         self.file_manager.history = self.history
@@ -616,13 +589,37 @@ class RegisterTable(RecycleView):
     data_list = ListProperty([])
 
     def __init__(self, **kwargs):
+        self.dpi = kwargs.pop('dpi')
         super(RegisterTable, self).__init__(**kwargs)
         self.viewclass = 'Label'
-        with self.children[0].canvas.before:
-            Color(.50, .50, .50, 1)
-            for i in range(13):
-                Line(width=2, rectangle=(dp(0), dp(0), dp(200), dp(390 - (30 * i))))
-            Line(width=2, rectangle=(dp(0), dp(0), dp(100), dp(390)))
+        self.recycle_grid_layout = self.children[0]
+        if self.dpi < 192:
+            self.pos_hint = {
+                'x': dp(0),
+                'center_y': dp(0.75)
+            }
+            self.size_hint_x = dp(0.2)
+            self.size_hint_y = dp(0.5)
+            with self.children[0].canvas.before:
+                Color(.50, .50, .50, 1)
+                for i in range(13):
+                    Line(width=2,
+                         rectangle=(dp(0), dp(0), dp(205), dp(390 - (30 * i))))
+                Line(width=2, rectangle=(dp(0), dp(0), dp(102.5), dp(390)))
+        else:
+            self.pos_hint = {
+                'x': dp(0),
+                'center_y': dp(0.368)
+            }
+            self.size_hint_x = dp(0.12)
+            self.size_hint_y = dp(0.265)
+            self.recycle_grid_layout.size_hint_x = dp(0.47)
+            with self.children[0].canvas.before:
+                Color(.50, .50, .50, 1)
+                for i in range(13):
+                    Line(width=2,
+                         rectangle=(dp(0), dp(0), dp(245), dp(390 - (30 * i))))
+                Line(width=2, rectangle=(dp(0), dp(0), dp(115), dp(390)))
 
     def get_data(self):
         _data_list = self.data_list.copy()
@@ -638,17 +635,24 @@ class RegisterTable(RecycleView):
         for j in range(int(len(self.data_list) / 2)):
             if _data_list and len(_data_list) > 2 and _data_list[i] == self.data_list[i] and _data_list[i + 1] != \
                     self.data_list[i + 1]:
-                _data.append({'text': self.data_list[i].upper(), 'color': (
-                    177 / 255, 62 / 255, 88 / 255, 1)})
-                _data.append(
-                    {'text': self.data_list[i + 1].upper(), 'color': (177 / 255, 62 / 255, 88 / 255, 1)})
+                _data.append({
+                    'text': self.data_list[i].upper(),
+                    'color': (177 / 255, 62 / 255, 88 / 255, 1)
+                })
+                _data.append({
+                    'text': self.data_list[i + 1].upper(),
+                    'color': (177 / 255, 62 / 255, 88 / 255, 1)
+                })
             else:
-                _data.append(
-                    {'text': self.data_list[i].upper(), 'color': (.1, .1, .1, 1)})
-                _data.append(
-                    {'text': self.data_list[i + 1].upper(), 'color': (.1, .1, .1, 1)})
+                _data.append({
+                    'text': self.data_list[i].upper(),
+                    'color': (.1, .1, .1, 1)
+                })
+                _data.append({
+                    'text': self.data_list[i + 1].upper(),
+                    'color': (.1, .1, .1, 1)
+                })
             i += 2
-
         self.data = _data
 
 
@@ -656,14 +660,40 @@ class MemoryTable(RecycleView):
     data_list = ListProperty([])
 
     def __init__(self, **kwargs):
+        self.dpi = kwargs.pop('dpi')
         super(MemoryTable, self).__init__(**kwargs)
         self.viewclass = 'Label'
-        with self.children[0].canvas.before:
-            Color(.50, .50, .50, 1)
-            for i in range(51):
-                Line(width=2, rectangle=(
-                    dp(0), dp(0), dp(255), dp(1530 - (30 * i))))
-            Line(width=2, rectangle=(dp(0), dp(0), dp(127.5), dp(1530)))
+        self.recycle_grid_layout = self.children[0]
+        if self.dpi < 192:
+            self.pos_hint = {
+                'x': dp(0.75),
+                'center_y': dp(0.75)
+            }
+            self.size_hint_x = dp(0.3)
+            self.size_hint_y = dp(0.5)
+            self.recycle_grid_layout.default_size_hint = (dp(0.5), None)
+            self.recycle_grid_layout.size_hint_x = dp(0.83)
+            with self.children[0].canvas.before:
+                Color(.50, .50, .50, 1)
+                for i in range(51):
+                    Line(width=2,
+                         rectangle=(dp(0), dp(0), dp(255), dp(1530 - (30 * i))))
+                Line(width=2, rectangle=(dp(0), dp(0), dp(127.5), dp(1530)))
+        else:
+            self.pos_hint = {
+                'x': dp(0.37),
+                'center_y': dp(0.368)
+            }
+            self.size_hint_x = dp(0.135)
+            self.size_hint_y = dp(0.265)
+            self.recycle_grid_layout.default_size_hint = (dp(0.5), None)
+            self.recycle_grid_layout.size_hint_x = dp(0.47)
+            with self.children[0].canvas.before:
+                Color(.50, .50, .50, 1)
+                for i in range(51):
+                    Line(width=2,
+                         rectangle=(dp(0), dp(0), dp(270), dp(1530 - (30 * i))))
+                Line(width=2, rectangle=(dp(0), dp(0), dp(135), dp(1530)))
 
     def get_data(self):
         self.data_list.append('MEMORY BYTE')
@@ -674,29 +704,46 @@ class MemoryTable(RecycleView):
             self.data_list.append(f'{RAM[i + 1]}')
             i += 2
 
-        self.data = [{"text": str(x.upper()), "color": (.1, .1, .1, 1)}
-                     for x in self.data_list]
+        self.data = [{
+            "text": str(x.upper()),
+            "color": (.1, .1, .1, 1)
+        } for x in self.data_list]
 
 
 class InstructionTable(RecycleView):
     data_list = ListProperty([])
 
     def __init__(self, **kwargs):
+        self.dpi = kwargs.pop('dpi')
         super(InstructionTable, self).__init__(**kwargs)
         self.viewclass = 'Label'
+        if self.dpi < 192:
+            pass
+            self.pos_hint = {
+                'x': dp(0.24)
+            }
+        else:
+            self.pos_hint = {
+                'x': dp(0.12),
+                'center_y': dp(0.368)
+            }
+            self.size_hint_x = dp(0.25)
+            self.size_hint_y = dp(0.265)
 
-    def get_data(self, address, header, instruction):
-        if not header:
+    def get_data(self, address, instruction):
+        if not self.data_list:
             self.data_list.append('ADDRESS')
             self.data_list.append('CONTENT')
-            self.data_list.append('DISASSEMBLED INSTRUCTION')
+            self.data_list.append('DISASSEMBLY')
         else:
             self.data_list.append((f'{address:02x}').upper())
             self.data_list.append(f'{RAM[address]}')
             self.data_list.append(instruction.upper())
 
-        self.data = [{"text": str(x.upper()), "color": (.1, .1, .1, 1)}
-                     for x in self.data_list]
+        self.data = [{
+            "text": str(x.upper()),
+            "color": (.1, .1, .1, 1)
+        } for x in self.data_list]
 
 
 class TrafficLights(Widget):
@@ -909,8 +956,41 @@ class SevenSegmentDisplay(Widget):
         self.rightG = (.41, .41, .41)
 
 
-class ASCIIGrid(Widget):
-    pass
+class ASCIIGrid(GridLayout):
+
+    def __init__(self, **kwargs):
+        self.dpi = kwargs.pop('dpi')
+        super().__init__(**kwargs)
+        self.labels = [
+            Label(text='A', color=(0, 0, 0, 1), font_size=sp(30)),
+            Label(text='B', color=(0, 0, 0, 1), font_size=sp(30)),
+            Label(text='C', color=(0, 0, 0, 1), font_size=sp(30)),
+            Label(text='D', color=(0, 0, 0, 1), font_size=sp(30)),
+            Label(text='E', color=(0, 0, 0, 1), font_size=sp(30)),
+            Label(text='F', color=(0, 0, 0, 1), font_size=sp(30)),
+            Label(text='G', color=(0, 0, 0, 1), font_size=sp(30)),
+            Label(text='H', color=(0, 0, 0, 1), font_size=sp(30))
+        ]
+        if self.dpi < 192:
+            self.size_hint = (0.35, 0.1)
+            self.pos_hint = {
+                'x': dp(0.297),
+                'y': dp(0.015)
+            }
+        else:
+            self.size_hint = (0.35, 0.1)
+            self.pos_hint = {
+                'x': dp(0.148),
+                'y': dp(0.006)
+            }
+        for label in self.labels:
+            self.add_widget(label)
+
+    def update_ascii_grid(self):
+        i = 0
+        while i < len(self.labels):
+            self.labels[i].text = chr(int(RAM[ASCII_TABLE["port"] + i], 16))
+            i += 1
 
 
 class GUI(NavigationLayout):
@@ -919,9 +999,14 @@ class GUI(NavigationLayout):
         super().__init__(**kwargs)
         self.app = App.get_running_app()
         self.micro_sim = MicroSim()
-        self.add_widget(NavDrawer(micro_sim=self.micro_sim, app=self.app))
+        self.dpi = MetricsBase().dpi
+        self.add_widget(NavDrawer(micro_sim=self.micro_sim,
+                                  app=self.app,
+                                  dpi=self.dpi))
         self.add_widget(MainWindow(nav_drawer=self,
-                                   app=self.app, micro_sim=self.micro_sim))
+                                   app=self.app,
+                                   micro_sim=self.micro_sim,
+                                   dpi=self.dpi))
 
 
 class SemrefApp(App):
