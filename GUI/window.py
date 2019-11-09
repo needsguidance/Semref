@@ -465,7 +465,7 @@ class NavDrawer(MDNavigationDrawer):
                                text_button_cancel='Cancel',
                                events_callback=self.save_io_ports)
         if self.dpi < 192:
-            dialog.size_hint = (dp(0.8), dp(0.4))
+            dialog.size_hint = (dp(0.4), dp(0.4))
         else:
             dialog.size_hint = (dp(0.2), dp(0.2))
             dialog.pos_hint = {
