@@ -461,17 +461,10 @@ class NavDrawer(MDNavigationDrawer):
     def io_config_open(self, instance):
         dialog = MDInputDialog(title=instance.text,
                                hint_text='Input port number [0-4095]',
+                               size_hint=(dp(0.8), dp(0.4)),
                                text_button_ok='Save',
                                text_button_cancel='Cancel',
                                events_callback=self.save_io_ports)
-        if self.dpi < 192:
-            dialog.size_hint = (dp(0.8), dp(0.4))
-        else:
-            dialog.size_hint = (dp(0.2), dp(0.2))
-            dialog.pos_hint = {
-                'x': dp(0.15),
-                'y': dp(0.15)
-            }
         dialog.open()
 
     def save_io_ports(self, *args):
