@@ -718,10 +718,12 @@ class InstructionTable(RecycleView):
         super(InstructionTable, self).__init__(**kwargs)
         self.viewclass = 'Label'
         if self.dpi < 192:
-            pass
             self.pos_hint = {
-                'x': dp(0.24)
+                'x': dp(0.2),
+                'center_y': dp(0.75)
             }
+            self.size_hint_x = dp(1)
+            self.size_hint_y = dp(0.5)
         else:
             self.pos_hint = {
                 'x': dp(0.12),
