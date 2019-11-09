@@ -280,7 +280,7 @@ class MainWindow(BoxLayout):
                                                     icon='keyboard-outline',
                                                     size_hint=(None, None),
                                                     pos_hint={
-                                                        'y': buttons_y_pos
+                                                        'y': self.buttons_y_pos
                                                     },
                                                     on_release=self.run_window.open_keyboard)
         self.loaded_file = MDIconButton(icon='file-check',
