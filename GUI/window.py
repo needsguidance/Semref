@@ -289,7 +289,6 @@ class MainWindow(BoxLayout):
         self.md_toolbar.add_widget(self.save_button)
         self.md_toolbar.add_widget(self.pop_button)
         self.add_widget(self.md_toolbar)
-        # self.add_widget(BoxLayout())  # Bumps up navigation bar to the top
         self.add_widget(self.run_window)
 
     def run_micro_instructions(self, instance):
@@ -736,9 +735,14 @@ class InstructionTable(RecycleView):
             self.data_list.append('CONTENT')
             self.data_list.append('DISASSEMBLY')
         else:
+            inst = instruction.split()
             self.data_list.append((f'{address:02x}').upper())
             self.data_list.append(f'{RAM[address]}')
-            self.data_list.append(instruction.upper())
+            if 'im' in inst[0]:
+                self.data_list.append(
+                    f'{inst[0].upper()} {inst[1]} #{inst[2]}')
+            else:
+                self.data_list.append(instruction.upper())
 
         self.data = [{
             "text": str(x.upper()),
