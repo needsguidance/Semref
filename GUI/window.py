@@ -370,7 +370,6 @@ class MainWindow(BoxLayout):
 
     def clear(self, instance):
         global loaded_file, file_path
-        loaded_file = True
         self.step_index = 0
         clear_ram()
         file_path = ''
@@ -581,6 +580,7 @@ class NavDrawer(MDNavigationDrawer):
         :param path: path to the selected directory or file;
 
         """
+        global file_path, loaded_file
         self.exit_manager()
 
         if path.endswith('.obj'):  # If file is an .obj file, runs simulator
@@ -588,10 +588,11 @@ class NavDrawer(MDNavigationDrawer):
             toast(f'{path} loaded successfully')
         else:  # If file is an .asm file, runs assembler, then simulator
             self.assembler(path)
+            file_path = path
+            loaded_file = True
 
-        global file_path, loaded_file
-        file_path = path
-        loaded_file = True
+        
+        
 
     def exit_manager(self, *args):
         """Called when the user reaches the root of the directory tree."""
