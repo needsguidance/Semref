@@ -1103,10 +1103,15 @@ class TextEditor(TextInput):
     def __init__(self, **kwargs):
         super(TextEditor, self).__init__(**kwargs)
         self.bind(text=self.on_text)
+        self.valid_text = False
         
 
     def on_text(self, instance, value):
-        print(value)  
+        if value:
+            self.valid_text = True
+        else:
+            self.valid_text = False
+
 
     def load_file(self, file_path):
         with open(file_path, 'r') as file:
