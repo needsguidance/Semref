@@ -289,7 +289,6 @@ class MainWindow(BoxLayout):
         self.md_toolbar.add_widget(self.save_button)
         self.md_toolbar.add_widget(self.pop_button)
         self.add_widget(self.md_toolbar)
-        # self.add_widget(BoxLayout())  # Bumps up navigation bar to the top
         self.add_widget(self.run_window)
 
     def run_micro_instructions(self, instance):
@@ -461,10 +460,17 @@ class NavDrawer(MDNavigationDrawer):
     def io_config_open(self, instance):
         dialog = MDInputDialog(title=instance.text,
                                hint_text='Input port number [0-4095]',
-                               size_hint=(dp(0.8), dp(0.4)),
                                text_button_ok='Save',
                                text_button_cancel='Cancel',
                                events_callback=self.save_io_ports)
+        if self.dpi < 192:
+            dialog.size_hint = (dp(0.4), dp(0.4))
+        else:
+            dialog.size_hint = (dp(0.2), dp(0.2))
+            dialog.pos_hint = {
+                'x': dp(0.15),
+                'y': dp(0.15)
+            }
         dialog.open()
 
     def save_io_ports(self, *args):
@@ -718,10 +724,12 @@ class InstructionTable(RecycleView):
         super(InstructionTable, self).__init__(**kwargs)
         self.viewclass = 'Label'
         if self.dpi < 192:
-            pass
             self.pos_hint = {
-                'x': dp(0.24)
+                'x': dp(0.2),
+                'center_y': dp(0.75)
             }
+            self.size_hint_x = dp(1)
+            self.size_hint_y = dp(0.5)
         else:
             self.pos_hint = {
                 'x': dp(0.12),
@@ -736,9 +744,14 @@ class InstructionTable(RecycleView):
             self.data_list.append('CONTENT')
             self.data_list.append('DISASSEMBLY')
         else:
+            inst = instruction.split()
             self.data_list.append((f'{address:02x}').upper())
             self.data_list.append(f'{RAM[address]}')
-            self.data_list.append(instruction.upper())
+            if 'im' in inst[0]:
+                self.data_list.append(
+                    f'{inst[0].upper()} {inst[1]} #{inst[2]}')
+            else:
+                self.data_list.append(instruction.upper())
 
         self.data = [{
             "text": str(x.upper()),
