@@ -22,6 +22,7 @@ from kivy.uix.recycleview import RecycleView
 from kivy.uix.widget import Widget
 from kivymd.theming import ThemeManager
 from kivymd.toast import toast
+from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.button import MDFillRoundFlatIconButton, MDFlatButton
 from kivymd.uix.dialog import MDInputDialog
 from kivymd.uix.filemanager import MDFileManager
@@ -250,6 +251,18 @@ class MainWindow(BoxLayout):
         self.ids['left_actions'] = BoxLayout()
         self.orientation = 'vertical'
         self.toolbar_layout = BoxLayout(orientation='vertical')
+        self.menu_items = [
+            {
+                "viewclass": "MDMenuItem",
+                "text": "Save Register/Memory Content",
+                "callback": self.open_reg_mem_save_dialog,
+            }, 
+              {
+                "viewclass": "MDMenuItem",
+                "text": "Save Editor Content",
+                "callback": self.open_editor_save_dialog
+            }
+        ]
         self.run_window = RunWindow(app=self.app,
                                     micro_sim=self.micro_sim,
                                     dpi=self.dpi)
@@ -292,7 +305,7 @@ class MainWindow(BoxLayout):
                                                      pos_hint={
                                                          'y': buttons_y_pos
                                                      },
-                                                     on_release=self.open_save_dialog)
+                                                     on_release= lambda x: MDDropdownMenu(items=self.menu_items, width_mult=4).open(self.save_button))
         self.pop_button = MDFillRoundFlatIconButton(text='Hex Keyboard',
                                                     icon='keyboard-outline',
                                                     size_hint=(None, None),
@@ -397,7 +410,7 @@ class MainWindow(BoxLayout):
             self.micro_sim.seven_segment_binary())
         toast('Micro memory cleared! Load new data')
 
-    def open_save_dialog(self, instance):
+    def open_reg_mem_save_dialog(self, instance):
         """It will be called when user click on the save file button.
 
         :param instance: used as event handler for button click;
@@ -417,11 +430,47 @@ class MainWindow(BoxLayout):
         toast('Save Register and Memory Content')
         dialog.open()
 
+    def open_editor_save_dialog(self, instance):
+        global loaded_file, file_path
+        if loaded_file:
+            self.run_window.editor.save(file_path)
+            toast('Content saved on loaded file')
+        else:
+            dialog = MDInputDialog(title='Save file: Enter file name',
+                                hint_text='Enter file name',
+                                size_hint=(.3, .3),
+                                text_button_ok='Save',
+                                text_button_cancel='Cancel',
+                                events_callback=self.save_asm_file)
+            if self.dpi >= 192:
+                dialog.pos_hint = {
+                    'x': dp(0.18),
+                    'y': dp(0.18)
+                }
+            toast('Save Editor Content')
+            dialog.open()
+
+    def save_asm_file(self, *args):
+
+        if args[0] == 'Save':
+            filename = args[0]
+            
+            # Checks if user input is valid or null for filename. if null, assigns a default filename
+            if args[1].text_field.text:
+                filename = args[1].text_field.text
+
+            self.run_window.editor.save('input/' + filename + '.asm')
+            toast('File saved in input folder as ' + filename + '.asm')
+
+
+        else:
+            toast('File save cancelled')
+
     def save_file(self, *args):
         """It is called when user clicks on 'Save' or 'Cancel' button of dialog.
 
         :type *args: object array
-        :param *args: passes an object array generated when opening open_save_dialog. 
+        :param *args: passes an object array generated when opening open_reg_mem_save_dialog. 
                 Said object indcludes input text used for file saving;
 
         """
@@ -595,8 +644,6 @@ class NavDrawer(MDNavigationDrawer):
         loaded_file = True
 
         
-        
-
     def exit_manager(self, *args):
         """Called when the user reaches the root of the directory tree."""
         self.manager.dismiss()
@@ -1036,11 +1083,16 @@ class TextEditor(TextInput):
     def load_file(self, file_path):
         with open(file_path, 'r') as file:
             data = file.read()
-        file.close()
+            file.close()
         self.text = data
 
     def clear(self):
         self.text = ''
+
+    def save(self, file_path):
+        with open(file_path, 'w') as file:
+            file.write(self.text)
+            file.close()
 
 
 class GUI(NavigationLayout):
