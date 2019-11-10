@@ -288,13 +288,17 @@ class MainWindow(BoxLayout):
                                         pos_hint={
                                             'y': self.buttons_y_pos
                                         }, theme_text_color='Custom',
-                                        text_color=self.app.theme_cls.primary_color)
+                                        text_color=self.app.theme_cls.primary_color,
+                                        on_release=self.buttons_information
+                                        )
         self.not_loaded_file = MDIconButton(icon='file-alert',
                                             size_hint=(None, None),
                                             pos_hint={
                                                 'y': self.buttons_y_pos
                                             }, theme_text_color='Custom',
-                                            text_color=self.app.theme_cls.accent_dark)
+                                            text_color=self.app.theme_cls.accent_dark,
+                                            on_release=self.buttons_information
+                                            )
         self.md_toolbar.add_widget(self.run_button)
         self.md_toolbar.add_widget(self.debug_button)
         self.md_toolbar.add_widget(self.refresh_button)
@@ -439,6 +443,16 @@ class MainWindow(BoxLayout):
 
         else:
             toast('File save cancelled')
+
+    def buttons_information(self, instance):
+        """
+        It is called when user clicks on information buttons.
+        :param instance:
+        """
+        if instance.icon == 'file-alert':
+            toast('Not loaded file.')
+        if instance.icon == 'file-check':
+            toast('Loaded file.')
 
 
 class NavDrawer(MDNavigationDrawer):
