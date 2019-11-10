@@ -30,20 +30,21 @@ from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
                                          NavigationDrawerSubheader,
                                          NavigationLayout)
 
-from assembler import Assembler, verify_ram_content, hexify_ram_content
+from assembler import Assembler, verify_ram_content, hexify_ram_content, clear_ram
 from assembler import RAM as RAM_ASSEMBLER
 from constants import REGISTER, hex_to_binary, convert_to_hex, is_valid_port, update_reserved_ports
 from constants import TRAFFIC_LIGHT, SEVEN_SEGMENT_DISPLAY, ASCII_TABLE, HEX_KEYBOARD
 from microprocessor_simulator import MicroSim, RAM
 
-
+file_path = ''
+loaded_file = False
 
 class HexKeyboard(GridLayout):
 
     def __init__(self, **kwargs):
         self.mem_table = kwargs.pop('mem_table')
-        self.event_on = kwargs.pop('event_on')
-        self.event_off = kwargs.pop('event_off')
+        self.blinking_on = kwargs.pop('blinking_on')
+        self.blinking_off = kwargs.pop('blinking_off')
         self.dpi = kwargs.pop('dpi')
         super(HexKeyboard, self).__init__(**kwargs)
         self.queue = Queue(maxsize=10)
@@ -125,11 +126,11 @@ class HexKeyboard(GridLayout):
             self.mem_table.data_list.clear()
             self.mem_table.get_data()
 
-            self.event_on.cancel()
-            self.event_off.cancel()
+            self.blinking_on.cancel()
+            self.blinking_off.cancel()
 
-            self.event_on()
-            self.event_off()
+            self.blinking_on()
+            self.blinking_off()
             sleep(1)
             self.condition.release()
 
@@ -160,21 +161,24 @@ class RunWindow(FloatLayout):
 
         # Create variable of scheduling instance so that it can be turned on and off,
         # to avoid repeat of the same thread
-        self.event_on = Clock.schedule_interval(self.light.intermittent_off,
+
+        self.editor_loader = Clock.schedule_interval(self.check_loader, 0.5)
+
+        self.blinking_on = Clock.schedule_interval(self.light.intermittent_on,
                                                 0.5)
-        self.event_off = Clock.schedule_interval(self.light.intermittent_on,
+        self.blinking_off = Clock.schedule_interval(self.light.intermittent_off,
                                                  0.3)
 
         # Creates a clock thread that updates all tables and i/o's every 0.2 seconds. Does not get cancelled.
         self.event_io = Clock.schedule_interval(self.update_io, 0.2)
 
         # Since the instancing of the events actually starts the scheduling, needs to be canceled right away
-        self.event_on.cancel()
-        self.event_off.cancel()
+        self.blinking_on.cancel()
+        self.blinking_off.cancel()
 
         self.hex_keyboard_layout = HexKeyboard(mem_table=self.mem_table,
-                                               event_on=self.event_on,
-                                               event_off=self.event_off,
+                                               blinking_on=self.blinking_on,
+                                               blinking_off=self.blinking_off,
                                                dpi=self.dpi)
         box = FloatLayout()
         box.add_widget(self.hex_keyboard_layout)
@@ -213,12 +217,14 @@ class RunWindow(FloatLayout):
         self.add_widget(self.ascii)
         
 
+    def check_loader(self, dt):
+        global file_path, loaded_file
+        if file_path and loaded_file:
+            self.editor.load_file(file_path)
+            loaded_file = False
+        
 
     def open_keyboard(self, instance):
-        self.popup.open()
-
-    def load_file_to_editor(self):
-        self.editor.load_file('file_path')
         self.popup.open()
 
     def update_io(self, dt):
@@ -237,7 +243,7 @@ class MainWindow(BoxLayout):
         self.dpi = kwargs.pop('dpi')
         super().__init__(**kwargs)
         buttons_y_pos = dp(0.2) if self.dpi < 192 else dp(0.1)
-
+        
         self.first_inst = True
         self.step_index = 0
         self.ids['left_actions'] = BoxLayout()
@@ -319,11 +325,11 @@ class MainWindow(BoxLayout):
                         self.first_inst = False
                     else:
                         self.micro_sim.prev_index = -1
-                        self.run_window.event_on.cancel()
-                        self.run_window.event_off.cancel()
+                        self.run_window.blinking_on.cancel()
+                        self.run_window.blinking_off.cancel()
 
-                        self.run_window.event_on()
-                        self.run_window.event_off()
+                        self.run_window.blinking_on()
+                        self.run_window.blinking_off()
 
                         while self.micro_sim.is_running:
                             self.micro_sim.run_micro_instructions()
@@ -363,7 +369,12 @@ class MainWindow(BoxLayout):
                 self.run_window.mem_table.get_data()
 
     def clear(self, instance):
+        global loaded_file, file_path
+        loaded_file = True
         self.step_index = 0
+        clear_ram()
+        file_path = ''
+        self.run_window.editor.clear()
         self.micro_sim.micro_clear()
         self.run_window.reg_table.data_list.clear()
         self.run_window.reg_table.get_data()
@@ -375,8 +386,8 @@ class MainWindow(BoxLayout):
         self.first_inst = True
 
         # Cancels last scheduling thread for clean event
-        self.run_window.event_on.cancel()
-        self.run_window.event_off.cancel()
+        self.run_window.blinking_on.cancel()
+        self.run_window.blinking_off.cancel()
 
         self.run_window.light.change_color(
             self.micro_sim.traffic_lights_binary())
@@ -578,6 +589,10 @@ class NavDrawer(MDNavigationDrawer):
         else:  # If file is an .asm file, runs assembler, then simulator
             self.assembler(path)
 
+        global file_path, loaded_file
+        file_path = path
+        loaded_file = True
+
     def exit_manager(self, *args):
         """Called when the user reaches the root of the directory tree."""
         self.manager.dismiss()
@@ -593,6 +608,7 @@ class NavDrawer(MDNavigationDrawer):
         return True
 
     def run_micro_sim(self, file):
+
         self.micro_sim.read_obj_file(file)
 
 
@@ -1013,14 +1029,14 @@ class TextEditor(TextInput):
     def on_text(self, instance, value):
         print(value)  
 
-    def load_file(self, file_text):
-        self.focus=True
-        self.insert_text(file_text)
-        self.text = file_text
-        self._trigger_refresh_text()
+    def load_file(self, file_path):
+        with open(file_path, 'r') as file:
+            data = file.read()
+        file.close()
+        self.text = data
 
-    
-        
+    def clear(self):
+        self.text = ''
 
 
 class GUI(NavigationLayout):
