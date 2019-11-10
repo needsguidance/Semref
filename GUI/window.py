@@ -40,6 +40,8 @@ from microprocessor_simulator import MicroSim, RAM
 file_path = ''
 can_write = False
 loaded_file = False
+run_editor = True
+editor_saved = False
 
 class HexKeyboard(GridLayout):
 
@@ -322,21 +324,24 @@ class MainWindow(BoxLayout):
         self.add_widget(self.run_window)
 
     def run_micro_instructions(self, instance):
-        global loaded_file, file_path
-        if loaded_file:
-            loaded_file = False
-            if file_path.endswith('.obj'):  # If file is an .obj file, runs simulator
-                self.run_micro_sim(file_path)
-                
-            else:  # If file is an .asm file, runs assembler, then simulator
-                self.assembler(file_path)
-                
+        global loaded_file, file_path, editor_saved
+        
+        if file_path.endswith('.obj'):  # If file is an .obj file, runs simulator
+            self.run_micro_sim(file_path)
+
+        elif self.run_window.editor.valid_text:
+            if editor_saved:
+                self.assembler()
+            else:
+                toast('Please save changes on editor before running')
+        else: 
+            toast("Invalid code. Load file to run or write valid code in editor")
+
         if not self.micro_sim.is_running:
             toast('Infinite loop encountered. Program stopped')
-        else:
-            if not self.micro_sim.is_ram_loaded:
-                toast('Must load file first before running')
-            else:
+            
+        else:             
+            if self.micro_sim.is_ram_loaded:
                 for m in range(2):
                     if self.first_inst:
                         self.run_window.inst_table.data_list.clear()
@@ -368,21 +373,23 @@ class MainWindow(BoxLayout):
                 toast('File executed successfully')
 
     def run_micro_instructions_step(self, instance):
-        global loaded_file, file_path
-        if loaded_file:
-            loaded_file = False
-            if file_path.endswith('.obj'):  # If file is an .obj file, runs simulator
-                self.run_micro_sim(file_path)
+        global loaded_file, file_path, editor_saved
 
-            else:  # If file is an .asm file, runs assembler, then simulator
-                self.assembler(file_path)
+        if file_path.endswith('.obj'):  # If file is an .obj file, runs simulator
+            self.run_micro_sim(file_path)
+
+        elif self.run_window.editor.valid_text:
+            if editor_saved:
+                self.assembler()
+            else:
+                toast('Please save changes on editor before running')
+        else: 
+            toast("Invalid code. Load file to run or write valid code in editor")
 
         if not self.micro_sim.is_running:
             toast("Infinite loop encountered. Program stopped")
         else:
-            if not self.micro_sim.is_ram_loaded:
-                toast('Must load file first before running')
-            else:
+            if self.micro_sim.is_ram_loaded:
                 self.step_index += 1
                 if self.first_inst:
                     self.run_window.inst_table.get_data(self.micro_sim.index,
@@ -399,14 +406,14 @@ class MainWindow(BoxLayout):
                 self.run_window.mem_table.data_list.clear()
                 self.run_window.mem_table.get_data()
 
-    def assembler(self, file):
+    def assembler(self):
         i = 0
         # Obtains last name on path string using ntpath and then
         # strips file extension using os.path.splitext
         # Should work across different OS
-        filename = os.path.splitext(ntpath.basename(file))[0]
+        filename = os.path.splitext(ntpath.basename(file_path))[0]
         try:
-            asm = Assembler(file)
+            asm = Assembler(file_path)
             asm.read_source()
             asm.store_instructions_in_ram()
             verify_ram_content()
@@ -421,9 +428,10 @@ class MainWindow(BoxLayout):
 
             # Runs simulator using generated .obj file
             self.run_micro_sim(output_file_location)
-            toast(f'Instructions at {file} assembled successfully')
+            toast(f'Instructions at {file_path} assembled successfully')
         except (AssertionError, FileNotFoundError, ValueError, MemoryError, KeyError, SyntaxError) as e:
             toast(f'{e}')
+
 
     def run_micro_sim(self, file):
         self.micro_sim.read_obj_file(file)
@@ -477,10 +485,11 @@ class MainWindow(BoxLayout):
         dialog.open()
 
     def open_editor_save_dialog(self, instance):
-        global loaded_file, file_path
+        global loaded_file, file_path, editor_saved
         if loaded_file:
             self.run_window.editor.save(file_path)
             toast('Content saved on loaded file')
+            editor_saved = True
         else:
             dialog = MDInputDialog(title='Save file: Enter file name',
                                 hint_text='Enter file name',
@@ -497,6 +506,7 @@ class MainWindow(BoxLayout):
             dialog.open()
 
     def save_asm_file(self, *args):
+        global editor_saved, file_path, loaded_file
 
         if args[0] == 'Save':
             filename = args[0]
@@ -507,8 +517,9 @@ class MainWindow(BoxLayout):
 
             self.run_window.editor.save('input/' + filename + '.asm')
             toast('File saved in input folder as ' + filename + '.asm')
-
-
+            editor_saved = True
+            file_path = 'input/' + filename + '.asm'
+            loaded_file = True
         else:
             toast('File save cancelled')
 
@@ -1107,6 +1118,9 @@ class TextEditor(TextInput):
         
 
     def on_text(self, instance, value):
+        global editor_saved
+
+        editor_saved = False
         if value:
             self.valid_text = True
         else:
@@ -1114,10 +1128,13 @@ class TextEditor(TextInput):
 
 
     def load_file(self, file_path):
+        global editor_saved 
         with open(file_path, 'r') as file:
             data = file.read()
             file.close()
         self.text = data
+        editor_saved = True
+
 
     def clear(self):
         self.text = ''
