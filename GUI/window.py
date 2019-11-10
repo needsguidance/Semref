@@ -665,7 +665,6 @@ class NavDrawer(MDNavigationDrawer):
         return True
 
     def run_micro_sim(self, file):
-
         self.micro_sim.read_obj_file(file)
 
 
