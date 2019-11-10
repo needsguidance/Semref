@@ -37,6 +37,7 @@ from constants import TRAFFIC_LIGHT, SEVEN_SEGMENT_DISPLAY, ASCII_TABLE, HEX_KEY
 from microprocessor_simulator import MicroSim, RAM
 
 file_path = ''
+can_write = False
 loaded_file = False
 
 class HexKeyboard(GridLayout):
@@ -162,7 +163,7 @@ class RunWindow(FloatLayout):
         # Create variable of scheduling instance so that it can be turned on and off,
         # to avoid repeat of the same thread
 
-        self.editor_loader = Clock.schedule_interval(self.check_loader, 0.5)
+        self.editor_loader = Clock.schedule_interval(self.check_loader, 0.1)
 
         self.blinking_on = Clock.schedule_interval(self.light.intermittent_on,
                                                 0.5)
@@ -218,10 +219,10 @@ class RunWindow(FloatLayout):
         
 
     def check_loader(self, dt):
-        global file_path, loaded_file
-        if file_path and loaded_file:
+        global file_path, can_write
+        if file_path and can_write:
             self.editor.load_file(file_path)
-            loaded_file = False
+            can_write = False
         
 
     def open_keyboard(self, instance):
@@ -373,6 +374,7 @@ class MainWindow(BoxLayout):
         self.step_index = 0
         clear_ram()
         file_path = ''
+        loaded_file = False
         self.run_window.editor.clear()
         self.micro_sim.micro_clear()
         self.run_window.reg_table.data_list.clear()
@@ -580,7 +582,7 @@ class NavDrawer(MDNavigationDrawer):
         :param path: path to the selected directory or file;
 
         """
-        global file_path, loaded_file
+        global file_path, can_write, loaded_file
         self.exit_manager()
 
         if path.endswith('.obj'):  # If file is an .obj file, runs simulator
@@ -589,7 +591,8 @@ class NavDrawer(MDNavigationDrawer):
         else:  # If file is an .asm file, runs assembler, then simulator
             self.assembler(path)
             file_path = path
-            loaded_file = True
+            can_write = True
+        loaded_file = True
 
         
         
