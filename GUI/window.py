@@ -322,6 +322,15 @@ class MainWindow(BoxLayout):
         self.add_widget(self.run_window)
 
     def run_micro_instructions(self, instance):
+        global loaded_file, file_path
+        if loaded_file:
+            loaded_file = False
+            if file_path.endswith('.obj'):  # If file is an .obj file, runs simulator
+                self.run_micro_sim(file_path)
+                
+            else:  # If file is an .asm file, runs assembler, then simulator
+                self.assembler(file_path)
+                
         if not self.micro_sim.is_running:
             toast('Infinite loop encountered. Program stopped')
         else:
@@ -359,6 +368,15 @@ class MainWindow(BoxLayout):
                 toast('File executed successfully')
 
     def run_micro_instructions_step(self, instance):
+        global loaded_file, file_path
+        if loaded_file:
+            loaded_file = False
+            if file_path.endswith('.obj'):  # If file is an .obj file, runs simulator
+                self.run_micro_sim(file_path)
+
+            else:  # If file is an .asm file, runs assembler, then simulator
+                self.assembler(file_path)
+
         if not self.micro_sim.is_running:
             toast("Infinite loop encountered. Program stopped")
         else:
@@ -381,6 +399,35 @@ class MainWindow(BoxLayout):
                 self.run_window.mem_table.data_list.clear()
                 self.run_window.mem_table.get_data()
 
+    def assembler(self, file):
+        i = 0
+        # Obtains last name on path string using ntpath and then
+        # strips file extension using os.path.splitext
+        # Should work across different OS
+        filename = os.path.splitext(ntpath.basename(file))[0]
+        try:
+            asm = Assembler(file)
+            asm.read_source()
+            asm.store_instructions_in_ram()
+            verify_ram_content()
+            hexify_ram_content()
+            output_file_location = 'output/' + filename + '.obj'
+
+            f = open(output_file_location, 'w')
+            for m in range(50):
+                f.write(f'{RAM_ASSEMBLER[i]} {RAM_ASSEMBLER[i + 1]}' + '\n')
+                i += 2
+            f.close()
+
+            # Runs simulator using generated .obj file
+            self.run_micro_sim(output_file_location)
+            toast(f'Instructions at {file} assembled successfully')
+        except (AssertionError, FileNotFoundError, ValueError, MemoryError, KeyError, SyntaxError) as e:
+            toast(f'{e}')
+
+    def run_micro_sim(self, file):
+        self.micro_sim.read_obj_file(file)
+
     def clear(self, instance):
         global loaded_file, file_path
         self.step_index = 0
@@ -398,7 +445,6 @@ class MainWindow(BoxLayout):
                                             self.micro_sim.disassembled_instruction())
         self.first_inst = True
 
-        # Cancels last scheduling thread for clean event
         self.run_window.blinking_on.cancel()
         self.run_window.blinking_off.cancel()
 
@@ -407,6 +453,7 @@ class MainWindow(BoxLayout):
         self.run_window.ascii.update_ascii_grid()
         self.run_window.seven_segment_display.activate_segments(
             self.micro_sim.seven_segment_binary())
+        self.run_window.seven_segment_display.clear_seven_segment()
         toast('Micro memory cleared! Load new data')
 
     def open_reg_mem_save_dialog(self, instance):
@@ -603,31 +650,6 @@ class NavDrawer(MDNavigationDrawer):
         self.manager.open()
         self.history = self.file_manager.history
 
-    def assembler(self, file):
-        i = 0
-        # Obtains last name on path string using ntpath and then
-        # strips file extension using os.path.splitext
-        # Should work across different OS
-        filename = os.path.splitext(ntpath.basename(file))[0]
-        try:
-            asm = Assembler(file)
-            asm.read_source()
-            asm.store_instructions_in_ram()
-            verify_ram_content()
-            hexify_ram_content()
-            output_file_location = 'output/' + filename + '.obj'
-
-            f = open(output_file_location, 'w')
-            for m in range(50):
-                f.write(f'{RAM_ASSEMBLER[i]} {RAM_ASSEMBLER[i + 1]}' + '\n')
-                i += 2
-            f.close()
-
-            # Runs simulator using generated .obj file
-            self.run_micro_sim(output_file_location)
-            toast(f'Instructions at {file} assembled successfully')
-        except (AssertionError, FileNotFoundError, ValueError, MemoryError, KeyError, SyntaxError) as e:
-            toast(f'{e}')
 
     def select_path(self, path):
         """It will be called when you click on the file name
@@ -637,19 +659,15 @@ class NavDrawer(MDNavigationDrawer):
         :param path: path to the selected directory or file;
 
         """
-        global file_path, can_write, loaded_file
+        global file_path, loaded_file, can_write
         self.exit_manager()
 
-        if path.endswith('.obj'):  # If file is an .obj file, runs simulator
-            self.run_micro_sim(path)
-            toast(f'{path} loaded successfully')
-        else:  # If file is an .asm file, runs assembler, then simulator
-            self.assembler(path)
-            file_path = path
+        if path.endswith('.asm'):
             can_write = True
+        file_path = path
         loaded_file = True
+        toast(f'{path} loaded successfully')
 
-        
     def exit_manager(self, *args):
         """Called when the user reaches the root of the directory tree."""
         self.manager.dismiss()
@@ -664,8 +682,6 @@ class NavDrawer(MDNavigationDrawer):
                 self.file_manager.back()
         return True
 
-    def run_micro_sim(self, file):
-        self.micro_sim.read_obj_file(file)
 
 
 class RegisterTable(RecycleView):
