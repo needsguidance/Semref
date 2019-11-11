@@ -1035,9 +1035,9 @@ class ASCIIGrid(GridLayout):
 
     def update_ascii_grid(self):
         i = 0
-        # while i < len(self.labels):
-        #     self.labels[i].text = chr(int(RAM[ASCII_TABLE["port"] + i], 16))
-        #     i += 1
+        while i < len(self.labels):
+            self.labels[i].text = chr(int(RAM[ASCII_TABLE["port"] + i], 16))
+            i += 1
 
 
 class GUI(NavigationLayout):
