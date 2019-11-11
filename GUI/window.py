@@ -41,6 +41,7 @@ can_write = False
 loaded_file = False
 run_editor = True
 editor_saved = False
+cleared = True
 
 
 class HexKeyboard(GridLayout):
@@ -338,6 +339,20 @@ class MainWindow(BoxLayout):
         self.add_widget(self.run_window)
         self.add_widget(self.not_loaded_file)
 
+        self.file_indicator = Clock.schedule_interval(self.update_indicators, 0.1)
+
+    
+    def update_indicators(self):
+        global loaded_file
+
+        if loaded_file:
+            self.add_widget(instance.loaded_file)
+            self.remove_widget(instance.not_loaded_file)
+
+        else:
+            self.add_widget(instance.not_loaded_file)
+            self.remove_widget(instance.loaded_file)
+
     def run_micro_instructions(self, instance):
         global loaded_file, file_path, editor_saved
         if not self.run_window.editor.valid_text:
@@ -448,11 +463,14 @@ class MainWindow(BoxLayout):
         self.micro_sim.read_obj_file(file)
 
     def clear_dialog(self, instance):
-        global editor_saved
+        global editor_saved, cleared
 
         if editor_saved:
             self.clear()
+        elif cleared:
+            toast('There is nothing to clear')
         else:
+
             dialog = MDDialog(title='Warning',
                               text='Are you sure you want to clear without saving?',
                               size_hint=(.3, .3),
@@ -464,7 +482,6 @@ class MainWindow(BoxLayout):
                     'x': dp(0.18),
                     'y': dp(0.18)
                 }
-            toast('Save Register and Memory Content')
             dialog.open()
 
     def clear_decision(self, *args):
@@ -474,33 +491,38 @@ class MainWindow(BoxLayout):
             toast('Please save your changes')
 
     def clear(self):
-        global loaded_file, file_path
-        self.step_index = 0
-        clear_ram()
-        file_path = ''
-        loaded_file = False
-        self.run_window.editor.clear()
-        self.micro_sim.micro_clear()
-        update_indicators(self, loaded_file)
-        self.run_window.reg_table.data_list.clear()
-        self.run_window.reg_table.get_data()
-        self.run_window.mem_table.data_list.clear()
-        self.run_window.mem_table.get_data()
-        self.run_window.inst_table.data_list.clear()
-        self.run_window.inst_table.get_data(self.micro_sim.index,
-                                            self.micro_sim.disassembled_instruction())
-        self.first_inst = True
+        global loaded_file, file_path, cleared
 
-        self.run_window.blinking_on.cancel()
-        self.run_window.blinking_off.cancel()
+        if cleared:
+            toast('There is nothing to clear')
+        else:
+            self.step_index = 0
+            clear_ram()
+            file_path = ''
+            loaded_file = False
+            self.run_window.editor.clear()
+            self.micro_sim.micro_clear()
+            self.run_window.reg_table.data_list.clear()
+            self.run_window.reg_table.get_data()
+            self.run_window.mem_table.data_list.clear()
+            self.run_window.mem_table.get_data()
+            self.run_window.inst_table.data_list.clear()
+            self.run_window.inst_table.get_data(self.micro_sim.index,
+                                                self.micro_sim.disassembled_instruction())
+            self.first_inst = True
 
-        self.run_window.light.change_color(
-            self.micro_sim.traffic_lights_binary())
-        self.run_window.ascii.update_ascii_grid()
-        self.run_window.seven_segment_display.activate_segments(
-            self.micro_sim.seven_segment_binary())
-        self.run_window.seven_segment_display.clear_seven_segment()
-        toast('Micro memory cleared! Load new data')
+            self.run_window.blinking_on.cancel()
+            self.run_window.blinking_off.cancel()
+
+            self.run_window.light.change_color(
+                self.micro_sim.traffic_lights_binary())
+            self.run_window.ascii.update_ascii_grid()
+            self.run_window.seven_segment_display.activate_segments(
+                self.micro_sim.seven_segment_binary())
+            self.run_window.seven_segment_display.clear_seven_segment()
+            toast('Micro memory cleared! Load new data')
+            update_indicators(self, loaded_file, cleared)
+            cleared = True
 
     def clear_run(self):
 
@@ -568,7 +590,7 @@ class MainWindow(BoxLayout):
             dialog.open()
 
     def save_asm_file(self, *args):
-        global editor_saved, file_path, loaded_file
+        global editor_saved, file_path, loaded_file, cleared
 
         if args[0] == 'Save':
             filename = args[0]
@@ -582,7 +604,7 @@ class MainWindow(BoxLayout):
             editor_saved = True
             file_path = 'input/' + filename + '.asm'
             loaded_file = True
-            update_indicators(self, loaded_file)
+            update_indicators(self, loaded_file, cleared)
         else:
             toast('File save cancelled')
 
@@ -747,7 +769,7 @@ class NavDrawer(MDNavigationDrawer):
         :param path: path to the selected directory or file;
 
         """
-        global file_path, loaded_file, can_write
+        global file_path, loaded_file, can_write, cleared
         self.exit_manager()
 
         if path.endswith('.asm'):
@@ -755,7 +777,7 @@ class NavDrawer(MDNavigationDrawer):
         file_path = path
         loaded_file = True
         toast(f'{path} loaded successfully')
-        update_indicators(self.main_window, loaded_file)
+        update_indicators(self.main_window, loaded_file, cleared)
 
     def exit_manager(self, *args):
         """Called when the user reaches the root of the directory tree."""
@@ -1195,11 +1217,12 @@ class TextEditor(TextInput):
         self.valid_text = False
 
     def on_text(self, instance, value):
-        global editor_saved
+        global editor_saved, cleared
 
         editor_saved = False
         if value:
             self.valid_text = True
+            cleared = False
         else:
             self.valid_text = False
 
