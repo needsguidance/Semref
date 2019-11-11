@@ -1028,7 +1028,7 @@ class ASCIIGrid(GridLayout):
             self.size_hint = (0.35, 0.1)
             self.pos_hint = {
                 'x': dp(0.148),
-                'y': dp(0.006)
+                'y': dp(-0.033)
             }
         for label in self.labels:
             self.add_widget(label)
