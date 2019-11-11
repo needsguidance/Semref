@@ -310,7 +310,7 @@ class MainWindow(BoxLayout):
 
     def run_micro_instructions(self, instance):
         if not self.micro_sim.is_running:
-            toast('Infinite loop encountered. Program stopped')
+            toast('Program stopped')
         else:
             if not self.micro_sim.is_ram_loaded:
                 toast('Must load file first before running')
