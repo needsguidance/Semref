@@ -24,6 +24,7 @@ def hex_to_binary(hex_num):
     """
     return f'{int(hex_num, 16):0{len(hex_num) * 4}b}'
 
+
 def is_valid_port(port):
     """
     Verify if the port is available
@@ -60,6 +61,15 @@ def update_reserved_ports(device, port_to_remove, port_to_add, reserve_block=Fal
             RESERVED_PORTS.append(port_to_add + i)
 
     device['port'] = port_to_add
+
+
+def update_indicators(instance, is_ram_loaded):
+    if is_ram_loaded:
+        instance.add_widget(instance.loaded_file)
+        instance.remove_widget(instance.not_loaded_file)
+    else:
+        instance.add_widget(instance.not_loaded_file)
+        instance.remove_widget(instance.loaded_file)
 
 
 OPCODE = {

@@ -21,7 +21,7 @@ from kivy.uix.recycleview import RecycleView
 from kivy.uix.widget import Widget
 from kivymd.theming import ThemeManager
 from kivymd.toast import toast
-from kivymd.uix.button import MDFillRoundFlatIconButton, MDFlatButton
+from kivymd.uix.button import MDFillRoundFlatIconButton, MDFlatButton, MDIconButton
 from kivymd.uix.dialog import MDInputDialog
 from kivymd.uix.filemanager import MDFileManager
 from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
@@ -31,8 +31,8 @@ from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
 
 from assembler import Assembler, verify_ram_content, hexify_ram_content
 from assembler import RAM as RAM_ASSEMBLER
-from constants import REGISTER, hex_to_binary, convert_to_hex, is_valid_port, update_reserved_ports
-from constants import TRAFFIC_LIGHT, SEVEN_SEGMENT_DISPLAY, ASCII_TABLE, HEX_KEYBOARD
+from utils import REGISTER, hex_to_binary, convert_to_hex, is_valid_port, update_reserved_ports, update_indicators
+from utils import TRAFFIC_LIGHT, SEVEN_SEGMENT_DISPLAY, ASCII_TABLE, HEX_KEYBOARD
 from microprocessor_simulator import MicroSim, RAM
 
 
@@ -226,7 +226,7 @@ class MainWindow(BoxLayout):
         self.micro_sim = kwargs.pop('micro_sim')
         self.dpi = kwargs.pop('dpi')
         super().__init__(**kwargs)
-        buttons_y_pos = dp(0.2) if self.dpi < 192 else dp(0.1)
+        self.buttons_y_pos = dp(0.2) if self.dpi < 192 else dp(0.1)
 
         self.first_inst = True
         self.step_index = 0
@@ -252,37 +252,53 @@ class MainWindow(BoxLayout):
                                                     icon='run',
                                                     size_hint=(None, None),
                                                     pos_hint={
-                                                        'y': buttons_y_pos
+                                                        'y': self.buttons_y_pos
                                                     },
                                                     on_release=self.run_micro_instructions)
         self.debug_button = MDFillRoundFlatIconButton(text='Debug',
                                                       icon='android-debug-bridge',
                                                       size_hint=(None, None),
                                                       pos_hint={
-                                                          'y': buttons_y_pos
+                                                          'y': self.buttons_y_pos
                                                       },
                                                       on_release=self.run_micro_instructions_step)
         self.refresh_button = MDFillRoundFlatIconButton(text='Clear',
                                                         icon='refresh',
                                                         size_hint=(None, None),
                                                         pos_hint={
-                                                            'y': buttons_y_pos
+                                                            'y': self.buttons_y_pos
                                                         },
                                                         on_release=self.clear)
         self.save_button = MDFillRoundFlatIconButton(text='Save File',
                                                      icon='download',
                                                      size_hint=(None, None),
                                                      pos_hint={
-                                                         'y': buttons_y_pos
+                                                         'y': self.buttons_y_pos
                                                      },
                                                      on_release=self.open_save_dialog)
         self.pop_button = MDFillRoundFlatIconButton(text='Hex Keyboard',
                                                     icon='keyboard-outline',
                                                     size_hint=(None, None),
                                                     pos_hint={
-                                                        'y': buttons_y_pos
+                                                        'y': self.buttons_y_pos
                                                     },
                                                     on_release=self.run_window.open_keyboard)
+        self.loaded_file = MDIconButton(icon='file-check',
+                                        size_hint=(None, None),
+                                        pos_hint={
+                                            'y': self.buttons_y_pos
+                                        }, theme_text_color='Custom',
+                                        text_color=self.app.theme_cls.primary_color,
+                                        on_release=self.buttons_information
+                                        )
+        self.not_loaded_file = MDIconButton(icon='file-alert',
+                                            size_hint=(None, None),
+                                            pos_hint={
+                                                'y': self.buttons_y_pos
+                                            }, theme_text_color='Custom',
+                                            text_color=self.app.theme_cls.accent_dark,
+                                            on_release=self.buttons_information
+                                            )
         self.md_toolbar.add_widget(self.run_button)
         self.md_toolbar.add_widget(self.debug_button)
         self.md_toolbar.add_widget(self.refresh_button)
@@ -290,6 +306,7 @@ class MainWindow(BoxLayout):
         self.md_toolbar.add_widget(self.pop_button)
         self.add_widget(self.md_toolbar)
         self.add_widget(self.run_window)
+        self.add_widget(self.not_loaded_file)
 
     def run_micro_instructions(self, instance):
         if not self.micro_sim.is_running:
@@ -354,6 +371,7 @@ class MainWindow(BoxLayout):
     def clear(self, instance):
         self.step_index = 0
         self.micro_sim.micro_clear()
+        update_indicators(self, self.micro_sim.is_ram_loaded)
         self.run_window.reg_table.data_list.clear()
         self.run_window.reg_table.get_data()
         self.run_window.mem_table.data_list.clear()
@@ -426,6 +444,16 @@ class MainWindow(BoxLayout):
         else:
             toast('File save cancelled')
 
+    def buttons_information(self, instance):
+        """
+        It is called when user clicks on information buttons.
+        :param instance:
+        """
+        if instance.icon == 'file-alert':
+            toast('Not loaded file.')
+        if instance.icon == 'file-check':
+            toast('Loaded file.')
+
 
 class NavDrawer(MDNavigationDrawer):
 
@@ -433,6 +461,7 @@ class NavDrawer(MDNavigationDrawer):
         self.micro_sim = kwargs.pop('micro_sim')
         self.app = kwargs.pop('app')
         self.dpi = kwargs.pop('dpi')
+        self.main_window = kwargs.pop('main_window')
         super().__init__(**kwargs)
         self.drawer_logo = 'images/logo.jpg'
         self.spacing = 0
@@ -445,16 +474,20 @@ class NavDrawer(MDNavigationDrawer):
                                                    text='Load File',
                                                    on_release=self.file_manager_open))
         self.add_widget(NavigationDrawerIconButton(icon='traffic-light',
-                                                   text=TRAFFIC_LIGHT['menu_title'],
+                                                   text=TRAFFIC_LIGHT['menu_title'] + '. Current Port: ' + str(
+                                                       TRAFFIC_LIGHT['port']),
                                                    on_release=self.io_config_open))
         self.add_widget(NavigationDrawerIconButton(icon='numeric-7-box-multiple',
-                                                   text=SEVEN_SEGMENT_DISPLAY['menu_title'],
+                                                   text=SEVEN_SEGMENT_DISPLAY['menu_title'] + '. Current Port: ' + str(
+                                                       SEVEN_SEGMENT_DISPLAY['port']),
                                                    on_release=self.io_config_open))
         self.add_widget(NavigationDrawerIconButton(icon='alphabetical-variant',
-                                                   text=ASCII_TABLE['menu_title'],
+                                                   text=ASCII_TABLE['menu_title'] + '. Current Port: ' + str(
+                                                       ASCII_TABLE['port']),
                                                    on_release=self.io_config_open))
         self.add_widget(NavigationDrawerIconButton(icon='keyboard',
-                                                   text=HEX_KEYBOARD['menu_title'],
+                                                   text=HEX_KEYBOARD['menu_title'] + '. Current Port: ' + str(
+                                                       HEX_KEYBOARD['port']),
                                                    on_release=self.io_config_open))
 
     def io_config_open(self, instance):
@@ -589,6 +622,7 @@ class NavDrawer(MDNavigationDrawer):
 
     def run_micro_sim(self, file):
         self.micro_sim.read_obj_file(file)
+        update_indicators(self.main_window, self.micro_sim.is_ram_loaded)
 
 
 class RegisterTable(RecycleView):
@@ -1013,13 +1047,14 @@ class GUI(NavigationLayout):
         self.app = App.get_running_app()
         self.micro_sim = MicroSim()
         self.dpi = MetricsBase().dpi
+        self.main_window = MainWindow(nav_drawer=self,
+                                      app=self.app,
+                                      micro_sim=self.micro_sim,
+                                      dpi=self.dpi)
         self.add_widget(NavDrawer(micro_sim=self.micro_sim,
                                   app=self.app,
-                                  dpi=self.dpi))
-        self.add_widget(MainWindow(nav_drawer=self,
-                                   app=self.app,
-                                   micro_sim=self.micro_sim,
-                                   dpi=self.dpi))
+                                  dpi=self.dpi, main_window=self.main_window))
+        self.add_widget(self.main_window)
 
 
 class SemrefApp(App):

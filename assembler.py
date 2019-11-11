@@ -1,6 +1,6 @@
 import re
 
-from constants import OPCODE, convert_to_binary
+from utils import OPCODE, convert_to_binary
 
 ADDRESSES = {}
 LABELS = {}
