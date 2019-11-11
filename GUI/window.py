@@ -1022,7 +1022,7 @@ class ASCIIGrid(GridLayout):
             self.size_hint = (0.35, 0.1)
             self.pos_hint = {
                 'x': dp(0.297),
-                'y': dp(0.015)
+                'y': dp(-0.066)
             }
         else:
             self.size_hint = (0.35, 0.1)
@@ -1035,9 +1035,9 @@ class ASCIIGrid(GridLayout):
 
     def update_ascii_grid(self):
         i = 0
-        while i < len(self.labels):
-            self.labels[i].text = chr(int(RAM[ASCII_TABLE["port"] + i], 16))
-            i += 1
+        # while i < len(self.labels):
+        #     self.labels[i].text = chr(int(RAM[ASCII_TABLE["port"] + i], 16))
+        #     i += 1
 
 
 class GUI(NavigationLayout):
