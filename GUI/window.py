@@ -42,6 +42,7 @@ loaded_file = False
 run_editor = True
 editor_saved = False
 cleared = True
+is_obj = False
 
 
 class HexKeyboard(GridLayout):
@@ -342,8 +343,9 @@ class MainWindow(BoxLayout):
         self.add_widget(self.not_loaded_file)
 
     def run_micro_instructions(self, instance):
-        global loaded_file, file_path, editor_saved
-        if not self.run_window.editor.valid_text:
+        global loaded_file, file_path, editor_saved, is_obj
+
+        if not self.run_window.editor.valid_text and not is_obj:
             toast("Invalid code. Load file to run or write valid code in editor")
         elif editor_saved:
             self.clear_run()
@@ -387,8 +389,8 @@ class MainWindow(BoxLayout):
             toast('Please save changes on editor before running')
 
     def run_micro_instructions_step(self, instance):
-        global loaded_file, file_path, editor_saved
-        if not self.run_window.editor.valid_text:
+        global loaded_file, file_path, editor_saved, is_obj
+        if not self.run_window.editor.valid_text and not is_obj:
             toast("Invalid code. Load file to run or write valid code in editor")
         elif editor_saved:
             # If file is an .obj file, runs simulator
@@ -479,7 +481,7 @@ class MainWindow(BoxLayout):
             toast('Please save your changes')
 
     def clear(self):
-        global loaded_file, file_path, cleared
+        global loaded_file, file_path, cleared, is_obj
 
         if cleared:
             toast('There is nothing to clear')
@@ -511,6 +513,7 @@ class MainWindow(BoxLayout):
             toast('Micro memory cleared! Load new data')
             cleared = True
             update_indicators(self, loaded_file)
+            is_obj = False
 
     def clear_run(self):
 
@@ -557,25 +560,29 @@ class MainWindow(BoxLayout):
         dialog.open()
 
     def open_editor_save_dialog(self, instance):
-        global loaded_file, file_path, editor_saved
-        if loaded_file:
-            self.run_window.editor.save(file_path)
-            toast('Content saved on loaded file')
-            editor_saved = True
+        global loaded_file, file_path, editor_saved, is_obj
+        if is_obj:
+            toast('Obj files cannot be modified.')
+
         else:
-            dialog = MDInputDialog(title='Save file: Enter file name',
-                                   hint_text='Enter file name',
-                                   size_hint=(.3, .3),
-                                   text_button_ok='Save',
-                                   text_button_cancel='Cancel',
-                                   events_callback=self.save_asm_file)
-            if self.dpi >= 192:
-                dialog.pos_hint = {
-                    'x': dp(0.18),
-                    'y': dp(0.18)
-                }
-            toast('Save Editor Content')
-            dialog.open()
+            if loaded_file:
+                self.run_window.editor.save(file_path)
+                toast('Content saved on loaded file')
+                editor_saved = True
+            else:
+                dialog = MDInputDialog(title='Save file: Enter file name',
+                                    hint_text='Enter file name',
+                                    size_hint=(.3, .3),
+                                    text_button_ok='Save',
+                                    text_button_cancel='Cancel',
+                                    events_callback=self.save_asm_file)
+                if self.dpi >= 192:
+                    dialog.pos_hint = {
+                        'x': dp(0.18),
+                        'y': dp(0.18)
+                    }
+                toast('Save Editor Content')
+                dialog.open()
 
     def save_asm_file(self, *args):
         global editor_saved, file_path, loaded_file, cleared
@@ -757,11 +764,14 @@ class NavDrawer(MDNavigationDrawer):
         :param path: path to the selected directory or file;
 
         """
-        global file_path, loaded_file, can_write, cleared
+        global file_path, loaded_file, can_write, cleared, is_obj, editor_saved
         self.exit_manager()
 
         if path.endswith('.asm'):
             can_write = True
+        else:
+            is_obj = True
+            editor_saved = True
         file_path = path
         loaded_file = True
         toast(f'{path} loaded successfully')
@@ -1205,7 +1215,6 @@ class TextEditor(TextInput):
         super(TextEditor, self).__init__(**kwargs)
         self.bind(text=self.on_text)
         self.valid_text = False
-        self.markup = True
         if self.dpi < 192:
             # TODO: Validate values on Windows with smallest dpi.
             self.size_hint = (0.50, 0.43)
@@ -1221,9 +1230,10 @@ class TextEditor(TextInput):
             }
 
     def on_text(self, instance, value):
-        global editor_saved, cleared
-        
-        editor_saved = False
+        global editor_saved, cleared, is_obj
+
+        if not is_obj:
+            editor_saved = False
         if value:
             self.valid_text = True
             cleared = False
