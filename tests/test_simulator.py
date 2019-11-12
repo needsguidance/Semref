@@ -3,7 +3,7 @@ import sys
 from unittest import TestCase
 
 from microprocessor_simulator import RAM, MicroSim
-from tests.test_utils import assert_ram_content
+from tests.test_utils import assert_ram_content, verify_ram_content_helper
 
 class SimulatorTest(TestCase):
     ram_content = []
@@ -16,13 +16,3 @@ class SimulatorTest(TestCase):
             micro_sim.read_obj_file(file)
             micro_sim.run_micro_instructions()
             print(input())
-
-    def verify_ram_content_helper(self, instance):
-        """
-        Helper to test different input files and verify expected outputs vs actual outputs
-        """
-        RAM = ['00' for i in range(4096)]
-        file = input()
-        micro_sim = MicroSim()
-        micro_sim.read_obj_file(file)
-        # assert_ram_content(self, self.ram_content)
