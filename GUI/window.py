@@ -1,5 +1,6 @@
 import ntpath
 import os
+from lexer import SemrefLexer
 from pathlib import Path
 from queue import Queue
 from threading import Lock, Thread, Semaphore, Condition
@@ -15,6 +16,7 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
+from kivy.uix.codeinput import CodeInput
 from kivy.uix.modalview import ModalView
 from kivy.uix.popup import Popup
 from kivy.uix.recycleview import RecycleView
@@ -1213,13 +1215,14 @@ class ASCIIGrid(GridLayout):
             i += 1
 
 
-class TextEditor(TextInput):
+class TextEditor(CodeInput):
 
     def __init__(self, **kwargs):
         self.dpi = kwargs.pop('dpi')
         super(TextEditor, self).__init__(**kwargs)
         self.bind(text=self.on_text)
         self.valid_text = False
+        self.lexer = SemrefLexer()
         self.font_name = 'assets/fonts/Inconsolata-Regular.ttf'
         if self.dpi < 192:
             
