@@ -32,10 +32,16 @@ python -m virtualenv venv
 
 It is important to note that **after creating the virtual environment, the virtual environment must be activated each time a new terminal is started**. The command used to activate the recently created **venv** is the following: 
 
-```Shell
-source venv/bin/activate
+* Windows 
+ ```Shell
+venv\Scripts\activate
 ``` 
 
+* MacOS/Ubuntu
+ ```Shell
+source venv/bin/activate
+```  
+ 
 ### Step 2 - Installing Dependencies 
 
 As stated before, the GUI for the microprocessor simulator uses items from a third-party app development toolbox called Kivy. Therefore, in order to successfully run the application made, this toolbox must be installed into the computer. This would involve utilizing the pip install command in the command line, used for installing packages. Before installing the actual Kivy toolbox, one must install its dependencies. To simplify the installation process and avoid having to execute a significant amount of installation commands, the install.py file was created. By executing this file, all of the dependencies needed to run the microprocessor simulator (including Kivy and KivyMD) will be installed. In other words, the only thing needed to have all the dependencies installed is to run the install.py file included in the project folder. To execute this file, run the following: 
