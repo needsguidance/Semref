@@ -26,12 +26,13 @@ class MicroSim:
         self.is_running = True
         self.prev_index = -1
         self.counter = 0
+        self.filename = ''
 
     def read_obj_file(self, filename):
         if not self.is_valid_source(filename):
             raise AssertionError(
                 f"Unsupported file '{filename}'. Microprocesor simulator files must be of type 'obj'")
-        
+        self.filename = filename
         file = open(filename, 'r')
         lines = file.readlines()
         i = 0
@@ -217,20 +218,22 @@ class MicroSim:
                 REGISTER['pc'] = convert_to_hex(
                     int(REGISTER['pc'], 16) + 2, 12)
             elif opcode in FORMAT_2_OPCODE:
-                ra = f'R{int(instruction[5:8], 2)}'
+                ra = f'r{int(instruction[5:8], 2)}'
                 address_or_const = int(instruction[8:], 2)
-                if opcode == 'load' or 'loadim':
+                a = 2
+                if opcode == 'load':
                     REGISTER[ra.lower()] = convert_to_hex(
-                        int(RAM[address_or_const] + RAM[address_or_const + 1], 16), 8)
+                        int(RAM[address_or_const], 16), 8)
+                elif opcode == 'loadim':
+                    REGISTER[ra.lower()] = convert_to_hex(address_or_const, 8)
                 elif opcode == 'store':
-                    RAM[self.index] = REGISTER[ra.lower()]
+                    RAM[int(RAM[address_or_const], 16)] = REGISTER[ra.lower()]
                 elif opcode == 'addim':
-                    _addim = int(
-                        REGISTER[ra], 16) + int(RAM[address_or_const] + RAM[address_or_const + 1], 16)
+                    _addim = int(REGISTER[ra], 16) + address_or_const
                     REGISTER[ra] = convert_to_hex(_addim, 8)
                 elif opcode == 'subim':
-                    _subim = int(
-                        REGISTER[ra], 16) - int(RAM[address_or_const] + RAM[address_or_const + 1], 16)
+                    _subim = int(REGISTER[ra], 16) - \
+                        int(address_or_const, 16)
                     REGISTER[ra] = convert_to_hex(_subim, 8)
                 elif opcode == 'pop':
                     REGISTER[ra.lower()] = RAM[REGISTER['sp']]
@@ -249,18 +252,20 @@ class MicroSim:
                 REGISTER['pc'] = convert_to_hex(
                     int(REGISTER['pc'], 16) + 2, 12)
             elif opcode in FORMAT_3_OPCODE:
-                ra = f'R{int(instruction[5:8], 2)}'
+                ra = f'r{int(instruction[5:8], 2)}'
                 address = int(instruction[5:], 2)
                 if opcode == 'jmpaddr':
                     self.index = address
                     REGISTER['pc'] = convert_to_hex(address, 12)
                 elif opcode == 'jcondrin':
-                    REGISTER['pc'] = REGISTER[ra.lower()] if int(REGISTER['cond']) else convert_to_hex(
+                    REGISTER['pc'] = REGISTER[ra] if int(REGISTER['cond']) else convert_to_hex(
                         int(REGISTER['pc'], 16) + 2,
                         12)
+                    self.index = int(REGISTER['pc'], 16)
                 elif opcode == 'jcondaddr':
-                    REGISTER['pc'] = convert_to_hex(address, 3) if int(REGISTER['cond']) else convert_to_hex(
+                    REGISTER['pc'] = convert_to_hex(address, 12) if int(REGISTER['cond']) else convert_to_hex(
                         int(REGISTER['pc'], 16) + 2, 12)
+                    self.index = int(REGISTER['pc'], 16)
                 elif opcode == 'call':
                     REGISTER['sp'] = convert_to_hex(
                         int(REGISTER['sp'], 16), 12)

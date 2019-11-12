@@ -34,6 +34,13 @@ def verify_ram_content_helper(tester, instance):
             hexify_ram_content()
             assert_ram_content(tester, tester.hex_content, ASSEMBLER_RAM)
         else:
-            micro_sim = MicroSim()
-            micro_sim.read_obj_file(filename)
+            instance.read_obj_file(filename)
+            while instance.is_running:
+                instance.run_micro_instructions()
+                if instance.prev_index == instance.index:
+                    instance.is_running = False
+                else:
+                    instance.prev_index = instance.index
             assert_ram_content(tester, tester.ram_content, SIM_RAM)
+            instance.index = 0
+            instance.prev_index = -1
