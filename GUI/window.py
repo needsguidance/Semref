@@ -1214,7 +1214,21 @@ class TextEditor(TextInput):
         super(TextEditor, self).__init__(**kwargs)
         self.bind(text=self.on_text)
         self.valid_text = False
-        self.markup = True
+        self.dpi = MetricsBase().dpi
+        
+        if self.dpi < 192:
+            self.size_hint = (0.50, 0.43)
+            self.pos_hint = {
+                'x' : 0.23, 
+                'y': 0.05
+                }
+        else:
+            self.size_hint = (0.50, 0.43)
+            self.pos_hint = {
+                'x' : 0.24, 
+                'y': 0.05
+                }
+
         
 
     def on_text(self, instance, value):
