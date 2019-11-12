@@ -1230,6 +1230,7 @@ class TextEditor(TextInput):
 
     def clear(self):
         self.text = ''
+        self.valid_text = False
 
     def save(self, file_path):
         with open(file_path, 'w') as file:
