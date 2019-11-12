@@ -1,3 +1,4 @@
+
 def convert_to_hex(num, bits):
     """
     Converts number to hexadecimal
@@ -63,13 +64,18 @@ def update_reserved_ports(device, port_to_remove, port_to_add, reserve_block=Fal
     device['port'] = port_to_add
 
 
-def update_indicators(instance, is_ram_loaded):
-    if is_ram_loaded:
-        instance.add_widget(instance.loaded_file)
+def update_indicators(instance, is_file_loaded):
+
+    if is_file_loaded:
         instance.remove_widget(instance.not_loaded_file)
-    else:
-        instance.add_widget(instance.not_loaded_file)
         instance.remove_widget(instance.loaded_file)
+        instance.add_widget(instance.loaded_file)
+        
+    else:
+        instance.remove_widget(instance.not_loaded_file)
+        instance.remove_widget(instance.loaded_file)
+        instance.add_widget(instance.not_loaded_file)
+
 
 
 OPCODE = {
