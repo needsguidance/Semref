@@ -110,7 +110,7 @@ Three tables are visible immediately under the green buttons. The first table sh
 
 With the exception of the hex keyboard, the I/O modules can be seen afterwards. This includes the ASCII Grid, 7-segment display and traffic lights, all explained above. 
 
-### Keyboard 
+### Editor
 
 Finally, there is an editable text box that can be used to write down instructions for the assembler to execute. 
 
