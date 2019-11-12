@@ -1078,6 +1078,15 @@ class SevenSegmentDisplay(Widget):
     rightF = ListProperty([.41, .41, .41])
     rightG = ListProperty([.41, .41, .41])
 
+    # For change the position of the SevenSegment display we need only need change this initials values.
+    # Changing this attributes not change the size of the widget.
+    box_pos_x = 25
+    left_pos_x_horizontal = 45
+    left_pos_x_vertical = 35
+    right_pos_x_vertical = 85
+    box_pos_y = 90
+    bottom_pos_y = 100
+
     # Iterates through the binary at the Input location (RAM) to determine which are 1s and which are 0s
     # Then, activate segments accordingly.
     def activate_segments(self, binary):
