@@ -140,8 +140,9 @@ class HexKeyboard(GridLayout):
             self.blinking_off()
             sleep(1)
             self.condition.release()
-        
+
         cleared = False
+
 
 class RunWindow(FloatLayout):
 
@@ -309,7 +310,9 @@ class MainWindow(BoxLayout):
                                                      pos_hint={
                                                          'y': self.buttons_y_pos
                                                      },
-                                                     on_release=lambda x: MDDropdownMenu(items=self.menu_items, width_mult=4).open(self.save_button))
+                                                     on_release=lambda x: MDDropdownMenu(items=self.menu_items,
+                                                                                         width_mult=4).open(
+                                                         self.save_button))
         self.pop_button = MDFillRoundFlatIconButton(text='Hex Keyboard',
                                                     icon='keyboard-outline',
                                                     size_hint=(None, None),
@@ -571,11 +574,11 @@ class MainWindow(BoxLayout):
                 editor_saved = True
             else:
                 dialog = MDInputDialog(title='Save file: Enter file name',
-                                    hint_text='Enter file name',
-                                    size_hint=(.3, .3),
-                                    text_button_ok='Save',
-                                    text_button_cancel='Cancel',
-                                    events_callback=self.save_asm_file)
+                                       hint_text='Enter file name',
+                                       size_hint=(.3, .3),
+                                       text_button_ok='Save',
+                                       text_button_cancel='Cancel',
+                                       events_callback=self.save_asm_file)
                 if self.dpi >= 192:
                     dialog.pos_hint = {
                         'x': dp(0.18),
@@ -1241,11 +1244,9 @@ class TextEditor(TextInput):
         else:
             self.valid_text = False
 
-
     def load_file(self, file_path):
         global editor_saved
         with open(file_path, 'r') as file:
-
             data = file.read()
             file.close()
         self.text = data
