@@ -194,7 +194,7 @@ class RunWindow(FloatLayout):
         box.add_widget(self.hex_keyboard_label)
         self.popup = Popup(title='Hex Keyboard',
                            content=box,
-                           background='images\plain-white-background.jpg',
+                           background='assets/images/plain-white-background.jpg',
                            title_color=(0, 0, 0, 0),
                            separator_color=(1, 1, 1, 1))
         if self.dpi < 192:
@@ -660,7 +660,7 @@ class NavDrawer(MDNavigationDrawer):
         self.dpi = kwargs.pop('dpi')
         self.main_window = kwargs.pop('main_window')
         super().__init__(**kwargs)
-        self.drawer_logo = 'images/logo.jpg'
+        self.drawer_logo = 'assets/images/logo.jpg'
         self.spacing = 0
         self.manager_open = False
         self.manager = None
@@ -1220,6 +1220,7 @@ class TextEditor(TextInput):
         super(TextEditor, self).__init__(**kwargs)
         self.bind(text=self.on_text)
         self.valid_text = False
+        self.font_name = 'assets/fonts/Inconsolata-Regular.ttf'
         if self.dpi < 192:
             
             self.size_hint = (0.55, 0.46)
