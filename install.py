@@ -13,7 +13,8 @@ ALL = [
 ]
 
 WINDOWS = [
-    'pypiwin32',
+    'pywin32==225',
+    'pypiwin32==223',
     'kivy-deps.sdl2',
     'kivy-deps.gstreamer',
     'kivy-deps.angle',

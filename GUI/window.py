@@ -4,6 +4,7 @@ from pathlib import Path
 from queue import Queue
 from threading import Lock, Thread, Semaphore, Condition
 from time import sleep
+
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.graphics.context_instructions import Color
@@ -14,17 +15,17 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
-from kivy.uix.textinput import TextInput
 from kivy.uix.modalview import ModalView
 from kivy.uix.popup import Popup
 from kivy.uix.recycleview import RecycleView
+from kivy.uix.textinput import TextInput
 from kivy.uix.widget import Widget
 from kivymd.theming import ThemeManager
 from kivymd.toast import toast
-from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.button import MDFillRoundFlatIconButton, MDFlatButton, MDIconButton
 from kivymd.uix.dialog import MDInputDialog, MDDialog
 from kivymd.uix.filemanager import MDFileManager
+from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
                                          NavigationDrawerIconButton,
                                          NavigationDrawerSubheader,
@@ -32,9 +33,9 @@ from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
 
 from assembler import Assembler, verify_ram_content, hexify_ram_content, clear_ram
 from assembler import RAM as RAM_ASSEMBLER
+from microprocessor_simulator import MicroSim, RAM
 from utils import REGISTER, hex_to_binary, convert_to_hex, is_valid_port, update_reserved_ports, update_indicators
 from utils import TRAFFIC_LIGHT, SEVEN_SEGMENT_DISPLAY, ASCII_TABLE, HEX_KEYBOARD
-from microprocessor_simulator import MicroSim, RAM
 
 file_path = ''
 can_write = False
@@ -433,7 +434,7 @@ class MainWindow(BoxLayout):
         # Should work across different OS
         filename = os.path.splitext(ntpath.basename(file_path))[0]
         try:
-            asm = Assembler(file_path)
+            asm = Assembler(filename=file_path)
             asm.read_source()
             asm.store_instructions_in_ram()
             verify_ram_content()
@@ -482,7 +483,6 @@ class MainWindow(BoxLayout):
             self.clear()
         else:
             toast('Please save your changes')
-
 
     def clear(self):
         global loaded_file, file_path, cleared, is_obj
@@ -775,7 +775,7 @@ class NavDrawer(MDNavigationDrawer):
         if path.endswith('.obj'):
             is_obj = True
             editor_saved = True
-          
+
         can_write = True
         file_path = path
         loaded_file = True
@@ -1221,7 +1221,7 @@ class TextEditor(TextInput):
         self.bind(text=self.on_text)
         self.valid_text = False
         if self.dpi < 192:
-            
+
             self.size_hint = (0.55, 0.46)
             self.pos_hint = {
                 'x': dp(0.20),

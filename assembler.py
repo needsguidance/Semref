@@ -201,9 +201,6 @@ class Assembler:
                 RAM[self.p_counter] = binary[0:8]
                 RAM[self.p_counter + 1] = binary[8:]
 
-        # instBin = OPCODE.get(inst)
-        # return instBin
-
     def correct_p_counter(self):
         """
         Instructions must be stored in even memory addresses. Makes p_counter an even number if it is odd.
