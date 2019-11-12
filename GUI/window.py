@@ -483,6 +483,7 @@ class MainWindow(BoxLayout):
         else:
             toast('Please save your changes')
 
+
     def clear(self):
         global loaded_file, file_path, cleared, is_obj
 
@@ -517,6 +518,7 @@ class MainWindow(BoxLayout):
             cleared = True
             update_indicators(self, loaded_file)
             is_obj = False
+            self.run_window.editor.disabled = False
 
     def clear_run(self):
 
@@ -770,11 +772,11 @@ class NavDrawer(MDNavigationDrawer):
         global file_path, loaded_file, can_write, cleared, is_obj, editor_saved
         self.exit_manager()
 
-        if path.endswith('.asm'):
-            can_write = True
-        else:
+        if path.endswith('.obj'):
             is_obj = True
             editor_saved = True
+          
+        can_write = True
         file_path = path
         loaded_file = True
         toast(f'{path} loaded successfully')
@@ -1219,11 +1221,11 @@ class TextEditor(TextInput):
         self.bind(text=self.on_text)
         self.valid_text = False
         if self.dpi < 192:
-            # TODO: Validate values on Windows with smallest dpi.
-            self.size_hint = (0.50, 0.43)
+            
+            self.size_hint = (0.55, 0.46)
             self.pos_hint = {
-                'x': dp(0.23),
-                'y': dp(0.05)
+                'x': dp(0.20),
+                'y': dp(0.04)
             }
         else:
             self.size_hint = (0.50, 0.43)
@@ -1245,12 +1247,17 @@ class TextEditor(TextInput):
             self.valid_text = False
 
     def load_file(self, file_path):
-        global editor_saved
-        with open(file_path, 'r') as file:
-            data = file.read()
-            file.close()
-        self.text = data
-        editor_saved = True
+        global editor_saved, is_obj
+        if is_obj:
+            self.disabled = True
+        else:
+            self.disabled = False
+            with open(file_path, 'r') as file:
+                data = file.read()
+                file.close()
+            self.text = data
+            editor_saved = True
+        print(self.disabled)
 
     def clear(self):
         self.text = ''
