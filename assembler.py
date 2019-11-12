@@ -27,7 +27,8 @@ def verify_ram_content():
             RAM[i + 1] = binary[8:]
         elif RAM[i] == 'jmpaddr' or RAM[i] == 'jcondaddr' or RAM[i] == 'call':
             opcode = OPCODE[RAM[i]]
-            address = f'{int(RAM[i + 1], 16):011b}' if RAM[i + 1] not in VARIABLES else VARIABLES[RAM[i + 1]]
+            address = f'{int(RAM[i + 1], 16):011b}' if RAM[i +
+                                                           1] not in VARIABLES else VARIABLES[RAM[i + 1]]
             binary = opcode + address if len(address) == 11 else address
             RAM[i] = binary[0:8]
             RAM[i + 1] = binary[8:]
@@ -41,23 +42,24 @@ def hexify_ram_content():
 
 class Assembler:
 
-    def __init__(self, filename):
-        self.filename = filename
+    def __init__(self, **kwargs):
         self.micro_instr = []  # Microprocessor instruction.
         self.p_counter = 0  # Program Counter.
-        self.filename = filename
-        if not self.is_valid_source():
-            raise AssertionError(f'Unsupported file type [{self.filename}]. Only accepting files ending in .asm')
+        self.filename = kwargs.pop('filename', None)
 
-    def read_source(self):
-        if self.is_valid_source():
-            source = open(self.filename, 'r')
-            lines = source.readlines()
-            for line in lines:
-                if line != '\n':
-                    self.micro_instr.append(line.strip())
-            lines.clear()
-            source.close()
+    def read_source(self, filename=None):
+        if filename:
+            self.filename = filename
+        if not self.is_valid_source():
+            raise AssertionError(
+                f'Unsupported file type [{self.filename}]. Only accepting files ending in .asm')
+        source = open(self.filename, 'r')
+        lines = source.readlines()
+        for line in lines:
+            if line != '\n':
+                self.micro_instr.append(line.strip())
+        lines.clear()
+        source.close()
 
     def is_valid_source(self):
         return re.match(r'^.+\.asm$', self.filename)
@@ -65,6 +67,7 @@ class Assembler:
     def store_instructions_in_ram(self):
         for instruction in self.micro_instr:
             if instruction:
+                is_first_inst = self.micro_instr.index(instruction) == 0
                 instruction = re.sub(',', ' ', instruction)
                 source = instruction.split()
                 contains_label = [s for s in source if ':' in s]
@@ -78,11 +81,14 @@ class Assembler:
                         self.convert_instruction_to_binary(source[1:])
                         self.p_counter += 2
                 else:
+                    if is_first_inst:
+                        self.p_counter = 0
                     if source[0].lower() == 'org':
                         # Indicates at what memory location it will begin storing instructions
                         if len(source) > 2:
                             # there is more than one value after the 'org' - invalid address.
-                            raise SyntaxError("Too many arguments after 'org'.")
+                            raise SyntaxError(
+                                "Too many arguments after 'org'.")
 
                         org_address = int(source[1], 16)
 
@@ -103,13 +109,17 @@ class Assembler:
 
                         elif 'db' in source:
                             if source[0].lower() in OPCODE:
-                                raise SyntaxError(f'{source[0].lower()} cannot be used as a variable')
-                            VARIABLES[source[0]] = convert_to_binary(self.p_counter, 8)
+                                raise SyntaxError(
+                                    f'{source[0].lower()} cannot be used as a variable')
+                            VARIABLES[source[0]] = convert_to_binary(
+                                self.p_counter, 8)
                             for i in range(2, len(source)):
-                                RAM[self.p_counter] = convert_to_binary(int(source[i], 16), 8)
+                                RAM[self.p_counter] = convert_to_binary(
+                                    int(source[i], 16), 8)
                                 self.p_counter += 1
                         else:
-                            raise SyntaxError(f"'{instruction}' not a valid instruction")
+                            raise SyntaxError(
+                                f"'{instruction}' not a valid instruction")
 
     def convert_instruction_to_binary(self, inst, is_second_pass=False):
         if not is_second_pass:
@@ -127,25 +137,30 @@ class Assembler:
                         instruction == 'subim' or instruction == 'loop':
                     if len(inst) != 3:
                         raise SyntaxError(error)
-                    ra = convert_to_binary(int(re.sub(r'[^\w\s]', '', inst[1])[1]), 3)
+                    ra = convert_to_binary(
+                        int(re.sub(r'[^\w\s]', '', inst[1])[1]), 3)
                     if inst[2] in VARIABLES:
                         address_or_const = VARIABLES[inst[2]]
                     elif inst[2] in CONSTANTS:
                         address_or_const = CONSTANTS[inst[2]]
                     elif '#' in inst[2]:
-                        address_or_const = convert_to_binary(int(inst[2][1:], 16), 8)
+                        address_or_const = convert_to_binary(
+                            int(inst[2][1:], 16), 8)
                     else:
-                        address_or_const = convert_to_binary(int(inst[2], 16), 8)
+                        address_or_const = convert_to_binary(
+                            int(inst[2], 16), 8)
                     binary = opcode + ra + address_or_const
                 elif instruction == 'pop' or instruction == 'push':
                     if len(inst) != 2:
                         raise SyntaxError(error)
-                    ra = convert_to_binary(int(re.sub(r'[^\w\s]', '', inst[1])[1]), 3)
+                    ra = convert_to_binary(
+                        int(re.sub(r'[^\w\s]', '', inst[1])[1]), 3)
                     binary = opcode + ra + '00000000'
                 elif instruction == 'store':
                     if len(inst) != 3:
                         raise SyntaxError(error)
-                    ra = convert_to_binary(int(re.sub(r'[^\w\s]', '', inst[2])[1]), 3)
+                    ra = convert_to_binary(
+                        int(re.sub(r'[^\w\s]', '', inst[2])[1]), 3)
                     variable = re.sub(r'[^\w\s]', '', inst[1])
                     address = convert_to_binary(int(variable, 16), 8) if variable not in VARIABLES else \
                         VARIABLES[variable]
@@ -154,23 +169,30 @@ class Assembler:
                         instruction == 'neg':
                     if len(inst) != 3:
                         raise SyntaxError(error)
-                    ra = convert_to_binary(int(re.sub(r'[^\w\s]', '', inst[1])[1]), 3)
-                    rb = convert_to_binary(int(re.sub(r'[^\w\s]', '', inst[2])[1]), 3)
+                    ra = convert_to_binary(
+                        int(re.sub(r'[^\w\s]', '', inst[1])[1]), 3)
+                    rb = convert_to_binary(
+                        int(re.sub(r'[^\w\s]', '', inst[2])[1]), 3)
                     binary = opcode + ra + rb + '00000'
                 elif instruction == 'add' or instruction == 'sub' or instruction == 'and' or \
                         instruction == 'or' or instruction == 'xor' or instruction == 'shiftr' or \
                         instruction == 'shiftl' or instruction == 'rotar' or instruction == 'rotal':
                     if len(inst) != 4:
                         raise SyntaxError(error)
-                    ra = convert_to_binary(int(re.sub(r'[^\w\s]', '', inst[1])[1]), 3)
-                    rb = convert_to_binary(int(re.sub(r'[^\w\s]', '', inst[2])[1]), 3)
-                    rc = convert_to_binary(int(re.sub(r'[^\w\s]', '', inst[3])[1]), 3)
+                    ra = convert_to_binary(
+                        int(re.sub(r'[^\w\s]', '', inst[1])[1]), 3)
+                    rb = convert_to_binary(
+                        int(re.sub(r'[^\w\s]', '', inst[2])[1]), 3)
+                    rc = convert_to_binary(
+                        int(re.sub(r'[^\w\s]', '', inst[3])[1]), 3)
                     binary = opcode + ra + rb + rc + '00'
                 elif instruction == 'grt' or instruction == 'grteq' or instruction == 'eq' or instruction == 'neq':
                     if len(inst) != 3:
                         raise SyntaxError(error)
-                    ra = convert_to_binary(int(re.sub(r'[^\w\s]', '', inst[1])[1]), 3)
-                    rb = convert_to_binary(int(re.sub(r'[^\w\s]', '', inst[2])[1]), 3)
+                    ra = convert_to_binary(
+                        int(re.sub(r'[^\w\s]', '', inst[1])[1]), 3)
+                    rb = convert_to_binary(
+                        int(re.sub(r'[^\w\s]', '', inst[2])[1]), 3)
                     binary = opcode + ra + rb + '00000'
                 elif instruction == 'nop' or instruction == 'return':
                     if len(inst) != 1:
