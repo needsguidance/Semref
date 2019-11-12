@@ -149,9 +149,9 @@ class MicroSim:
                 rb = f'R{int(instruction[8:11], 2)}'
                 rc = f'R{int(instruction[11:14], 2)}'
                 if opcode == 'loadrind':
-                    REGISTER[ra.lower()] = RAM[int(REGISTER[rb.lower()],16)]
+                    REGISTER[ra.lower()] = RAM[int(REGISTER[rb.lower()], 16)]
                 elif opcode == 'storerind':
-                    REGISTER[rb.lower()] = RAM[int(REGISTER[ra.lower()],16)]
+                    REGISTER[rb.lower()] = RAM[int(REGISTER[ra.lower()], 16)]
                 elif opcode == 'grt':
                     REGISTER['cond'] = str(int(REGISTER[ra.lower()] > REGISTER[rb.lower()]))
                 elif opcode == 'add':
@@ -162,26 +162,26 @@ class MicroSim:
                         int(REGISTER[rb.lower()], 16) - int(REGISTER[rc.lower()], 16), 8)
                 elif opcode == 'and':
                     REGISTER[ra.lower()] = convert_to_hex(
-                        int(REGISTER[rb.lower()], 16) * int(REGISTER[rc.lower()],16), 8)
+                        int(REGISTER[rb.lower()], 16) * int(REGISTER[rc.lower()], 16), 8)
                 elif opcode == 'or':
                     REGISTER[ra.lower()] = convert_to_hex(
-                        int(REGISTER[rb.lower()],16) + int(REGISTER[rc.lower()],16), 8)
+                        int(REGISTER[rb.lower()], 16) + int(REGISTER[rc.lower()], 16), 8)
                 elif opcode == 'xor':
-                    _xor = int(REGISTER[rb.lower()],16) + int(REGISTER[rc.lower()],16) - \
-                           2 * int(REGISTER[rb.lower()],16) * int(REGISTER[rc.lower()],16)
+                    _xor = int(REGISTER[rb.lower()], 16) + int(REGISTER[rc.lower()], 16) - \
+                           2 * int(REGISTER[rb.lower()], 16) * int(REGISTER[rc.lower()], 16)
                     REGISTER[ra.lower()] = convert_to_hex(_xor, 8)
                 elif opcode == 'not':
                     REGISTER[ra.lower()] = convert_to_hex(
                         self.bit_not(hex_to_binary(REGISTER[rb.lower()])), 8)
                 elif opcode == 'neg':
                     REGISTER[ra.lower()] = convert_to_hex(
-                        (-1) * int(REGISTER[rb.lower()],16), 8)
+                        (-1) * int(REGISTER[rb.lower()], 16), 8)
                 elif opcode == 'shiftr':
                     REGISTER[ra.lower()] = convert_to_hex(
-                        int(REGISTER[rb.lower()],16) >> int(REGISTER[rc.lower()],16), 8)
+                        int(REGISTER[rb.lower()], 16) >> int(REGISTER[rc.lower()], 16), 8)
                 elif opcode == 'shiftl':
                     REGISTER[ra.lower()] = convert_to_hex(
-                        int(REGISTER[rb.lower()],16) << int(REGISTER[rc.lower()],16), 8)
+                        int(REGISTER[rb.lower()], 16) << int(REGISTER[rc.lower()], 16), 8)
                 elif opcode == 'rotar':
                     _rotar = self.rotr(int(REGISTER[rb.lower()], 16), int(
                         REGISTER[rc.lower()], 16))
