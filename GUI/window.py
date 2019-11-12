@@ -154,7 +154,7 @@ class RunWindow(FloatLayout):
         self.mem_table = MemoryTable(dpi=self.dpi)
         self.inst_table = InstructionTable(dpi=self.dpi)
         self.light = TrafficLights()
-        self.editor = TextEditor()
+        self.editor = TextEditor(dpi=self.dpi)
         self.seven_segment_display = SevenSegmentDisplay()
 
         self.reg_table.get_data()
@@ -1201,11 +1201,24 @@ class ASCIIGrid(GridLayout):
 class TextEditor(TextInput):
 
     def __init__(self, **kwargs):
+        self.dpi = kwargs.pop('dpi')
         super(TextEditor, self).__init__(**kwargs)
         self.bind(text=self.on_text)
         self.valid_text = False
         self.markup = True
-        
+        if self.dpi < 192:
+            # TODO: Validate values on Windows with smallest dpi.
+            self.size_hint = (0.50, 0.43)
+            self.pos_hint = {
+                'x': dp(0.23),
+                'y': dp(0.05)
+            }
+        else:
+            self.size_hint = (0.50, 0.43)
+            self.pos_hint = {
+                'x': dp(0.12),
+                'y': dp(0.02)
+            }
 
     def on_text(self, instance, value):
         global editor_saved, cleared
