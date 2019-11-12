@@ -4,7 +4,6 @@ from pathlib import Path
 from queue import Queue
 from threading import Lock, Thread, Semaphore, Condition
 from time import sleep
-
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.graphics.context_instructions import Color
@@ -15,33 +14,43 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
+from kivy.uix.textinput import TextInput
 from kivy.uix.modalview import ModalView
 from kivy.uix.popup import Popup
 from kivy.uix.recycleview import RecycleView
 from kivy.uix.widget import Widget
 from kivymd.theming import ThemeManager
 from kivymd.toast import toast
+from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.button import MDFillRoundFlatIconButton, MDFlatButton, MDIconButton
-from kivymd.uix.dialog import MDInputDialog
+from kivymd.uix.dialog import MDInputDialog, MDDialog
 from kivymd.uix.filemanager import MDFileManager
 from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
                                          NavigationDrawerIconButton,
                                          NavigationDrawerSubheader,
                                          NavigationLayout)
 
-from assembler import Assembler, verify_ram_content, hexify_ram_content
+from assembler import Assembler, verify_ram_content, hexify_ram_content, clear_ram
 from assembler import RAM as RAM_ASSEMBLER
 from utils import REGISTER, hex_to_binary, convert_to_hex, is_valid_port, update_reserved_ports, update_indicators
 from utils import TRAFFIC_LIGHT, SEVEN_SEGMENT_DISPLAY, ASCII_TABLE, HEX_KEYBOARD
 from microprocessor_simulator import MicroSim, RAM
+
+file_path = ''
+can_write = False
+loaded_file = False
+run_editor = True
+editor_saved = False
+cleared = True
+is_obj = False
 
 
 class HexKeyboard(GridLayout):
 
     def __init__(self, **kwargs):
         self.mem_table = kwargs.pop('mem_table')
-        self.event_on = kwargs.pop('event_on')
-        self.event_off = kwargs.pop('event_off')
+        self.blinking_on = kwargs.pop('blinking_on')
+        self.blinking_off = kwargs.pop('blinking_off')
         self.dpi = kwargs.pop('dpi')
         super(HexKeyboard, self).__init__(**kwargs)
         self.queue = Queue(maxsize=10)
@@ -116,6 +125,7 @@ class HexKeyboard(GridLayout):
             self.write_ram()
 
     def write_ram(self):
+        global cleared
         with self.lock:
             RAM[HEX_KEYBOARD['port']] = convert_to_hex(
                 int(f'{self.queue.get()}0001', 2), 8)
@@ -123,13 +133,15 @@ class HexKeyboard(GridLayout):
             self.mem_table.data_list.clear()
             self.mem_table.get_data()
 
-            self.event_on.cancel()
-            self.event_off.cancel()
+            self.blinking_on.cancel()
+            self.blinking_off.cancel()
 
-            self.event_on()
-            self.event_off()
+            self.blinking_on()
+            self.blinking_off()
             sleep(1)
             self.condition.release()
+
+        cleared = False
 
 
 class RunWindow(FloatLayout):
@@ -144,6 +156,7 @@ class RunWindow(FloatLayout):
         self.mem_table = MemoryTable(dpi=self.dpi)
         self.inst_table = InstructionTable(dpi=self.dpi)
         self.light = TrafficLights()
+        self.editor = TextEditor(dpi=self.dpi)
         self.seven_segment_display = SevenSegmentDisplay()
 
         self.reg_table.get_data()
@@ -157,21 +170,24 @@ class RunWindow(FloatLayout):
 
         # Create variable of scheduling instance so that it can be turned on and off,
         # to avoid repeat of the same thread
-        self.event_on = Clock.schedule_interval(self.light.intermittent_off,
-                                                0.5)
-        self.event_off = Clock.schedule_interval(self.light.intermittent_on,
-                                                 0.3)
+
+        self.editor_loader = Clock.schedule_interval(self.check_loader, 0.1)
+
+        self.blinking_on = Clock.schedule_interval(self.light.intermittent_on,
+                                                   0.5)
+        self.blinking_off = Clock.schedule_interval(self.light.intermittent_off,
+                                                    0.3)
 
         # Creates a clock thread that updates all tables and i/o's every 0.2 seconds. Does not get cancelled.
         self.event_io = Clock.schedule_interval(self.update_io, 0.2)
 
         # Since the instancing of the events actually starts the scheduling, needs to be canceled right away
-        self.event_on.cancel()
-        self.event_off.cancel()
+        self.blinking_on.cancel()
+        self.blinking_off.cancel()
 
         self.hex_keyboard_layout = HexKeyboard(mem_table=self.mem_table,
-                                               event_on=self.event_on,
-                                               event_off=self.event_off,
+                                               blinking_on=self.blinking_on,
+                                               blinking_off=self.blinking_off,
                                                dpi=self.dpi)
         box = FloatLayout()
         box.add_widget(self.hex_keyboard_layout)
@@ -206,7 +222,14 @@ class RunWindow(FloatLayout):
         self.add_widget(self.mem_table)
         self.add_widget(self.light)
         self.add_widget(self.seven_segment_display)
+        self.add_widget(self.editor)
         self.add_widget(self.ascii)
+
+    def check_loader(self, dt):
+        global file_path, can_write
+        if file_path and can_write:
+            self.editor.load_file(file_path)
+            can_write = False
 
     def open_keyboard(self, instance):
         self.popup.open()
@@ -233,6 +256,18 @@ class MainWindow(BoxLayout):
         self.ids['left_actions'] = BoxLayout()
         self.orientation = 'vertical'
         self.toolbar_layout = BoxLayout(orientation='vertical')
+        self.menu_items = [
+            {
+                "viewclass": "MDMenuItem",
+                "text": "Save Register/Memory Content",
+                "callback": self.open_reg_mem_save_dialog,
+            },
+            {
+                "viewclass": "MDMenuItem",
+                "text": "Save Editor Content",
+                "callback": self.open_editor_save_dialog
+            }
+        ]
         self.run_window = RunWindow(app=self.app,
                                     micro_sim=self.micro_sim,
                                     dpi=self.dpi)
@@ -268,14 +303,16 @@ class MainWindow(BoxLayout):
                                                         pos_hint={
                                                             'y': self.buttons_y_pos
                                                         },
-                                                        on_release=self.clear)
+                                                        on_release=self.clear_dialog)
         self.save_button = MDFillRoundFlatIconButton(text='Save File',
                                                      icon='download',
                                                      size_hint=(None, None),
                                                      pos_hint={
                                                          'y': self.buttons_y_pos
                                                      },
-                                                     on_release=self.open_save_dialog)
+                                                     on_release=lambda x: MDDropdownMenu(items=self.menu_items,
+                                                                                         width_mult=4).open(
+                                                         self.save_button))
         self.pop_button = MDFillRoundFlatIconButton(text='Hex Keyboard',
                                                     icon='keyboard-outline',
                                                     size_hint=(None, None),
@@ -309,12 +346,19 @@ class MainWindow(BoxLayout):
         self.add_widget(self.not_loaded_file)
 
     def run_micro_instructions(self, instance):
-        if not self.micro_sim.is_running:
-            toast('Infinite loop encountered. Program stopped')
-        else:
-            if not self.micro_sim.is_ram_loaded:
-                toast('Must load file first before running')
+        global loaded_file, file_path, editor_saved, is_obj
+
+        if not self.run_window.editor.valid_text and not is_obj:
+            toast("Invalid code. Load file to run or write valid code in editor")
+        elif editor_saved:
+            self.clear_run()
+            # If file is an .obj file, runs simulator
+            if file_path.endswith('.obj'):
+                self.run_micro_sim(file_path)
             else:
+                self.assembler()
+
+            if self.micro_sim.is_ram_loaded:
                 for m in range(2):
                     if self.first_inst:
                         self.run_window.inst_table.data_list.clear()
@@ -325,11 +369,11 @@ class MainWindow(BoxLayout):
                         self.first_inst = False
                     else:
                         self.micro_sim.prev_index = -1
-                        self.run_window.event_on.cancel()
-                        self.run_window.event_off.cancel()
+                        self.run_window.blinking_on.cancel()
+                        self.run_window.blinking_off.cancel()
 
-                        self.run_window.event_on()
-                        self.run_window.event_off()
+                        self.run_window.blinking_on()
+                        self.run_window.blinking_off()
 
                         while self.micro_sim.is_running:
                             self.micro_sim.run_micro_instructions()
@@ -340,38 +384,147 @@ class MainWindow(BoxLayout):
                                 self.micro_sim.is_running = False
                             else:
                                 self.micro_sim.prev_index = self.micro_sim.index
-                self.run_window.reg_table.get_data()
-                self.run_window.mem_table.data_list.clear()
-                self.run_window.mem_table.get_data()
-                toast('File executed successfully')
+                    self.run_window.reg_table.get_data()
+                    self.run_window.mem_table.data_list.clear()
+                    self.run_window.mem_table.get_data()
+                    toast('File executed successfully')
+        else:
+            toast('Please save changes on editor before running')
 
     def run_micro_instructions_step(self, instance):
-        if not self.micro_sim.is_running:
-            toast("Infinite loop encountered. Program stopped")
-        else:
-            if not self.micro_sim.is_ram_loaded:
-                toast('Must load file first before running')
+        global loaded_file, file_path, editor_saved, is_obj
+        if not self.run_window.editor.valid_text and not is_obj:
+            toast("Invalid code. Load file to run or write valid code in editor")
+        elif editor_saved:
+            # If file is an .obj file, runs simulator
+            if file_path.endswith('.obj'):
+                self.run_micro_sim(file_path)
             else:
-                self.step_index += 1
-                if self.first_inst:
-                    self.run_window.inst_table.get_data(self.micro_sim.index,
-                                                        self.micro_sim.disassembled_instruction())
-                    self.first_inst = False
-                else:
-                    self.micro_sim.run_micro_instructions_step(self.step_index)
-                    self.run_window.inst_table.get_data(self.micro_sim.index,
-                                                        self.micro_sim.disassembled_instruction())
+                self.assembler()
 
-                toast(
-                    f'Runnin instruction in step-by-step mode. Step {self.step_index} is running')
-                self.run_window.reg_table.get_data()
-                self.run_window.mem_table.data_list.clear()
-                self.run_window.mem_table.get_data()
+            if not self.micro_sim.is_running:
+                self.clear_run()
+                self.micro_sim.is_running = True
+            else:
+                if self.micro_sim.is_ram_loaded:
+                    self.step_index += 1
+                    if self.first_inst:
+                        self.run_window.inst_table.get_data(self.micro_sim.index,
+                                                            self.micro_sim.disassembled_instruction())
+                        self.first_inst = False
+                    else:
+                        self.micro_sim.run_micro_instructions_step(
+                            self.step_index)
+                        self.run_window.inst_table.get_data(self.micro_sim.index,
+                                                            self.micro_sim.disassembled_instruction())
 
-    def clear(self, instance):
+                    toast(
+                        f'Runnin instruction in step-by-step mode. Step {self.step_index} is running')
+                    self.run_window.reg_table.get_data()
+                    self.run_window.mem_table.data_list.clear()
+                    self.run_window.mem_table.get_data()
+        else:
+            toast('Please save changes on editor before running')
+
+    def assembler(self):
+        i = 0
+        # Obtains last name on path string using ntpath and then
+        # strips file extension using os.path.splitext
+        # Should work across different OS
+        filename = os.path.splitext(ntpath.basename(file_path))[0]
+        try:
+            asm = Assembler(file_path)
+            asm.read_source()
+            asm.store_instructions_in_ram()
+            verify_ram_content()
+            hexify_ram_content()
+            output_file_location = 'output/' + filename + '.obj'
+
+            f = open(output_file_location, 'w')
+            for m in range(50):
+                f.write(f'{RAM_ASSEMBLER[i]} {RAM_ASSEMBLER[i + 1]}' + '\n')
+                i += 2
+            f.close()
+
+            # Runs simulator using generated .obj file
+            self.run_micro_sim(output_file_location)
+
+        except (AssertionError, FileNotFoundError, ValueError, MemoryError, KeyError, SyntaxError) as e:
+            toast(f'{e}')
+
+    def run_micro_sim(self, file):
+        self.micro_sim.read_obj_file(file)
+
+    def clear_dialog(self, instance):
+        global editor_saved, cleared
+
+        if editor_saved:
+            self.clear()
+        elif cleared:
+            toast('There is nothing to clear')
+        else:
+
+            dialog = MDDialog(title='Warning',
+                              text='Are you sure you want to clear without saving?',
+                              size_hint=(.3, .3),
+                              text_button_ok='Clear',
+                              text_button_cancel='Cancel',
+                              events_callback=self.clear_decision)
+            if self.dpi >= 192:
+                dialog.pos_hint = {
+                    'x': dp(0.18),
+                    'y': dp(0.18)
+                }
+            dialog.open()
+
+    def clear_decision(self, *args):
+        if args[0] == 'Clear':
+            self.clear()
+        else:
+            toast('Please save your changes')
+
+
+    def clear(self):
+        global loaded_file, file_path, cleared, is_obj
+
+        if cleared:
+            toast('There is nothing to clear')
+        else:
+            self.step_index = 0
+            clear_ram()
+            file_path = ''
+            loaded_file = False
+            self.run_window.editor.clear()
+            self.micro_sim.micro_clear()
+            self.run_window.reg_table.data_list.clear()
+            self.run_window.reg_table.get_data()
+            self.run_window.mem_table.data_list.clear()
+            self.run_window.mem_table.get_data()
+            self.run_window.inst_table.data_list.clear()
+            self.run_window.inst_table.get_data(self.micro_sim.index,
+                                                self.micro_sim.disassembled_instruction())
+            self.first_inst = True
+
+            self.run_window.blinking_on.cancel()
+            self.run_window.blinking_off.cancel()
+
+            self.run_window.light.change_color(
+                self.micro_sim.traffic_lights_binary())
+            self.run_window.ascii.update_ascii_grid()
+            self.run_window.seven_segment_display.activate_segments(
+                self.micro_sim.seven_segment_binary())
+            self.run_window.seven_segment_display.clear_seven_segment()
+            toast('Micro memory cleared! Load new data')
+            cleared = True
+            update_indicators(self, loaded_file)
+            is_obj = False
+            self.run_window.editor.disabled = False
+
+    def clear_run(self):
+
         self.step_index = 0
+        clear_ram()
         self.micro_sim.micro_clear()
-        update_indicators(self, self.micro_sim.is_ram_loaded)
         self.run_window.reg_table.data_list.clear()
         self.run_window.reg_table.get_data()
         self.run_window.mem_table.data_list.clear()
@@ -381,18 +534,17 @@ class MainWindow(BoxLayout):
                                             self.micro_sim.disassembled_instruction())
         self.first_inst = True
 
-        # Cancels last scheduling thread for clean event
-        self.run_window.event_on.cancel()
-        self.run_window.event_off.cancel()
+        self.run_window.blinking_on.cancel()
+        self.run_window.blinking_off.cancel()
 
         self.run_window.light.change_color(
             self.micro_sim.traffic_lights_binary())
         self.run_window.ascii.update_ascii_grid()
         self.run_window.seven_segment_display.activate_segments(
             self.micro_sim.seven_segment_binary())
-        toast('Micro memory cleared! Load new data')
+        self.run_window.seven_segment_display.clear_seven_segment()
 
-    def open_save_dialog(self, instance):
+    def open_reg_mem_save_dialog(self, instance):
         """It will be called when user click on the save file button.
 
         :param instance: used as event handler for button click;
@@ -412,11 +564,55 @@ class MainWindow(BoxLayout):
         toast('Save Register and Memory Content')
         dialog.open()
 
+    def open_editor_save_dialog(self, instance):
+        global loaded_file, file_path, editor_saved, is_obj
+        if is_obj:
+            toast('Obj files cannot be modified.')
+
+        else:
+            if loaded_file:
+                self.run_window.editor.save(file_path)
+                toast('Content saved on loaded file')
+                editor_saved = True
+            else:
+                dialog = MDInputDialog(title='Save file: Enter file name',
+                                       hint_text='Enter file name',
+                                       size_hint=(.3, .3),
+                                       text_button_ok='Save',
+                                       text_button_cancel='Cancel',
+                                       events_callback=self.save_asm_file)
+                if self.dpi >= 192:
+                    dialog.pos_hint = {
+                        'x': dp(0.18),
+                        'y': dp(0.18)
+                    }
+                toast('Save Editor Content')
+                dialog.open()
+
+    def save_asm_file(self, *args):
+        global editor_saved, file_path, loaded_file, cleared
+
+        if args[0] == 'Save':
+            filename = args[0]
+
+            # Checks if user input is valid or null for filename. if null, assigns a default filename
+            if args[1].text_field.text:
+                filename = args[1].text_field.text
+
+            self.run_window.editor.save('input/' + filename + '.asm')
+            toast('File saved in input folder as ' + filename + '.asm')
+            editor_saved = True
+            file_path = 'input/' + filename + '.asm'
+            loaded_file = True
+            update_indicators(self, loaded_file)
+        else:
+            toast('File save cancelled')
+
     def save_file(self, *args):
         """It is called when user clicks on 'Save' or 'Cancel' button of dialog.
 
         :type *args: object array
-        :param *args: passes an object array generated when opening open_save_dialog. 
+        :param *args: passes an object array generated when opening open_reg_mem_save_dialog. 
                 Said object indcludes input text used for file saving;
 
         """
@@ -445,14 +641,15 @@ class MainWindow(BoxLayout):
             toast('File save cancelled')
 
     def buttons_information(self, instance):
+        global file_path
         """
         It is called when user clicks on information buttons.
         :param instance:
         """
         if instance.icon == 'file-alert':
-            toast('Not loaded file.')
+            toast('No file loaded yet')
         if instance.icon == 'file-check':
-            toast('Loaded file.')
+            toast('File at  ' + "'" + file_path + "'" + '  loaded')
 
 
 class NavDrawer(MDNavigationDrawer):
@@ -564,32 +761,6 @@ class NavDrawer(MDNavigationDrawer):
         self.manager.open()
         self.history = self.file_manager.history
 
-    def assembler(self, file):
-        i = 0
-        # Obtains last name on path string using ntpath and then
-        # strips file extension using os.path.splitext
-        # Should work across different OS
-        filename = os.path.splitext(ntpath.basename(file))[0]
-        try:
-            asm = Assembler(file)
-            asm.read_source()
-            asm.store_instructions_in_ram()
-            verify_ram_content()
-            hexify_ram_content()
-            output_file_location = 'output/' + filename + '.obj'
-
-            f = open(output_file_location, 'w')
-            for m in range(50):
-                f.write(f'{RAM_ASSEMBLER[i]} {RAM_ASSEMBLER[i + 1]}' + '\n')
-                i += 2
-            f.close()
-
-            # Runs simulator using generated .obj file
-            self.run_micro_sim(output_file_location)
-            toast(f'Instructions at {file} assembled successfully')
-        except (AssertionError, FileNotFoundError, ValueError, MemoryError, KeyError, SyntaxError) as e:
-            toast(f'{e}')
-
     def select_path(self, path):
         """It will be called when you click on the file name
         or the catalog selection button.
@@ -598,13 +769,19 @@ class NavDrawer(MDNavigationDrawer):
         :param path: path to the selected directory or file;
 
         """
+        global file_path, loaded_file, can_write, cleared, is_obj, editor_saved
         self.exit_manager()
 
-        if path.endswith('.obj'):  # If file is an .obj file, runs simulator
-            self.run_micro_sim(path)
-            toast(f'{path} loaded successfully')
-        else:  # If file is an .asm file, runs assembler, then simulator
-            self.assembler(path)
+        if path.endswith('.obj'):
+            is_obj = True
+            editor_saved = True
+          
+        can_write = True
+        file_path = path
+        loaded_file = True
+        toast(f'{path} loaded successfully')
+        cleared = False
+        update_indicators(self.main_window, loaded_file)
 
     def exit_manager(self, *args):
         """Called when the user reaches the root of the directory tree."""
@@ -619,10 +796,6 @@ class NavDrawer(MDNavigationDrawer):
             if self.manager_open:
                 self.file_manager.back()
         return True
-
-    def run_micro_sim(self, file):
-        self.micro_sim.read_obj_file(file)
-        update_indicators(self.main_window, self.micro_sim.is_ram_loaded)
 
 
 class RegisterTable(RecycleView):
@@ -1038,6 +1211,62 @@ class ASCIIGrid(GridLayout):
         while i < len(self.labels):
             self.labels[i].text = chr(int(RAM[ASCII_TABLE["port"] + i], 16))
             i += 1
+
+
+class TextEditor(TextInput):
+
+    def __init__(self, **kwargs):
+        self.dpi = kwargs.pop('dpi')
+        super(TextEditor, self).__init__(**kwargs)
+        self.bind(text=self.on_text)
+        self.valid_text = False
+        if self.dpi < 192:
+            
+            self.size_hint = (0.55, 0.46)
+            self.pos_hint = {
+                'x': dp(0.20),
+                'y': dp(0.04)
+            }
+        else:
+            self.size_hint = (0.50, 0.43)
+            self.pos_hint = {
+                'x': dp(0.12),
+                'y': dp(0.02)
+            }
+
+    def on_text(self, instance, value):
+        global editor_saved, cleared, is_obj
+
+        if not is_obj:
+            editor_saved = False
+        if value:
+            self.valid_text = True
+            cleared = False
+
+        else:
+            self.valid_text = False
+
+    def load_file(self, file_path):
+        global editor_saved, is_obj
+        if is_obj:
+            self.disabled = True
+        else:
+            self.disabled = False
+            with open(file_path, 'r') as file:
+                data = file.read()
+                file.close()
+            self.text = data
+            editor_saved = True
+        print(self.disabled)
+
+    def clear(self):
+        self.text = ''
+        self.valid_text = False
+
+    def save(self, file_path):
+        with open(file_path, 'w') as file:
+            file.write(self.text)
+            file.close()
 
 
 class GUI(NavigationLayout):
