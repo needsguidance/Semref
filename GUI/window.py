@@ -124,6 +124,7 @@ class HexKeyboard(GridLayout):
             self.write_ram()
 
     def write_ram(self):
+        global cleared
         with self.lock:
             RAM[HEX_KEYBOARD['port']] = convert_to_hex(
                 int(f'{self.queue.get()}0001', 2), 8)
@@ -138,7 +139,8 @@ class HexKeyboard(GridLayout):
             self.blinking_off()
             sleep(1)
             self.condition.release()
-
+        
+        cleared = False
 
 class RunWindow(FloatLayout):
 
@@ -339,20 +341,6 @@ class MainWindow(BoxLayout):
         self.add_widget(self.run_window)
         self.add_widget(self.not_loaded_file)
 
-        self.file_indicator = Clock.schedule_interval(self.update_indicators, 0.1)
-
-    
-    def update_indicators(self):
-        global loaded_file
-
-        if loaded_file:
-            self.add_widget(instance.loaded_file)
-            self.remove_widget(instance.not_loaded_file)
-
-        else:
-            self.add_widget(instance.not_loaded_file)
-            self.remove_widget(instance.loaded_file)
-
     def run_micro_instructions(self, instance):
         global loaded_file, file_path, editor_saved
         if not self.run_window.editor.valid_text:
@@ -521,8 +509,8 @@ class MainWindow(BoxLayout):
                 self.micro_sim.seven_segment_binary())
             self.run_window.seven_segment_display.clear_seven_segment()
             toast('Micro memory cleared! Load new data')
-            update_indicators(self, loaded_file, cleared)
             cleared = True
+            update_indicators(self, loaded_file)
 
     def clear_run(self):
 
@@ -604,7 +592,7 @@ class MainWindow(BoxLayout):
             editor_saved = True
             file_path = 'input/' + filename + '.asm'
             loaded_file = True
-            update_indicators(self, loaded_file, cleared)
+            update_indicators(self, loaded_file)
         else:
             toast('File save cancelled')
 
@@ -777,7 +765,8 @@ class NavDrawer(MDNavigationDrawer):
         file_path = path
         loaded_file = True
         toast(f'{path} loaded successfully')
-        update_indicators(self.main_window, loaded_file, cleared)
+        cleared = False
+        update_indicators(self.main_window, loaded_file)
 
     def exit_manager(self, *args):
         """Called when the user reaches the root of the directory tree."""
@@ -1215,20 +1204,25 @@ class TextEditor(TextInput):
         super(TextEditor, self).__init__(**kwargs)
         self.bind(text=self.on_text)
         self.valid_text = False
+        self.markup = True
+        
 
     def on_text(self, instance, value):
         global editor_saved, cleared
-
+        
         editor_saved = False
         if value:
             self.valid_text = True
             cleared = False
+
         else:
             self.valid_text = False
+
 
     def load_file(self, file_path):
         global editor_saved
         with open(file_path, 'r') as file:
+
             data = file.read()
             file.close()
         self.text = data
