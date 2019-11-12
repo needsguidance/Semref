@@ -1,20 +1,20 @@
 # Semref: A Microprocessor Simulator
 
-Semref is an application that serves as a simulator of a microprocessor. It simulates a variety of instructions and gives the user the choice of loading a set of instructions and eitehr running them one by one or all at once. The simulator then shows the changes in memory and registers. The application also shows several different I/O modules, each one displaying or affecting the content of a specified memory address.
+Semref is an application that serves as a simulator of a microprocessor. It simulates a variety of instructions and gives the user the choice of loading a set of instructions and either running them one by one or all at once. The simulator then shows the changes in memory and registers. The application also shows several different I/O modules, each one displaying or affecting the content of a specified memory address.
 
 ## Table of Contents 
 
 * [Technologies](#Technologies)
 * [Installation](#Installation) 
-* Microprocessor Specifications 
-* I/O Modules 
-* The User Interface
+* [Microprocessor Specifications](#Microprocessor-Specifications) 
+* [I/O Modules](#IO-Modules)
+* [The User Interface](#The-User-Interface)
 * [License](#License)
-* Authors and Acknowledgement 
+* [Authors and Acknowledgement](#Authors-and-Acknowledgement) 
 
 ## Technologies 
 
-* [Python3.6](https://www.python.org/downloads/) - interpreted, high-level, general-purpose programming language 
+* [Python3.6+](https://www.python.org/downloads/) - interpreted, high-level, general-purpose programming language 
 * [Kivy](https://kivy.org/#home) - a free and open source Python library for developing apps and other multitouch application software with a natural user interface. 
 * [KivyMD](https://github.com/HeaTTheatR/KivyMD) - a collection of Material Design compliant widgets for use with Kivy, a framework for cross-platform, touch-enabled graphical applications. 
 
@@ -27,13 +27,13 @@ As seen by the [Technologies](#Technologies) section shown above, the applicatio
 As mentioned before, a virtual environment is recommended for the use of this application. To create a virtual environment, the command line can be used (if using an IDE such as PyCharm, the Command line is found on the **Terminal** section of the interface). To create a virtual environment called **venv**, the user would have to run the following: 
 
 ```Shell
-python -m virtualenvironment venv
+python -m virtualenv venv
 ``` 
 
 It is important to note that **after creating the virtual environment, the virtual environment must be activated each time a new terminal is started**. The command used to activate the recently created **venv** is the following: 
 
 ```Shell
-venv\Scripts\activate
+source venv/bin/activate
 ``` 
 
 ### Step 2 - Installing Dependencies 
@@ -41,7 +41,7 @@ venv\Scripts\activate
 As stated before, the GUI for the microprocessor simulator uses items from a third-party app development toolbox called Kivy. Therefore, in order to successfully run the application made, this toolbox must be installed into the computer. This would involve utilizing the pip install command in the command line, used for installing packages. Before installing the actual Kivy toolbox, one must install its dependencies. To simplify the installation process and avoid having to execute a significant amount of installation commands, the install.py file was created. By executing this file, all of the dependencies needed to run the microprocessor simulator (including Kivy and KivyMD) will be installed. In other words, the only thing needed to have all the dependencies installed is to run the install.py file included in the project folder. To execute this file, run the following: 
 
 ```Shell
-install.py
+python install.py
 ``` 
 
 ### Step 3 - Executing the Program
@@ -49,7 +49,7 @@ install.py
 Finally, the only step remaining is to run the program. This is done by running the main file: 
 
 ```Shell
-main.py
+python main.py
 ```  
 
 The program should now be running smoothly on the computer. 
@@ -72,7 +72,7 @@ The 7-segment display shows two digits with a seven-segment configuration. This 
 
 ### ASCII Grid 
 
-The ASCII Grid is the only I/O module that needs more than one memory address. The ASCII Grid consists of eight squares, each one representing one memory address. Each square on the grid will display the ASCII character that is represented by the eight bits shown in that specific memory address. For example, the memory content "10000001" would show the letter 'A' in the square corresponding to that memory address.
+The ASCII Grid is the only I/O module that needs more than one memory address. Eight contiguous memory addresses are reserved for this I/O. The ASCII Grid consists of eight squares, each one representing one memory address. Each square on the grid will display the ASCII character that is represented by the eight bits shown in that specific memory address. For example, the memory content "10000001" would show the letter 'A' in the square corresponding to that memory address.
 
 ### Hex Keyboard 
 
@@ -84,7 +84,7 @@ The user interface displays the following:
 
 ### Top of the Window
 
-At the top of the window, there are several buttons. The three dots in the top left corner expands a menu that contains the following choices:
+At the top of the window, there are several buttons. The vertical ellipsis in the top left corner expands a menu that contains the following choices:
 
   - **Load File**: This option serves as a file explorer, enabling the user to load assembler instructions in a .obj format. 
   - **Configure Traffic Light Port**: The user can change the memory address shown by the traffic light I/O. The traffic light I/O will display the contents of the memory address specified by the user.
@@ -118,7 +118,7 @@ Finally, there is an editable text box that can be used to write down instructio
 ```
 MIT License
 
-Copyright (c) 2019 borkinc
+Copyright (c) 2019 Semref
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -141,3 +141,6 @@ SOFTWARE.
 
 ## Authors and Acknowledgement 
 * **Noel Valentin** - [noelvalentin](https://github.com/noelvalentin)
+* **Christian Pérez** -  [ChristianPerez34](https://github.com/ChristianPerez34)
+* **Christian Torres** - [cfboy](https://github.com/cfboy)
+* **Alejandro Reyes** - [alejoreyes96](https://github.com/alejoreyes96)
