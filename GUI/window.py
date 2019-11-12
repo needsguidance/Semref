@@ -1,5 +1,6 @@
 import ntpath
 import os
+from lexer import SemrefLexer
 from pathlib import Path
 from queue import Queue
 from threading import Lock, Thread, Semaphore, Condition
@@ -15,6 +16,7 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
+from kivy.uix.codeinput import CodeInput
 from kivy.uix.modalview import ModalView
 from kivy.uix.popup import Popup
 from kivy.uix.recycleview import RecycleView
@@ -194,7 +196,7 @@ class RunWindow(FloatLayout):
         box.add_widget(self.hex_keyboard_label)
         self.popup = Popup(title='Hex Keyboard',
                            content=box,
-                           background='images\plain-white-background.jpg',
+                           background='assets/images/plain-white-background.jpg',
                            title_color=(0, 0, 0, 0),
                            separator_color=(1, 1, 1, 1))
         if self.dpi < 192:
@@ -660,7 +662,7 @@ class NavDrawer(MDNavigationDrawer):
         self.dpi = kwargs.pop('dpi')
         self.main_window = kwargs.pop('main_window')
         super().__init__(**kwargs)
-        self.drawer_logo = 'images/logo.jpg'
+        self.drawer_logo = 'assets/images/logo.jpg'
         self.spacing = 0
         self.manager_open = False
         self.manager = None
@@ -1222,13 +1224,15 @@ class ASCIIGrid(GridLayout):
             i += 1
 
 
-class TextEditor(TextInput):
+class TextEditor(CodeInput):
 
     def __init__(self, **kwargs):
         self.dpi = kwargs.pop('dpi')
         super(TextEditor, self).__init__(**kwargs)
         self.bind(text=self.on_text)
         self.valid_text = False
+        self.lexer = SemrefLexer()
+        self.font_name = 'assets/fonts/Inconsolata-Regular.ttf'
         if self.dpi < 192:
             
             self.size_hint = (0.55, 0.46)
