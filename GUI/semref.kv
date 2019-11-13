@@ -30,62 +30,62 @@
         Color:
             rgb: 1,.8,0
         Rectangle:
-            pos: dp(900), dp(100)
+            pos: self.box_pos_x, self.box_pos_y
             size: dp(95), dp(115)
         Color:
             rgb: 0,0,0
         Rectangle:
-            pos: dp(905), dp(105)
+            pos: self.box_pos_x + dp(5), self.box_pos_y + dp(5)
             size: dp(85), dp(106)
         Color:
             rgb: .5,.5,.5
         Rectangle:
-            pos: dp(953), dp(173)
+            pos: self.box_pos_x + dp(53), self.box_pos_y + dp(73)
             size: dp(29), dp(29)
         Rectangle:
-            pos: dp(953), dp(143)
+            pos: self.box_pos_x + dp(53), self.box_pos_y + dp(43)
             size: dp(29), dp(29)
         Rectangle:
-            pos: dp(953), dp(113)
+            pos: self.box_pos_x + dp(53), self.box_pos_y + dp(13)
             size: dp(29), dp(29)
         Rectangle:
-            pos: dp(913), dp(173)
+            pos: self.box_pos_x + dp(13), self.box_pos_y + dp(73)
             size: dp(29), dp(29)
         Rectangle:
-            pos: dp(913), dp(143)
+            pos: self.box_pos_x + dp(13), self.box_pos_y + dp(43)
             size: dp(29), dp(29)
         Rectangle:
-            pos: dp(913), dp(113)
+            pos: self.box_pos_x + dp(13), self.box_pos_y + dp(13)
             size: dp(29), dp(29)
         Color:
             rgb: self.red_1
         Ellipse:
-            pos: dp(955), dp(175)
+            pos: self.box_pos_x + dp(55), self.box_pos_y + dp(75)
             size: dp(25), dp(25)
         Color:
             rgb: self.yellow_1
         Ellipse:
-            pos: dp(955), dp(145)
+            pos: self.box_pos_x + dp(55), self.box_pos_y + dp(45)
             size: dp(25), dp(25)
         Color:
             rgb: self.green_1
         Ellipse:
-            pos: dp(955), dp(115)
+            pos: self.box_pos_x + dp(55), self.box_pos_y + dp(15)
             size: dp(25), dp(25)
         Color:
             rgb: self.red_2
         Ellipse:
-            pos: dp(915), dp(175)
+            pos: self.box_pos_x + dp(15), self.box_pos_y + dp(75)
             size: dp(25), dp(25)
         Color:
             rgb: self.yellow_2
         Ellipse:
-            pos: dp(915), dp(145)
+            pos: self.box_pos_x + dp(15), self.box_pos_y + dp(45)
             size: dp(25), dp(25)
         Color:
             rgb: self.green_2
         Ellipse:
-            pos: dp(915), dp(115)
+            pos: self.box_pos_x + dp(15), self.box_pos_y + dp(15)
             size: dp(25), dp(25) 
 
 <ASCIIGrid>:
@@ -95,37 +95,42 @@
         Color:
             rgba: .50, .50, .50, 1 
         Rectangle: 
-            pos: dp(300), dp(15)
+            pos: self.box_pos_x, self.box_pos_y
             size: dp(365), dp(50)   
         Color: 
             rgb: 1,1,1 
         Rectangle: 
-            pos: dp(305),dp(20)
+            pos: self.box_pos_x + dp(5), self.box_pos_y + dp(5)
             size: dp(40), dp(40) 
         Rectangle: 
-            pos: dp(350), dp(20) 
+            pos: self.box_pos_x + dp(50), self.box_pos_y + dp(5)
             size: dp(40), dp(40) 
         Rectangle: 
-            pos: dp(395),dp(20)
+            pos: self.box_pos_x + dp(95), self.box_pos_y + dp(5)
             size: dp(40), dp(40) 
         Rectangle: 
-            pos: dp(440),dp(20) 
+            pos: self.box_pos_x + dp(140), self.box_pos_y + dp(5)
             size: dp(40), dp(40) 
         Rectangle: 
-            pos: dp(485),dp(20)
+            pos: self.box_pos_x + dp(185), self.box_pos_y + dp(5)
             size: dp(40), dp(40) 
         Rectangle: 
-            pos: dp(530),dp(20)
+            pos: self.box_pos_x + dp(230), self.box_pos_y + dp(5)
             size: dp(40), dp(40) 
         Rectangle: 
-            pos: dp(575),dp(20)
+            pos: self.box_pos_x + dp(275), self.box_pos_y + dp(5)
             size: dp(40), dp(40) 
         Rectangle: 
-            pos: dp(620),dp(20)
+            pos: self.box_pos_x + dp(320), self.box_pos_y + dp(5)
             size: dp(40), dp(40)  
             
 <SevenSegmentDisplay>
     canvas.before:
+        Color:
+            rgb: self.border
+        Rectangle:
+            pos: self.box_pos_x - dp(5), self.box_pos_y - dp(5)
+            size: dp(160), dp(140)
         Color:
             rgb: 0,0,0
         Rectangle:
@@ -135,88 +140,88 @@
         Color:
             rgb: self.leftA
         Rectangle:
-            pos: self.left_pos_x_horizontal, self.bottom_pos_y + dp(100)
+            pos: self.box_pos_x + dp(20), self.box_pos_y + dp(110)
             size: dp(40), dp(10)
         # B   
         Color:
             rgb: self.leftB
         Rectangle:
-            pos: self.right_pos_x_vertical, self.bottom_pos_y + dp(60)
+            pos: self.box_pos_x + dp(60), self.box_pos_y + dp(70)
             size: dp(10), dp(40)   
         # C
         Color:
             rgb: self.leftC
         Rectangle:
-            pos: self.right_pos_x_vertical, self.bottom_pos_y + dp(10)
+            pos: self.box_pos_x + dp(60), self.box_pos_y + dp(20)
             size: dp(10), dp(40) 
         # D
         Color:
             rgb: self.leftD
         Rectangle:
-            pos: self.left_pos_x_horizontal, self.bottom_pos_y
+            pos: self.box_pos_x + dp(20), self.box_pos_y + dp(10)
             size: dp(40), dp(10)
         # E
         Color:
             rgb: self.leftE
         Rectangle:
-            pos: self.left_pos_x_vertical, self.bottom_pos_y + dp(10)
+            pos: self.box_pos_x + dp(10), self.box_pos_y + dp(20)
             size: dp(10), dp(40)       
         # F
         Color:
             rgb: self.leftF
         Rectangle:
-            pos: self.left_pos_x_vertical, self.bottom_pos_y + dp(60)
+            pos: self.box_pos_x + dp(10), self.box_pos_y + dp(70)
             size: dp(10), dp(40)   
 
         # G
         Color:
             rgb: self.leftG
         Rectangle:
-            pos: self.left_pos_x_horizontal, self.bottom_pos_y + dp(50)
+            pos: self.box_pos_x + dp(20), self.box_pos_y + dp(60)
             size: dp(40), dp(10)
 # ############    Right Number ############
        # A
         Color:
             rgb: self.rightA
         Rectangle:
-            pos: self.left_pos_x_horizontal + dp(70), self.bottom_pos_y + dp(100)
+            pos: self.box_pos_x + dp(90), self.box_pos_y + dp(110)
             size: dp(40), dp(10)
         # B   
         Color:
             rgb: self.rightB
         Rectangle:
-            pos: self.right_pos_x_vertical + dp(70), self.bottom_pos_y + dp(60)
+            pos: self.box_pos_x + dp(130), self.box_pos_y + dp(70)
             size: dp(10), dp(40)   
         # C
         Color:
             rgb: self.rightC
         Rectangle:
-            pos: self.right_pos_x_vertical + dp(70), self.bottom_pos_y + dp(10)
+            pos: self.box_pos_x + dp(130), self.box_pos_y + dp(20)
             size: dp(10), dp(40) 
         # D
         Color:
             rgb: self.rightD
         Rectangle:
-            pos: self.left_pos_x_horizontal + dp(70), self.bottom_pos_y
+            pos: self.box_pos_x + dp(90), self.box_pos_y + dp(10)
             size: dp(40), dp(10)
         # E
         Color:
             rgb: self.rightE
         Rectangle:
-            pos: self.left_pos_x_vertical + dp(70), self.bottom_pos_y + dp(10)
+            pos: self.box_pos_x + dp(80), self.box_pos_y + dp(20)
             size: dp(10), dp(40)       
         # F
         Color:
             rgb: self.rightF
         Rectangle:
-            pos: self.left_pos_x_vertical + dp(70), self.bottom_pos_y + dp(60)
+            pos: self.box_pos_x + dp(80), self.box_pos_y + dp(70)
             size: dp(10), dp(40)   
 
         # G
         Color:
             rgb: self.rightG
         Rectangle:
-            pos: self.left_pos_x_horizontal + dp(70), self.bottom_pos_y + dp(50)
+            pos: self.box_pos_x + dp(90), self.box_pos_y + dp(60)
             size: dp(40), dp(10)
 
 <TextEditor>
