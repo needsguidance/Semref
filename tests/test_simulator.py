@@ -1,10 +1,11 @@
-import mock
 import sys
 from unittest import TestCase
 
-from microprocessor_simulator import RAM, MicroSim
-from tests.test_utils import assert_ram_content, verify_ram_content_helper
-from utils import convert_to_hex, REGISTER, clear_registers
+import mock
+
+from microprocessor_simulator import MicroSim
+from tests.test_utils import verify_ram_content_helper
+from utils import REGISTER, clear_registers
 
 
 class SimulatorTest(TestCase):
@@ -53,7 +54,6 @@ class SimulatorTest(TestCase):
             return_values = [
                 '../output/test.obj',
                 '../output/test3.obj',
-                '../output/test7.obj',
                 '../output/test8.obj',
                 '../output/test9.obj',
                 '../output/test10.obj'
@@ -62,7 +62,6 @@ class SimulatorTest(TestCase):
             return_values = [
                 'output/test.obj',
                 'output/test3.obj',
-                'output/test7.obj',
                 'output/test8.obj',
                 'output/test9.obj',
                 'output/test10.obj'
@@ -98,43 +97,21 @@ class SimulatorTest(TestCase):
             ]
             verify_ram_content_helper(self, instance)
             self.verify_register_content()
-        
+
         with mock.patch('builtins.input', return_value=return_values[1]):
             instance.is_running = True
             verify_ram_content_helper(self, instance)
             self.verify_register_content()
 
         with mock.patch('builtins.input', return_value=return_values[2]):
-            self.ram_content = [
-                ('0106', 0),  # JMPADDR begin
-                ('000A', 2),
-                ('0F00', 4),
-                ('0D0C', 6),  # LOADIM R5, #C
-                ('0604', 8),  # LOAD R6, z
-                ('E6A0', 10),  # NEQ R6, R5
-                ('0702', 12),  # LOAD R7, x
-                ('4F01', 14),  # ADDIM R7, #1
-                ('1F02', 16),  # STORE x, R7
-                ('B000', 18),  # JCONDRIN R0
-                ('A814', 20),  # JMPADDR fin
-            ]
-            self.register_content = [
-                ('r0', '00'),
-                ('r1', '00'),
-                ('r2', '00'),
-                ('r3', '00'),
-                ('r4', '00'),
-                ('r5', '0C'),
-                ('r6', '0F'),
-                ('r7', '01'),
-                ('pc', '000'),
-                ('sp', '000'),
-                ('ir', '0000'),
-                ('cond', '1')
-            ]
-            verify_ram_content_helper(self, instance)
-            self.verify_register_content()
+            pass
 
+    def test_invalid_instruction(self):
+        instance = MicroSim()
+        return_value = '../output/test5.obj' if sys.platform == 'win32' else 'output/test5.obj'
+        with mock.patch('builtins.input', return_value=return_value):
+            with self.assertRaises(SystemError):
+                verify_ram_content_helper(self, instance)
 
     def verify_register_content(self):
         for register in self.register_content:

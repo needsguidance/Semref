@@ -27,6 +27,7 @@ class MicroSim:
         self.prev_index = -1
         self.counter = 0
         self.filename = ''
+        self.error = ''
 
     def read_obj_file(self, filename):
         if not self.is_valid_source(filename):
@@ -99,7 +100,10 @@ class MicroSim:
         REGISTER['ir'] = f'{RAM[self.index]}{RAM[self.index + 1]}'
         binary_instruction = hex_to_binary(
             f'{RAM[self.index]}{RAM[self.index + 1]}')
-        self.execute_instruction(binary_instruction)
+        try:
+            self.execute_instruction(binary_instruction)
+        except SystemError as e:
+            self.error = str(e)
 
     def run_micro_instructions_step(self, step_index):
 
@@ -211,8 +215,9 @@ class MicroSim:
                     # Do nothing
                     pass
                 self.index += 2
-                REGISTER['pc'] = convert_to_hex(
-                    int(REGISTER['pc'], 16) + 2, 12)
+                REGISTER['pc'] = convert_to_hex(int(REGISTER['pc'], 16) + 2, 12)
+                if REGISTER['r0'] != '00':
+                    raise SystemError('R0 cannot be modified')
             elif opcode in FORMAT_2_OPCODE:
                 ra = f'r{int(instruction[5:8], 2)}'
                 address_or_const = int(instruction[8:], 2)

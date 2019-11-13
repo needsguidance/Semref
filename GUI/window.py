@@ -348,7 +348,7 @@ class MainWindow(BoxLayout):
 
     def run_micro_instructions(self, instance):
         global loaded_file, file_path, editor_saved, is_obj
-
+        toast_message = 'File executed successfully'
         if not self.run_window.editor.valid_text and not is_obj:
             toast("Invalid code. Load file to run or write valid code in editor")
         elif editor_saved:
@@ -385,10 +385,14 @@ class MainWindow(BoxLayout):
                                 self.micro_sim.is_running = False
                             else:
                                 self.micro_sim.prev_index = self.micro_sim.index
+                            if self.micro_sim.error:
+                                toast_message = f'Error! {self.micro_sim.error}'
+                                self.micro_sim.is_running = False
+                                self.micro_sim.error = ''
                     self.run_window.reg_table.get_data()
                     self.run_window.mem_table.data_list.clear()
                     self.run_window.mem_table.get_data()
-                    toast('File executed successfully')
+                    toast(toast_message)
         else:
             toast('Please save changes on editor before running')
 
