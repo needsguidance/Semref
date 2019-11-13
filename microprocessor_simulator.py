@@ -39,7 +39,6 @@ class MicroSim:
         lines.clear()
         file.close()
 
-
     def disassembled_instruction(self):
 
         instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')

@@ -485,7 +485,6 @@ class MainWindow(BoxLayout):
         else:
             toast('Please save your changes')
 
-
     def clear(self):
         global loaded_file, file_path, cleared, is_obj
 
@@ -777,7 +776,7 @@ class NavDrawer(MDNavigationDrawer):
         if path.endswith('.obj'):
             is_obj = True
             editor_saved = True
-          
+
         can_write = True
         file_path = path
         loaded_file = True
@@ -1083,7 +1082,6 @@ class SevenSegmentDisplay(Widget):
     rightF = ListProperty([.41, .41, .41])
     rightG = ListProperty([.41, .41, .41])
     border = ListProperty([0, .58, .53])
-
 
     # For change the position of the SevenSegment display we need only need change this initials values.
     # Changing this attributes not change the size of the widget.
