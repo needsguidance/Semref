@@ -54,9 +54,6 @@ class MicroSim:
         instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
 
         opcode = get_opcode_key(instruction[0:5])
-        register_a = ''
-        register_b = ''
-        register_c = ''
         dis_instruction = ''
 
         if opcode in FORMAT_1_OPCODE:
@@ -65,39 +62,38 @@ class MicroSim:
             rb = f'R{int(instruction[8:11], 2)}'
             rc = f'R{int(instruction[11:14], 2)}'
 
-            register_a = f' {ra}'
-            register_b = f' {rb}'
-            register_c = f' {rc}'
-
-            if register_c != ' R0':
-                dis_instruction = opcode + register_a + ',' + register_b + ',' + register_c
+            if opcode == 'nop':
+                dis_instruction = f'{opcode}'
+            elif opcode == 'jmprind':
+                dis_instruction = f'{opcode} {ra}'
+            elif opcode == 'loadrind' or opcode == 'storerind' or opcode == 'not' or opcode == 'neg' or \
+                    opcode == 'grt' or opcode == 'grteq' or opcode == 'eq' or opcode == 'neq':
+                dis_instruction = f'{opcode} {ra}, {rb}'
             else:
-                dis_instruction = opcode + register_a + ',' + register_b
+                dis_instruction = f'{opcode} {ra}, {rb}, {rc}'
 
         elif opcode in FORMAT_2_OPCODE:
 
             ra = f'R{int(instruction[5:8], 2)}'
             address_or_const = f'{int(instruction[8:], 2):02x}'
 
-            register_a = f' {ra}'
-
-            if register_a != ' R0':
-                dis_instruction = opcode + register_a + ', ' + address_or_const
+            if opcode == 'pop' or opcode == 'push':
+                dis_instruction = f'{opcode} {address_or_const}'
+            elif opcode == 'loadim' or opcode == 'addim' or opcode == 'subim':
+                dis_instruction = f'{opcode} {ra}, #{address_or_const}'
             else:
-                dis_instruction = opcode + ' ' + address_or_const
+                dis_instruction = f'{opcode} {ra}, {address_or_const}'
 
         elif opcode in FORMAT_3_OPCODE:
             ra = f'R{int(instruction[5:8], 2)}'
             address = f'{int(instruction[5:], 2):02x}'
 
-            register_a = f' {ra}'
-
-            if register_a != ' R0':
-                dis_instruction = opcode + register_a + ', ' + address
+            if opcode == 'jcondrin':
+                dis_instruction = f'{opcode} {ra}'
             else:
-                dis_instruction = opcode + ' ' + address
+                dis_instruction = f'{opcode} {address}'
 
-        return dis_instruction
+        return dis_instruction.upper()
 
     def run_micro_instructions(self):
         REGISTER['ir'] = f'{RAM[self.index]}{RAM[self.index + 1]}'
@@ -177,8 +173,8 @@ class MicroSim:
                         int(REGISTER[rb.lower()], 16) + int(REGISTER[rc.lower()], 16), 8)
                 elif opcode == 'xor':
                     _xor = int(REGISTER[rb.lower()], 16) + int(REGISTER[rc.lower()], 16) - \
-                        2 * int(REGISTER[rb.lower()], 16) * \
-                        int(REGISTER[rc.lower()], 16)
+                           2 * int(REGISTER[rb.lower()], 16) * \
+                           int(REGISTER[rc.lower()], 16)
                     REGISTER[ra.lower()] = convert_to_hex(_xor, 8)
                 elif opcode == 'not':
                     REGISTER[ra.lower()] = convert_to_hex(
@@ -233,7 +229,7 @@ class MicroSim:
                     REGISTER[ra] = convert_to_hex(_addim, 8)
                 elif opcode == 'subim':
                     _subim = int(REGISTER[ra], 16) - \
-                        int(address_or_const, 16)
+                             int(address_or_const, 16)
                     REGISTER[ra] = convert_to_hex(_subim, 8)
                 elif opcode == 'pop':
                     REGISTER[ra.lower()] = RAM[REGISTER['sp']]
