@@ -8,7 +8,7 @@ def convert_to_hex(num, bits):
     """
     if not isinstance(num, int):
         raise ValueError("Invalid number type, num must be of type int.")
-    return f'{num:0{int(bits / 4)}x}'
+    return f'{num:0{int(bits / 4)}x}'.upper()
 
 
 def convert_to_binary(num, bits):
@@ -86,6 +86,17 @@ def update_indicators(instance, is_file_loaded):
         instance.remove_widget(instance.not_loaded_file)
         instance.remove_widget(instance.loaded_file)
         instance.add_widget(instance.not_loaded_file)
+
+def clear_registers():
+    value = '00'
+    for key in REGISTER.keys():
+        if key == 'cond':
+            value = '0'
+        elif key == 'pc' or key == 'sp':
+            value = '000'
+        elif key == 'ir':
+            value = '0000'
+        REGISTER[key] = value
 
 
 

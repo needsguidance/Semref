@@ -1,10 +1,11 @@
 from unittest import TestCase
 
 import mock
+import sys
 
 from assembler import (RAM, Assembler, clear_ram, hexify_ram_content,
                        verify_ram_content)
-
+from tests.test_utils import assert_ram_content, verify_ram_content_helper
 
 class AssemblerTestCase(TestCase):
     # List of tuples that contain binary/hexadecimal representation of
@@ -16,7 +17,9 @@ class AssemblerTestCase(TestCase):
         """
         Verifies assembler is able to successfully store array values in memory correctly
         """
-        with mock.patch('builtins.input', return_value='../input/test5.asm'):
+        instance = Assembler()
+        return_value = '../input/test5.asm' if sys.platform == 'win32' else 'input/test5.asm'
+        with mock.patch('builtins.input', return_value=return_value):
             self.binary_content = [
                 ('1010100000001110', 0),  # JMPADDR start
                 ('0000100000000101', 4),
@@ -47,13 +50,32 @@ class AssemblerTestCase(TestCase):
                 ('0C0A', 28),  # LOADIM R4, #0A
                 ('A81E', 30),  # JMPADDR stay2
             ]
-            self.verify_ram_content_helper()
+            verify_ram_content_helper(self, instance)
 
     def test_simple_assembly_instructions(self):
         """
         Verifies generic assembly instructions are assembled correctly
         """
-        with mock.patch('builtins.input', return_value='../input/test.asm'):
+        instance = Assembler()
+        if sys.platform == 'win32':
+            return_values = [
+                '../input/test.asm',
+                '../input/test3.asm',
+                '../input/test7.asm',
+                '../input/test8.asm',
+                '../input/test9.asm',
+                '../input/test10.asm'
+            ]
+        else:
+            return_values = [
+            'input/test.asm',
+            'input/test3.asm',
+            'input/test7.asm',
+            'input/test8.asm',
+            'input/test9.asm',
+            'input/test10.asm'
+        ]
+        with mock.patch('builtins.input', return_value=return_values[0]):
             self.binary_content = [
                 ('1010100000000110', 0),  # JMPADDR start
                 ('0000010100000111', 2),
@@ -82,12 +104,12 @@ class AssemblerTestCase(TestCase):
                 ('0B08', 20),  # LOADIM R3, #8
                 ('A816', 22)  # JMPADDR fin
             ]
-            self.verify_ram_content_helper()
+            verify_ram_content_helper(self, instance)
 
-        with mock.patch('builtins.input', return_value='../input/test3.asm'):
-            self.verify_ram_content_helper()
+        with mock.patch('builtins.input', return_value=return_values[1]):
+            verify_ram_content_helper(self, instance)
 
-        with mock.patch('builtins.input', return_value='../input/test7.asm'):
+        with mock.patch('builtins.input', return_value=return_values[2]):
             self.binary_content = [
                 ('1010100000000110', 0),  # JMPADDR begin
                 ('0000000000001010', 2),
@@ -114,9 +136,9 @@ class AssemblerTestCase(TestCase):
                 ('B000', 18),  # JCONDRIN R0
                 ('A814', 20),  # JMPADDR fin
             ]
-            self.verify_ram_content_helper()
+            verify_ram_content_helper(self, instance)
 
-        with mock.patch('builtins.input', return_value='../input/test8.asm'):
+        with mock.patch('builtins.input', return_value=return_values[3]):
             self.binary_content = [
                 ('0000100100000101', 0),  # LOADIM R1, #5
                 ('0000101000000010', 2),  # LOADIM R2, #2
@@ -141,9 +163,9 @@ class AssemblerTestCase(TestCase):
                 ('31C0', 16),  # STORERIND R1, R6
                 ('A812', 18),  # JMPADDR fin
             ]
-            self.verify_ram_content_helper()
+            verify_ram_content_helper(self, instance)
 
-        with mock.patch('builtins.input', return_value='../input/test9.asm'):
+        with mock.patch('builtins.input', return_value=return_values[4]):
             self.binary_content = [
                 ('0000100101100100', 0),  # LOADIM R1, #64
                 ('0000101000110010', 2),  # LOADIM R2, #32
@@ -166,9 +188,9 @@ class AssemblerTestCase(TestCase):
                 ('D940', 14),  # EQ R1, R2
                 ('A400', 16),  # JMPRIND R4
             ]
-            self.verify_ram_content_helper()
+            verify_ram_content_helper(self, instance)
 
-        with mock.patch('builtins.input', return_value='../input/test10.asm'):
+        with mock.patch('builtins.input', return_value=return_values[5]):
             self.binary_content = [
                 ('1110100000000000', 14),  # NOP
                 ('0000100100000101', 16),  # LOADIM R1, #5
@@ -197,7 +219,7 @@ class AssemblerTestCase(TestCase):
                 ('7C80', 34),  # NEG R4, R4
                 ('A824', 36),  # JMPADDR fin
             ]
-            self.verify_ram_content_helper()
+            verify_ram_content_helper(self, instance)
             self.binary_content.clear()
             self.hex_content.clear()
 
@@ -205,7 +227,9 @@ class AssemblerTestCase(TestCase):
         """
         Verifies subroutine calls are assembled correctly
         """
-        with mock.patch('builtins.input', return_value='../input/test11.asm'):
+        instance = Assembler()
+        return_value = '../input/test11.asm' if sys.platform == 'win32' else 'input/test11.asm'
+        with mock.patch('builtins.input', return_value=return_value):
             self.binary_content = [
                 ('1010100000000010', 0),  # JMPADDR start
                 ('0000100100000101', 2),  # LOADIM R1, #5
@@ -226,7 +250,7 @@ class AssemblerTestCase(TestCase):
                 ('8A2C', 12),  # SHIFTL R2, R1, R3
                 ('F800', 14),  # RETURN
             ]
-            self.verify_ram_content_helper()
+            verify_ram_content_helper(self, instance)
             self.binary_content.clear()
             self.hex_content.clear()
 
@@ -234,56 +258,44 @@ class AssemblerTestCase(TestCase):
         """
          Verifies assembly detects invalid code and raises an error
         """
-        with mock.patch('builtins.input', return_value='../input/test1.asm'):
-            file = input()
-            asm = Assembler(file)
+        if sys.platform == 'win32':
+            return_values = [
+                '../input/test1.asm',
+                '../input/test2.asm',
+                '../input/test4.asm',
+                '../input/test6.asm'
+            ]
+        else:
+            return_values = [
+                'input/test1.asm',
+                'input/test2.asm',
+                'input/test4.asm',
+                'input/test6.asm'
+            ]
+        with mock.patch('builtins.input', return_value=return_values[0]):
+            filename = input()
+            asm = Assembler(filename=filename)
             asm.read_source()
             with self.assertRaises(SyntaxError):
                 asm.store_instructions_in_ram()
 
-        with mock.patch('builtins.input', return_value='../input/test2.asm'):
-            file = input()
-            asm = Assembler(file)
+        with mock.patch('builtins.input', return_value=return_values[1]):
+            filename = input()
+            asm = Assembler(filename=filename)
             asm.read_source()
             with self.assertRaises(SyntaxError):
                 asm.store_instructions_in_ram()
 
-        with mock.patch('builtins.input', return_value='../input/test4.asm'):
-            file = input()
-            asm = Assembler(file)
+        with mock.patch('builtins.input', return_value=return_values[2]):
+            filename = input()
+            asm = Assembler(filename=filename)
             asm.read_source()
             with self.assertRaises(MemoryError):
                 asm.store_instructions_in_ram()
 
-        with mock.patch('builtins.input', return_value='../input/test6.asm'):
-            file = input()
-            asm = Assembler(file)
+        with mock.patch('builtins.input', return_value=return_values[3]):
+            filename = input()
+            asm = Assembler(filename=filename)
             asm.read_source()
             with self.assertRaises(SyntaxError):
                 asm.store_instructions_in_ram()
-
-    def assert_ram_content(self, content):
-        """
-        Verifies that actual output is aligned with the expected outputs
-        :param start: starts reading RAM from given memory location as an int value
-        :param content: binary/hexadecimal content to verify
-        """
-        for c in content:
-            self.assertEqual(RAM[c[1]] + RAM[c[1] + 1],
-                             c[0], f'Verify line # {content.index(c) + 1} "{c}"')
-
-    def verify_ram_content_helper(self):
-        """
-        Helper to test different input files and verify expected outputs vs actual outputs
-        """
-        clear_ram()
-        file = input()
-        asm = Assembler(file)
-        asm.read_source()
-        asm.store_instructions_in_ram()
-
-        verify_ram_content()
-        self.assert_ram_content(self.binary_content)
-
-        hexify_ram_content()
-        self.assert_ram_content(self.hex_content)
