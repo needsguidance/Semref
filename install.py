@@ -10,7 +10,8 @@ ALL = [
     'mock==3.0.5',
     'coverage>=4.5.4',
     'kivymd>=0.100.2',
-    'nose'
+    'nose>=1.3.7',
+    'codecov>=2.0.15'
 ]
 
 WINDOWS = [
