@@ -45,6 +45,7 @@ run_editor = True
 editor_saved = False
 cleared = True
 is_obj = False
+theme_manager = ThemeManager()
 
 
 class HexKeyboard(GridLayout):
@@ -327,7 +328,7 @@ class MainWindow(BoxLayout):
                                         pos_hint={
                                             'y': self.buttons_y_pos
                                         }, theme_text_color='Custom',
-                                        text_color=self.app.theme_cls.primary_color,
+                                        text_color=[0, 0.6, 0, 1],
                                         on_release=self.buttons_information
                                         )
         self.not_loaded_file = MDIconButton(icon='file-alert',
@@ -968,6 +969,7 @@ class InstructionTable(RecycleView):
 
 
 class TrafficLights(Widget):
+    global theme_manager
     red_1 = ListProperty([1, 0, 0])
     red_2 = ListProperty([1, 0, 0])
     yellow_1 = ListProperty([1, 1, 0])
@@ -977,6 +979,7 @@ class TrafficLights(Widget):
 
     box_pos_x = dp(850)
     box_pos_y = dp(120)
+    border = ListProperty(theme_manager.primary_color)
 
     def __init__(self, **kwargs):
         super(TrafficLights, self).__init__(**kwargs)
@@ -1066,6 +1069,7 @@ class TrafficLights(Widget):
 
 
 class SevenSegmentDisplay(Widget):
+    global theme_manager
     leftA = ListProperty([.41, .41, .41])
     leftB = ListProperty([.41, .41, .41])
     leftC = ListProperty([.41, .41, .41])
@@ -1081,7 +1085,7 @@ class SevenSegmentDisplay(Widget):
     rightE = ListProperty([.41, .41, .41])
     rightF = ListProperty([.41, .41, .41])
     rightG = ListProperty([.41, .41, .41])
-    border = ListProperty([0, .58, .53])
+    border = ListProperty(theme_manager.primary_color)
 
     # For change the position of the SevenSegment display we need only need change this initials values.
     # Changing this attributes not change the size of the widget.
@@ -1301,7 +1305,8 @@ class GUI(NavigationLayout):
 
 class SemrefApp(App):
     theme_cls = ThemeManager()
-    theme_cls.primary_palette = 'Teal'
+    theme_cls.primary_palette = 'BlueGray'
+    theme_cls.accent_palette = 'Orange'
 
     def build(self):
         return GUI()
