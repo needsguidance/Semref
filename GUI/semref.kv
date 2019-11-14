@@ -28,7 +28,7 @@
     canvas.before:
         
         Color:
-            rgb: self.border
+            rgb: self.border_color
         Rectangle:
             pos: self.box_pos_x, self.box_pos_y
             size: dp(95), dp(115)
@@ -127,7 +127,7 @@
 <SevenSegmentDisplay>
     canvas.before:
         Color:
-            rgb: self.border
+            rgb: self.border_color
         Rectangle:
             pos: self.box_pos_x - dp(5), self.box_pos_y - dp(5)
             size: dp(160), dp(140)

@@ -1,4 +1,3 @@
-
 def convert_to_hex(num, bits):
     """
     Converts number to hexadecimal
@@ -13,10 +12,10 @@ def convert_to_hex(num, bits):
 
 def convert_to_binary(num, bits):
     """
-    Converts int number to hexadecimal
-    :param num:
-    :param bits:
-    :return: str:
+    Converts number to its binary representation
+    :param num: int
+    :param bits: str
+    :return: str
     """
     if not isinstance(num, int):
         raise ValueError("Invalid number type, num must be of type int.")
@@ -71,7 +70,6 @@ def update_reserved_ports(device, port_to_remove, port_to_add, reserve_block=Fal
 
 
 def update_indicators(instance, is_file_loaded):
-
     """
     This method manage Loaded/NotLoaded File indicators using a condition.
     :param instance:
@@ -87,6 +85,7 @@ def update_indicators(instance, is_file_loaded):
         instance.remove_widget(instance.loaded_file)
         instance.add_widget(instance.not_loaded_file)
 
+
 def clear_registers():
     value = '00'
     for key in REGISTER.keys():
@@ -97,7 +96,6 @@ def clear_registers():
         elif key == 'ir':
             value = '0000'
         REGISTER[key] = value
-
 
 
 # OPCODE initialization list.
@@ -212,7 +210,7 @@ HEX_KEYBOARD = {
     'port': 2
 }
 
-# This ports are reserved by a I/O devices.
+# Reserved ports for I/O devices.
 RESERVED_PORTS = [
     0,
     1,

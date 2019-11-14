@@ -1,6 +1,9 @@
 import ntpath
 import os
 import time
+
+from kivymd.color_definitions import colors
+
 from lexer import SemrefLexer
 from pathlib import Path
 from queue import Queue
@@ -12,7 +15,7 @@ from kivy.clock import Clock
 from kivy.graphics.context_instructions import Color
 from kivy.graphics.vertex_instructions import Line, Rectangle
 from kivy.metrics import MetricsBase, dp, sp
-from kivy.properties import ListProperty
+from kivy.properties import ListProperty, get_color_from_hex
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
@@ -22,7 +25,6 @@ from kivy.uix.codeinput import CodeInput
 from kivy.uix.modalview import ModalView
 from kivy.uix.popup import Popup
 from kivy.uix.recycleview import RecycleView
-from kivy.uix.textinput import TextInput
 from kivy.uix.widget import Widget
 from kivymd.theming import ThemeManager
 from kivymd.toast import toast
@@ -51,7 +53,6 @@ run_editor = True
 editor_saved = False
 cleared = True
 is_obj = False
-theme_manager = ThemeManager()
 
 
 class HexKeyboard(GridLayout):
@@ -384,7 +385,7 @@ class MainWindow(BoxLayout):
                         self.run_window.blinking_on()
                         self.run_window.blinking_off()
 
-                        timeout = time.time() + 5   # 5 seconds from now
+                        timeout = time.time() + 5  # 5 seconds from now
                         while self.micro_sim.is_running:
                             try:
                                 self.micro_sim.run_micro_instructions(timeout)
@@ -976,17 +977,16 @@ class InstructionTable(RecycleView):
 
 
 class TrafficLights(Widget):
-    global theme_manager
     red_1 = ListProperty([1, 0, 0])
     red_2 = ListProperty([1, 0, 0])
     yellow_1 = ListProperty([1, 1, 0])
     yellow_2 = ListProperty([1, 1, 0])
     green_1 = ListProperty([0, 1, 0])
     green_2 = ListProperty([0, 1, 0])
-
     box_pos_x = dp(850)
     box_pos_y = dp(120)
-    border = ListProperty(theme_manager.primary_color)
+
+    border_color = ListProperty([0, 0, 0, 1])
 
     def __init__(self, **kwargs):
         super(TrafficLights, self).__init__(**kwargs)
@@ -994,6 +994,7 @@ class TrafficLights(Widget):
         self.control_bit_1 = 6
         self.control_bit_2 = 7
         self.binary = ''  # variable needed for intermittent function
+        self.border_color = get_color_from_hex(colors["Blue"]["500"])
 
     # Scheduler calls method to turn off all lights
     # Parameter dt is the scheduling time
@@ -1076,7 +1077,6 @@ class TrafficLights(Widget):
 
 
 class SevenSegmentDisplay(Widget):
-    global theme_manager
     leftA = ListProperty([.41, .41, .41])
     leftB = ListProperty([.41, .41, .41])
     leftC = ListProperty([.41, .41, .41])
@@ -1092,12 +1092,16 @@ class SevenSegmentDisplay(Widget):
     rightE = ListProperty([.41, .41, .41])
     rightF = ListProperty([.41, .41, .41])
     rightG = ListProperty([.41, .41, .41])
-    border = ListProperty(theme_manager.primary_color)
+    border_color = ListProperty([0, 0, 0, 1])
 
     # For change the position of the SevenSegment display we need only need change this initials values.
     # Changing this attributes not change the size of the widget.
     box_pos_x = dp(25)
     box_pos_y = dp(100)
+
+    def __init__(self, **kwargs):
+        super(SevenSegmentDisplay, self).__init__(**kwargs)
+        self.border_color = get_color_from_hex(colors["Blue"]["500"])
 
     # Iterates through the binary at the Input location (RAM) to determine which are 1s and which are 0s
     # Then, activate segments accordingly.
