@@ -1,5 +1,7 @@
 # Semref: A Microprocessor Simulator
 
+[![codecov](https://codecov.io/gh/needsguidance/Semref/branch/master/graph/badge.svg)](https://codecov.io/gh/needsguidance/Semref)
+
 Semref is an application that serves as a simulator of a microprocessor. It simulates a variety of instructions and gives the user the choice of loading a set of instructions and either running them one by one or all at once. The simulator then shows the changes in memory and registers. The application also shows several different I/O modules, each one displaying or affecting the content of a specified memory address.
 
 ## Table of Contents 

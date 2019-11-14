@@ -3,7 +3,7 @@ import time
 
 from utils import (FORMAT_1_OPCODE, FORMAT_2_OPCODE, FORMAT_3_OPCODE, OPCODE,
                    REGISTER, SEVEN_SEGMENT_DISPLAY, TRAFFIC_LIGHT,
-                   convert_to_hex, hex_to_binary)
+                   clear_registers, convert_to_hex, hex_to_binary)
 
 RAM = ['00' for i in range(4096)]
 
@@ -133,16 +133,7 @@ class MicroSim:
         self.counter = 0
         for m in range(4096):
             RAM[m] = '00'
-
-        for k, v in REGISTER.items():
-            if k == 'pc' or k == 'sp':
-                REGISTER[k] = f'{0:03x}'
-            elif k == 'ir':
-                REGISTER[k] = f'{0:04x}'
-            elif k == 'cond':
-                REGISTER[k] = f'{0:01x}'
-            else:
-                REGISTER[k] = f'{0:02x}'
+        clear_registers()
 
     def execute_instruction(self, instruction):
         if re.match('^[0]+$', instruction):
