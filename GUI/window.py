@@ -1,16 +1,18 @@
 import ntpath
 import os
+import time
 from lexer import SemrefLexer
 from pathlib import Path
 from queue import Queue
-from threading import Lock, Thread, Semaphore, Condition
+from threading import Condition, Lock, Semaphore, Thread
 from time import sleep
+
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.graphics.context_instructions import Color
-from kivy.graphics.vertex_instructions import Rectangle, Line
-from kivy.metrics import dp, sp, MetricsBase
-from kivy.properties import (ListProperty)
+from kivy.graphics.vertex_instructions import Line, Rectangle
+from kivy.metrics import MetricsBase, dp, sp
+from kivy.properties import ListProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
@@ -20,23 +22,27 @@ from kivy.uix.codeinput import CodeInput
 from kivy.uix.modalview import ModalView
 from kivy.uix.popup import Popup
 from kivy.uix.recycleview import RecycleView
+from kivy.uix.textinput import TextInput
 from kivy.uix.widget import Widget
 from kivymd.theming import ThemeManager
 from kivymd.toast import toast
-from kivymd.uix.menu import MDDropdownMenu
-from kivymd.uix.button import MDFillRoundFlatIconButton, MDFlatButton, MDIconButton
-from kivymd.uix.dialog import MDInputDialog, MDDialog
+from kivymd.uix.button import (MDFillRoundFlatIconButton, MDFlatButton,
+                               MDIconButton)
+from kivymd.uix.dialog import MDDialog, MDInputDialog
 from kivymd.uix.filemanager import MDFileManager
+from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
                                          NavigationDrawerIconButton,
                                          NavigationDrawerSubheader,
                                          NavigationLayout)
 
-from assembler import Assembler, verify_ram_content, hexify_ram_content, clear_ram
 from assembler import RAM as RAM_ASSEMBLER
-from utils import REGISTER, hex_to_binary, convert_to_hex, is_valid_port, update_reserved_ports, update_indicators
-from utils import TRAFFIC_LIGHT, SEVEN_SEGMENT_DISPLAY, ASCII_TABLE, HEX_KEYBOARD
-from microprocessor_simulator import MicroSim, RAM
+from assembler import (Assembler, clear_ram, hexify_ram_content,
+                       verify_ram_content)
+from microprocessor_simulator import RAM, MicroSim
+from utils import (ASCII_TABLE, HEX_KEYBOARD, REGISTER, SEVEN_SEGMENT_DISPLAY,
+                   TRAFFIC_LIGHT, convert_to_hex, hex_to_binary, is_valid_port,
+                   update_indicators, update_reserved_ports)
 
 file_path = ''
 can_write = False
@@ -349,7 +355,7 @@ class MainWindow(BoxLayout):
 
     def run_micro_instructions(self, instance):
         global loaded_file, file_path, editor_saved, is_obj
-
+        toast_message = 'File executed successfully'
         if not self.run_window.editor.valid_text and not is_obj:
             toast("Invalid code. Load file to run or write valid code in editor")
         elif editor_saved:
@@ -377,19 +383,24 @@ class MainWindow(BoxLayout):
                         self.run_window.blinking_on()
                         self.run_window.blinking_off()
 
+                        timeout = time.time() + 5   # 5 seconds from now
                         while self.micro_sim.is_running:
-                            self.micro_sim.run_micro_instructions()
-                            self.run_window.inst_table.get_data(self.micro_sim.index,
-                                                                self.micro_sim.disassembled_instruction())
+                            try:
+                                self.micro_sim.run_micro_instructions(timeout)
+                                self.run_window.inst_table.get_data(self.micro_sim.index,
+                                                                    self.micro_sim.disassembled_instruction())
 
-                            if self.micro_sim.prev_index == self.micro_sim.index:
+                                if self.micro_sim.prev_index == self.micro_sim.index:
+                                    self.micro_sim.is_running = False
+                                else:
+                                    self.micro_sim.prev_index = self.micro_sim.index
+                            except (SystemError, TimeoutError) as e:
                                 self.micro_sim.is_running = False
-                            else:
-                                self.micro_sim.prev_index = self.micro_sim.index
+                                toast_message = f'Error! {e}'
                     self.run_window.reg_table.get_data()
                     self.run_window.mem_table.data_list.clear()
                     self.run_window.mem_table.get_data()
-                    toast('File executed successfully')
+                    toast(toast_message)
         else:
             toast('Please save changes on editor before running')
 
@@ -435,7 +446,7 @@ class MainWindow(BoxLayout):
         # Should work across different OS
         filename = os.path.splitext(ntpath.basename(file_path))[0]
         try:
-            asm = Assembler(file_path)
+            asm = Assembler(filename=file_path)
             asm.read_source()
             asm.store_instructions_in_ram()
             verify_ram_content()
@@ -484,7 +495,6 @@ class MainWindow(BoxLayout):
             self.clear()
         else:
             toast('Please save your changes')
-
 
     def clear(self):
         global loaded_file, file_path, cleared, is_obj
@@ -777,7 +787,7 @@ class NavDrawer(MDNavigationDrawer):
         if path.endswith('.obj'):
             is_obj = True
             editor_saved = True
-          
+
         can_write = True
         file_path = path
         loaded_file = True
@@ -956,11 +966,7 @@ class InstructionTable(RecycleView):
             inst = instruction.split()
             self.data_list.append((f'{address:02x}').upper())
             self.data_list.append(f'{RAM[address]}')
-            if 'im' in inst[0]:
-                self.data_list.append(
-                    f'{inst[0].upper()} {inst[1]} #{inst[2]}')
-            else:
-                self.data_list.append(instruction.upper())
+            self.data_list.append(instruction.upper())
 
         self.data = [{
             "text": str(x.upper()),
@@ -1225,7 +1231,7 @@ class TextEditor(CodeInput):
         self.lexer = SemrefLexer()
         self.font_name = 'assets/fonts/Inconsolata-Regular.ttf'
         if self.dpi < 192:
-            
+
             self.size_hint = (0.55, 0.46)
             self.pos_hint = {
                 'x': dp(0.20),
