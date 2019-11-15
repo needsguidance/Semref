@@ -78,6 +78,8 @@ class Assembler:
                     (not self.is_indented(lines[i - 1]) and ":" not in lines[i - 1]) or lines[i - 1].isspace() or lines[
                 i - 1] == '\n'):
                 raise AssertionError(f'Indentation Error: Verify lines {i} and {i + 1}')
+            if not self.is_indented(lines[i]) and ":" in lines[i - 1]:
+                raise AssertionError(f'Indentation Error: Line {i + 1}: lines under label must be indented.')
         return True
 
     def is_valid_source(self):
