@@ -58,8 +58,6 @@ class HexKeyboard(GridLayout):
 
     def __init__(self, **kwargs):
         self.mem_table = kwargs.pop('mem_table')
-        self.blinking_on = kwargs.pop('blinking_on')
-        self.blinking_off = kwargs.pop('blinking_off')
         self.dpi = kwargs.pop('dpi')
         super(HexKeyboard, self).__init__(**kwargs)
         self.queue = Queue(maxsize=10)
@@ -156,12 +154,6 @@ class HexKeyboard(GridLayout):
 
             self.mem_table.data_list.clear()
             self.mem_table.get_data()
-
-            self.blinking_on.cancel()
-            self.blinking_off.cancel()
-
-            self.blinking_on()
-            self.blinking_off()
             sleep(1)
             self.condition.release()
 
@@ -210,8 +202,6 @@ class RunWindow(FloatLayout):
         self.blinking_off.cancel()
 
         self.hex_keyboard_layout = HexKeyboard(mem_table=self.mem_table,
-                                               blinking_on=self.blinking_on,
-                                               blinking_off=self.blinking_off,
                                                dpi=self.dpi)
         box = FloatLayout()
         box.add_widget(self.hex_keyboard_layout)
