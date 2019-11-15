@@ -57,36 +57,40 @@ class Assembler:
         lines = source.readlines()
         if self.is_indented(lines[0]):
             raise AssertionError('Indentation Error: the first line cannot be indented.')
-        if self.is_above_fair_indentation(lines):
-            for line in lines:
-                if "\t" in line:
-                    raise AssertionError(f'Indentation error: Line {lines.index(line)}: Tab detected.')
-                if not self.is_indented(line) and line.startswith(" ") and not line.isspace():
-                    raise AssertionError(f'Indentation error: Line {lines.index(line)}: Ensure that '
-                                         f'all indented lines have exactly 4 spaces.')
-                if ":" in line and self.is_indented(line):
-                    raise AssertionError(
-                        f'Indentation error: Line {lines.index(line)}: Lines with \':\' cannot be indented.')
-                if line != '\n':
-                    self.micro_instr.append(line.strip())
+        else:
+            self.verify_indentation(lines[0], 0)
+            self.micro_instr.append(lines[0].strip())
+        for i in range(1, len(lines)):
+            self.verify_indentation(lines[i], i)
+            self.compare_indentation_between_lines(lines[i - 1], lines[i], i)
+            if lines[i] != '\n':
+                self.micro_instr.append(lines[i].strip())
         lines.clear()
         source.close()
 
-    def is_above_fair_indentation(self, lines):
-        for i in range(1, len(lines)):
-            if self.is_indented(lines[i]) and (
-                    (not self.is_indented(lines[i - 1]) and ":" not in lines[i - 1]) or lines[i - 1].isspace() or lines[
-                i - 1] == '\n'):
-                raise AssertionError(f'Indentation Error: Verify lines {i} and {i + 1}')
-            if not self.is_indented(lines[i]) and ":" in lines[i - 1]:
-                raise AssertionError(f'Indentation Error: Line {i + 1}: lines under label must be indented.')
+    def verify_indentation(self, line, index):
+        if "\t" in line:
+            raise AssertionError(f'Indentation error: Line {index + 1}: Tab detected.')
+        if not self.is_indented(line) and line.startswith(" ") and not line.isspace():
+            raise AssertionError(f'Indentation error: Line {index + 1}: Ensure that '
+                                 f'all indented lines have exactly 4 spaces.')
+        if ":" in line and self.is_indented(line):
+            raise AssertionError(
+                f'Indentation error: Line {index + 1}: Lines with \':\' cannot be indented.')
+
+    def compare_indentation_between_lines(self, line1, line2, index):
+        if self.is_indented(line2) and ((not self.is_indented(line1) and ":" not in line1)
+                                        or line1.isspace() or line1 == '\n'):
+            raise AssertionError(f'Indentation Error: Verify lines {index} and {index + 1}')
+        if not self.is_indented(line2) and ":" in line1:
+            raise AssertionError(f'Indentation Error: Line {index + 1}: lines under label must be indented.')
         return True
 
     def is_valid_source(self):
         return re.match(r'^.+\.asm$', self.filename)
 
     def is_indented(self, line):
-        return line.startswith("    ")
+        return line.startswith("    ") and not line[4].startswith(" ")
 
     def store_instructions_in_ram(self):
         for instruction in self.micro_instr:
