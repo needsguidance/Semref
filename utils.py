@@ -224,3 +224,7 @@ RESERVED_PORTS = [
     9,
     10
 ]
+
+EVENTS = {
+    'IS_RAM_EMPTY': True
+}
