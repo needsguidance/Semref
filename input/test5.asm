@@ -1,6 +1,6 @@
-    org 0
-    JMPADDR start
-	org 4
+org 0
+JMPADDR start
+    org 4
 valor1 db 8
 arreglo db 5, A, FF, 73
 const pi 31

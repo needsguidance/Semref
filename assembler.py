@@ -55,17 +55,30 @@ class Assembler:
                 f'Unsupported file type [{self.filename}]. Only accepting files ending in .asm')
         source = open(self.filename, 'r')
         lines = source.readlines()
-        for line in lines:
-            if "\t" in line:
-                raise AssertionError('Tab detected in file.')
-            if not self.is_indented(line) and line.startswith(" ") and not line.isspace():
-                raise AssertionError('Indentation error. Please ensure that all indented lines have exactly 4 spaces.')
-            if ":" in line and self.is_indented(line):
-                raise AssertionError('Indentation error: Lines with \':\' cannot be indented.')
-            if line != '\n':
-                self.micro_instr.append(line.strip())
+        if self.is_indented(lines[0]):
+            raise AssertionError('Indentation Error: the first line cannot be indented.')
+        if self.is_above_fair_indentation(lines):
+            for line in lines:
+                if "\t" in line:
+                    raise AssertionError(f'Indentation error: Line {lines.index(line)}: Tab detected.')
+                if not self.is_indented(line) and line.startswith(" ") and not line.isspace():
+                    raise AssertionError(f'Indentation error: Line {lines.index(
+                        line)}: Ensure that all indented lines have exactly 4 spaces.')
+                if ":" in line and self.is_indented(line):
+                    raise AssertionError(
+                        f'Indentation error: Line {lines.index(line)}: Lines with \':\' cannot be indented.')
+                if line != '\n':
+                    self.micro_instr.append(line.strip())
         lines.clear()
         source.close()
+
+    def is_above_fair_indentation(self, lines):
+        for i in range(1, len(lines)):
+            if self.is_indented(lines[i]) and (
+                    (not self.is_indented(lines[i - 1]) and ":" not in lines[i - 1]) or lines[i - 1].isspace() or lines[
+                i - 1] == '\n'):
+                raise AssertionError(f'Indentation Error: Verify lines {i} and {i + 1}')
+        return True
 
     def is_valid_source(self):
         return re.match(r'^.+\.asm$', self.filename)

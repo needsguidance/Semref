@@ -1,4 +1,4 @@
-    org 0
+org 0
 start:
 	JMPADDR begin
 x	db 0
@@ -14,5 +14,3 @@ begin:
 	JCONDRIN R0
 fin:
 	JMPADDR fin
-	
-	
