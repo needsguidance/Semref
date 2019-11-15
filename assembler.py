@@ -56,6 +56,8 @@ class Assembler:
         source = open(self.filename, 'r')
         lines = source.readlines()
         for line in lines:
+            if "\t" in line:
+                raise AssertionError('Tab detected in file.')
             if line != '\n':
                 self.micro_instr.append(line.strip())
         lines.clear()
