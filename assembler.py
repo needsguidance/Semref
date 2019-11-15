@@ -60,6 +60,8 @@ class Assembler:
                 raise AssertionError('Tab detected in file.')
             if not self.is_indented(line) and line.startswith(" ") and not line.isspace():
                 raise AssertionError('Indentation error. Please ensure that all indented lines have exactly 4 spaces.')
+            if ":" in line and self.is_indented(line):
+                raise AssertionError('Indentation error: Lines with \':\' cannot be indented.')
             if line != '\n':
                 self.micro_instr.append(line.strip())
         lines.clear()
