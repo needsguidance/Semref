@@ -72,8 +72,8 @@ def update_reserved_ports(device, port_to_remove, port_to_add, reserve_block=Fal
 def update_indicators(instance, is_file_loaded):
     """
     This method manage Loaded/NotLoaded File indicators using a condition.
-    :param instance:
-    :param is_ram_loaded:
+    :param instance: obj
+    :param is_ram_loaded: bool
     """
     if is_file_loaded:
         instance.remove_widget(instance.not_loaded_file)
