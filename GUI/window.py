@@ -1,10 +1,6 @@
 import ntpath
 import os
 import time
-
-from kivymd.color_definitions import colors
-
-from lexer import SemrefLexer
 from pathlib import Path
 from queue import Queue
 from threading import Condition, Lock, Semaphore, Thread
@@ -15,17 +11,18 @@ from kivy.clock import Clock
 from kivy.graphics.context_instructions import Color
 from kivy.graphics.vertex_instructions import Line, Rectangle
 from kivy.metrics import MetricsBase, dp, sp
-from kivy.properties import ListProperty, get_color_from_hex
+from kivy.properties import ListProperty
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.codeinput import CodeInput
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
-from kivy.uix.textinput import TextInput
-from kivy.uix.codeinput import CodeInput
 from kivy.uix.modalview import ModalView
 from kivy.uix.popup import Popup
 from kivy.uix.recycleview import RecycleView
 from kivy.uix.widget import Widget
+from kivy.utils import get_color_from_hex
+from kivymd.color_definitions import colors
 from kivymd.theming import ThemeManager
 from kivymd.toast import toast
 from kivymd.uix.button import (MDFillRoundFlatIconButton, MDFlatButton,
@@ -38,9 +35,10 @@ from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
                                          NavigationDrawerSubheader,
                                          NavigationLayout)
 
-from assembler import RAM as RAM_ASSEMBLER
 from assembler import (Assembler, clear_ram, hexify_ram_content,
                        verify_ram_content)
+from assembler import RAM as RAM_ASSEMBLER
+from lexer import SemrefLexer
 from microprocessor_simulator import RAM, MicroSim
 from utils import (ASCII_TABLE, HEX_KEYBOARD, REGISTER, SEVEN_SEGMENT_DISPLAY,
                    TRAFFIC_LIGHT, convert_to_hex, hex_to_binary, is_valid_port,
@@ -56,6 +54,7 @@ is_obj = False
 
 
 class HexKeyboard(GridLayout):
+    """Keyboard that has hexadecimal system of input in numeric pad"""
 
     def __init__(self, **kwargs):
         self.mem_table = kwargs.pop('mem_table')
@@ -95,27 +94,38 @@ class HexKeyboard(GridLayout):
             for i in range(16):
                 if i < 4:
                     Line(rectangle=(dp(340 + (89 * (i % 4))),
-                                    dp(357), dp(87), dp(35)), width=dp(0.8))
-                elif i >= 4 and i < 8:
+                                    dp(357),
+                                    dp(87),
+                                    dp(35)),
+                         width=dp(0.8))
+                elif i < 8:
                     Line(rectangle=(dp(340 + (89 * (i % 4))),
-                                    dp(322), dp(87), dp(35)), width=dp(0.8))
-                elif i >= 8 and i < 12:
+                                    dp(322),
+                                    dp(87),
+                                    dp(35)),
+                         width=dp(0.8))
+                elif i < 12:
                     Line(rectangle=(dp(340 + (89 * (i % 4))),
-                                    dp(287), dp(87), dp(35)), width=dp(0.8))
+                                    dp(287),
+                                    dp(87),
+                                    dp(35)),
+                         width=dp(0.8))
                 else:
                     Line(rectangle=(dp(340 + (89 * (i % 4))),
-                                    dp(252), dp(87), dp(35)), width=dp(0.8))
+                                    dp(252),
+                                    dp(87),
+                                    dp(35)),
+                         width=dp(0.8))
 
         for i in range(16):
             if i > 9:
                 i = str(chr(i + 55))
-            self.add_widget(MDFlatButton(
-                text=f'{i}', on_release=self.hex_key_press))
+            self.add_widget(MDFlatButton(text=f'{i}', on_release=self.hex_key_press))
 
     def hex_key_press(self, instance):
         """
-        On hex keyboard press, a thread verifies if RAM is ready to be written. Uses a shared queue to enqueue pressed
-        keys that are to be written to RAM.
+        On hex keyboard press, a thread verifies if RAM is ready to be written.
+        Uses a shared queue to enqueue pressed keys that are to be written to RAM.
         :param instance: obj
         """
         thread = Thread(target=self.is_ram_ready)
@@ -125,8 +135,8 @@ class HexKeyboard(GridLayout):
 
     def is_ram_ready(self):
         """
-        Utilizes semaphores and monitors to prevent threads from writing to RAM at the same time. Current thread is
-        allowed to write to RAM if the LSB is 0, otherwise it must wait.
+        Utilizes semaphores and monitors to prevent threads from writing to RAM at the same time.
+        Current thread is allowed to write to RAM if the LSB is 0, otherwise it must wait.
         """
         with self.semaphore:
             binary = hex_to_binary(RAM[HEX_KEYBOARD['port']])
@@ -135,6 +145,10 @@ class HexKeyboard(GridLayout):
             self.write_ram()
 
     def write_ram(self):
+        """
+        Writes hex keyboard input to RAM.
+        Hex input is queued until RAM is ready to receive data
+        """
         global cleared
         with self.lock:
             RAM[HEX_KEYBOARD['port']] = convert_to_hex(
