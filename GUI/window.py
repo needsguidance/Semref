@@ -460,7 +460,7 @@ class MainWindow(BoxLayout):
             output_file_location = 'output/' + filename + '.obj'
 
             f = open(output_file_location, 'w')
-            for m in range(50):
+            while i < 100:
                 f.write(f'{RAM_ASSEMBLER[i]} {RAM_ASSEMBLER[i + 1]}' + '\n')
                 i += 2
             f.close()
@@ -648,7 +648,7 @@ class MainWindow(BoxLayout):
 
             i = 0
             f.write('\nMemory Content: \n')
-            for m in range(50):
+            while i < 100:
                 f.write(f'\n{RAM[i]}    {RAM[i + 1]}')
                 i += 2
 
@@ -930,7 +930,7 @@ class MemoryTable(RecycleView):
         self.data_list.append('MEMORY BYTE')
         self.data_list.append('MEMORY BYTE')
         i = 0
-        for m in range(50):
+        while i < 100:
             self.data_list.append(f'{RAM[i]}')
             self.data_list.append(f'{RAM[i + 1]}')
             i += 2
