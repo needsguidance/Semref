@@ -867,11 +867,11 @@ class RegisterTable(RecycleView):
                     self.data_list[i + 1]:
                 _data.append({
                     'text': self.data_list[i].upper(),
-                    'color': (177 / 255, 62 / 255, 88 / 255, 1)
+                    'color': (1, 0, 0, 1)
                 })
                 _data.append({
                     'text': self.data_list[i + 1].upper(),
-                    'color': (177 / 255, 62 / 255, 88 / 255, 1)
+                    'color': (1, 0, 0, 1)
                 })
             else:
                 _data.append({
