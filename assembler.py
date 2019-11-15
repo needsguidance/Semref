@@ -58,6 +58,8 @@ class Assembler:
         for line in lines:
             if "\t" in line:
                 raise AssertionError('Tab detected in file.')
+            if not self.is_indented(line) and line.startswith(" ") and not line.isspace():
+                raise AssertionError('Indentation error. Please ensure that all indented lines have exactly 4 spaces.')
             if line != '\n':
                 self.micro_instr.append(line.strip())
         lines.clear()
@@ -65,6 +67,9 @@ class Assembler:
 
     def is_valid_source(self):
         return re.match(r'^.+\.asm$', self.filename)
+
+    def is_indented(self, line):
+        return line.startswith("    ")
 
     def store_instructions_in_ram(self):
         for instruction in self.micro_instr:
