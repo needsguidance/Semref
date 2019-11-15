@@ -62,8 +62,8 @@ class Assembler:
                 if "\t" in line:
                     raise AssertionError(f'Indentation error: Line {lines.index(line)}: Tab detected.')
                 if not self.is_indented(line) and line.startswith(" ") and not line.isspace():
-                    raise AssertionError(f'Indentation error: Line {lines.index(
-                        line)}: Ensure that all indented lines have exactly 4 spaces.')
+                    raise AssertionError(f'Indentation error: Line {lines.index(line)}: Ensure that '
+                                         f'all indented lines have exactly 4 spaces.')
                 if ":" in line and self.is_indented(line):
                     raise AssertionError(
                         f'Indentation error: Line {lines.index(line)}: Lines with \':\' cannot be indented.')
