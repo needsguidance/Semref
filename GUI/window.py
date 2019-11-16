@@ -32,6 +32,7 @@ from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
                                          NavigationLayout)
 
 from GUI.IO.hex_keyboard import HexKeyboard
+from GUI.IO.traffic_lights import TrafficLights
 from assembler import (Assembler, clear_ram, hexify_ram_content,
                        verify_ram_content)
 from assembler import RAM as RAM_ASSEMBLER
@@ -83,7 +84,7 @@ class RunWindow(FloatLayout):
                                                     0.3)
 
         # Creates a clock thread that updates all tables and i/o's every 0.2 seconds. Does not get cancelled.
-        self.event_io = Clock.schedule_interval(self.update_io, 0.2)
+        self.event_io = Clock.create_trigger(self.update_io)
 
         # Since the instancing of the events actually starts the scheduling, needs to be canceled right away
         self.blinking_on.cancel()
@@ -294,6 +295,7 @@ class MainWindow(BoxLayout):
                     self.run_window.reg_table.get_data()
                     self.run_window.mem_table.data_list.clear()
                     self.run_window.mem_table.get_data()
+                    self.run_window.event_io()
                     toast(toast_message)
         else:
             toast('Please save changes on editor before running')
@@ -330,6 +332,7 @@ class MainWindow(BoxLayout):
                     self.run_window.reg_table.get_data()
                     self.run_window.mem_table.data_list.clear()
                     self.run_window.mem_table.get_data()
+                    self.run_window.event_io()
         else:
             toast('Please save changes on editor before running')
 
@@ -866,106 +869,6 @@ class InstructionTable(RecycleView):
             "text": str(x.upper()),
             "color": (.1, .1, .1, 1)
         } for x in self.data_list]
-
-
-class TrafficLights(Widget):
-    red_1 = ListProperty([1, 0, 0])
-    red_2 = ListProperty([1, 0, 0])
-    yellow_1 = ListProperty([1, 1, 0])
-    yellow_2 = ListProperty([1, 1, 0])
-    green_1 = ListProperty([0, 1, 0])
-    green_2 = ListProperty([0, 1, 0])
-    box_pos_x = dp(850)
-    box_pos_y = dp(120)
-
-    border_color = ListProperty([0, 0, 0, 1])
-
-    def __init__(self, **kwargs):
-        super(TrafficLights, self).__init__(**kwargs)
-        # Index of last bits of the byte used as Input for traffic lights
-        self.control_bit_1 = 6
-        self.control_bit_2 = 7
-        self.binary = ''  # variable needed for intermittent function
-        self.border_color = get_color_from_hex(colors["Blue"]["500"])
-
-    # Scheduler calls method to turn off all lights
-    # Parameter dt is the scheduling time
-    def intermittent_off(self, dt):
-        # First traffic light
-        if self.binary[self.control_bit_1] == '1' and self.binary[self.control_bit_2] == '1':
-            if self.binary[0] == '1':
-                self.red_2 = (0, 0, 0)
-            if self.binary[1] == '1':
-                self.yellow_2 = (0, 0, 0)
-            if self.binary[2] == '1':
-                self.green_2 = (0, 0, 0)
-            # Second traffic ligth
-            if self.binary[3] == '1':
-                self.red_1 = (0, 0, 0)
-            if self.binary[4] == '1':
-                self.yellow_1 = (0, 0, 0)
-            if self.binary[5] == '1':
-                self.green_1 = (0, 0, 0)
-
-    # Scheduler calls method to turn on all lights
-    # Parameter dt is the scheduling time
-    def intermittent_on(self, dt):
-
-        # First traffic light
-        if self.binary[self.control_bit_1] == '1' and self.binary[self.control_bit_2] == '1':
-            if self.binary[0] == '1':
-                self.red_2 = (1, 0, 0)
-            if self.binary[1] == '1':
-                self.yellow_2 = (1, 1, 0)
-            if self.binary[2] == '1':
-                self.green_2 = (0, 1, 0)
-            # Second traffic ligth
-            if self.binary[3] == '1':
-                self.red_1 = (1, 0, 0)
-            if self.binary[4] == '1':
-                self.yellow_1 = (1, 1, 0)
-            if self.binary[5] == '1':
-                self.green_1 = (0, 1, 0)
-
-    # Iterates through the binary at the Input location (RAM) to determine which are 1s and which are 0s
-    # Then, changes colors accordingly.
-    def change_color(self, binary):
-        self.binary = binary
-        for bit in range(len(binary)):
-
-            # First traffic ligth
-            if bit == 0:
-                if binary[bit] == '0':
-                    self.red_2 = (0, 0, 0)
-                else:
-                    self.red_2 = (1, 0, 0)
-            elif bit == 1:
-                if binary[bit] == '0':
-                    self.yellow_2 = (0, 0, 0)
-                else:
-                    self.yellow_2 = (1, 1, 0)
-            elif bit == 2:
-                if binary[bit] == '0':
-                    self.green_2 = (0, 0, 0)
-                else:
-                    self.green_2 = (0, 1, 0)
-
-            # Second traffic ligth
-            elif bit == 3:
-                if binary[bit] == '0':
-                    self.red_1 = (0, 0, 0)
-                else:
-                    self.red_1 = (1, 0, 0)
-            elif bit == 4:
-                if binary[bit] == '0':
-                    self.yellow_1 = (0, 0, 0)
-                else:
-                    self.yellow_1 = (1, 1, 0)
-            elif bit == 5:
-                if binary[bit] == '0':
-                    self.green_1 = (0, 0, 0)
-                else:
-                    self.green_1 = (0, 1, 0)
 
 
 class SevenSegmentDisplay(Widget):

@@ -24,7 +24,7 @@
         size_hint_y: None
         height: dp(self.minimum_height) if root.dpi < 192 else dp(self.minimum_height / 2)
 
-<TrafficLights>
+<TrafficLights>:
     canvas.before:
         
         Color:
@@ -58,32 +58,32 @@
             pos: self.box_pos_x + dp(13), self.box_pos_y + dp(13)
             size: dp(29), dp(29)
         Color:
-            rgb: self.red_1
+            rgb: self.lights[3]
         Ellipse:
             pos: self.box_pos_x + dp(55), self.box_pos_y + dp(75)
             size: dp(25), dp(25)
         Color:
-            rgb: self.yellow_1
+            rgb: self.lights[4]
         Ellipse:
             pos: self.box_pos_x + dp(55), self.box_pos_y + dp(45)
             size: dp(25), dp(25)
         Color:
-            rgb: self.green_1
+            rgb: self.lights[5]
         Ellipse:
             pos: self.box_pos_x + dp(55), self.box_pos_y + dp(15)
             size: dp(25), dp(25)
         Color:
-            rgb: self.red_2
+            rgb: self.lights[0]
         Ellipse:
             pos: self.box_pos_x + dp(15), self.box_pos_y + dp(75)
             size: dp(25), dp(25)
         Color:
-            rgb: self.yellow_2
+            rgb: self.lights[1]
         Ellipse:
             pos: self.box_pos_x + dp(15), self.box_pos_y + dp(45)
             size: dp(25), dp(25)
         Color:
-            rgb: self.green_2
+            rgb: self.lights[2]
         Ellipse:
             pos: self.box_pos_x + dp(15), self.box_pos_y + dp(15)
             size: dp(25), dp(25) 
