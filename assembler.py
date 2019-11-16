@@ -55,11 +55,8 @@ class Assembler:
                 f'Unsupported file type [{self.filename}]. Only accepting files ending in .asm')
         source = open(self.filename, 'r')
         lines = source.readlines()
-        if self.is_indented(lines[0]):
-            raise AssertionError('Indentation Error: the first line cannot be indented.')
-        else:
-            self.verify_indentation(lines[0], 0)
-            self.micro_instr.append(lines[0].strip())
+        self.verify_indentation(lines[0], 0)
+        self.micro_instr.append(lines[0].strip())
         for i in range(1, len(lines)):
             if lines[i] != '\n':
                 self.verify_indentation(lines[i], i)
@@ -69,6 +66,8 @@ class Assembler:
         source.close()
 
     def verify_indentation(self, line, index):
+        if index == 0 and self.is_indented(line):
+            raise AssertionError('Indentation Error: the first line cannot be indented.')
         if "\t" in line:
             raise AssertionError(f'Indentation error: Line {index + 1}: Tab detected.')
         if not self.is_indented(line) and line.startswith(" ") and not line.isspace():
