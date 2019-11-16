@@ -1,10 +1,10 @@
 org 0
 JMPADDR start:
-    a   db A
-b    db B
-suma db 0
-resta db 0
-and db 0
+    a    db A
+    b    db B
+    suma db 0
+    resta db 0
+    and db 0
 start:
     LOADIM R1, #5
     LOADIM R2, #F
