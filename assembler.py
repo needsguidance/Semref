@@ -61,9 +61,9 @@ class Assembler:
             self.verify_indentation(lines[0], 0)
             self.micro_instr.append(lines[0].strip())
         for i in range(1, len(lines)):
-            self.verify_indentation(lines[i], i)
-            self.compare_indentation_between_lines(lines[i - 1], lines[i], i)
             if lines[i] != '\n':
+                self.verify_indentation(lines[i], i)
+                self.compare_indentation_between_lines(lines[i - 1], lines[i], i)
                 self.micro_instr.append(lines[i].strip())
         lines.clear()
         source.close()
@@ -84,7 +84,6 @@ class Assembler:
             raise AssertionError(f'Indentation Error: Verify lines {index} and {index + 1}')
         if not self.is_indented(line2) and ":" in line1:
             raise AssertionError(f'Indentation Error: Line {index + 1}: lines under label must be indented.')
-        return True
 
     def is_valid_source(self):
         return re.match(r'^.+\.asm$', self.filename)
