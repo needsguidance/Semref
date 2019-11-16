@@ -1,33 +1,28 @@
 import ntpath
 import os
 import time
-from lexer import SemrefLexer
 from pathlib import Path
-from queue import Queue
-from threading import Condition, Lock, Semaphore, Thread
-from time import sleep
 
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.graphics.context_instructions import Color
-from kivy.graphics.vertex_instructions import Line, Rectangle
+from kivy.graphics.vertex_instructions import Line
 from kivy.metrics import MetricsBase, dp, sp
 from kivy.properties import ListProperty
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.codeinput import CodeInput
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
-from kivy.uix.textinput import TextInput
-from kivy.uix.codeinput import CodeInput
 from kivy.uix.modalview import ModalView
 from kivy.uix.popup import Popup
 from kivy.uix.recycleview import RecycleView
-from kivy.uix.textinput import TextInput
 from kivy.uix.widget import Widget
+from kivy.utils import get_color_from_hex
+from kivymd.color_definitions import colors
 from kivymd.theming import ThemeManager
 from kivymd.toast import toast
-from kivymd.uix.button import (MDFillRoundFlatIconButton, MDFlatButton,
-                               MDIconButton)
+from kivymd.uix.button import MDFillRoundFlatIconButton, MDIconButton
 from kivymd.uix.dialog import MDDialog, MDInputDialog
 from kivymd.uix.filemanager import MDFileManager
 from kivymd.uix.menu import MDDropdownMenu
@@ -39,117 +34,19 @@ from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
 from assembler import RAM as RAM_ASSEMBLER
 from assembler import (Assembler, clear_ram, hexify_ram_content,
                        verify_ram_content)
+from GUI.IO.devices import (ASCIIGrid, HexKeyboard, SevenSegmentDisplay,
+                            TrafficLights)
+from lexer import SemrefLexer
 from microprocessor_simulator import RAM, MicroSim
-from utils import (ASCII_TABLE, HEX_KEYBOARD, REGISTER, SEVEN_SEGMENT_DISPLAY,
-                   TRAFFIC_LIGHT, convert_to_hex, hex_to_binary, is_valid_port,
+from utils import (ASCII_TABLE, EVENTS, HEX_KEYBOARD, REGISTER,
+                   SEVEN_SEGMENT_DISPLAY, TRAFFIC_LIGHT, is_valid_port,
                    update_indicators, update_reserved_ports)
 
-file_path = ''
-can_write = False
-loaded_file = False
-run_editor = True
-editor_saved = False
-cleared = True
-is_obj = False
-
-
-class HexKeyboard(GridLayout):
-
-    def __init__(self, **kwargs):
-        self.mem_table = kwargs.pop('mem_table')
-        self.blinking_on = kwargs.pop('blinking_on')
-        self.blinking_off = kwargs.pop('blinking_off')
-        self.dpi = kwargs.pop('dpi')
-        super(HexKeyboard, self).__init__(**kwargs)
-        self.queue = Queue(maxsize=10)
-        self.lock = Lock()
-        self.semaphore = Semaphore()
-        self.condition = Condition()
-        if self.dpi < 192:
-            self.size_hint = (dp(0.4), dp(0.4))
-            self.pos_hint = {
-                'x': dp(0.10),
-                'y': dp(0.35)
-            }
-        else:
-            self.size_hint = (dp(0.4), dp(0.2))
-            self.pos_hint = {
-                'x': dp(0.105),
-                'y': dp(0.1232)
-            }
-
-        with self.canvas.before:
-            Color(.50, .50, .50, 1)
-            Rectangle(pos=(dp(336), dp(249)), size=(dp(362), dp(208)))
-
-        with self.canvas:
-            Color(1, 1, 1, 1)
-            Rectangle(pos=(dp(340), dp(254)), size=(dp(354), dp(199)))
-
-            Color(.75, .75, .75, 1)
-            Rectangle(pos=(dp(340), dp(250)), size=(dp(353), dp(143)))
-
-            Color(.50, .50, .50, 1)
-            for i in range(16):
-                if i < 4:
-                    Line(rectangle=(dp(340 + (89 * (i % 4))),
-                                    dp(357), dp(87), dp(35)), width=dp(0.8))
-                elif i >= 4 and i < 8:
-                    Line(rectangle=(dp(340 + (89 * (i % 4))),
-                                    dp(322), dp(87), dp(35)), width=dp(0.8))
-                elif i >= 8 and i < 12:
-                    Line(rectangle=(dp(340 + (89 * (i % 4))),
-                                    dp(287), dp(87), dp(35)), width=dp(0.8))
-                else:
-                    Line(rectangle=(dp(340 + (89 * (i % 4))),
-                                    dp(252), dp(87), dp(35)), width=dp(0.8))
-
-        for i in range(16):
-            if i > 9:
-                i = str(chr(i + 55))
-            self.add_widget(MDFlatButton(
-                text=f'{i}', on_release=self.hex_key_press))
-
-    def hex_key_press(self, instance):
-        """
-        On hex keyboard press, a thread verifies if RAM is ready to be written. Uses a shared queue to enqueue pressed
-        keys that are to be written to RAM.
-        :param instance: obj
-        """
-        thread = Thread(target=self.is_ram_ready)
-        if not self.queue.full():
-            self.queue.put(hex_to_binary(instance.text))
-            thread.start()
-
-    def is_ram_ready(self):
-        """
-        Utilizes semaphores and monitors to prevent threads from writing to RAM at the same time. Current thread is
-        allowed to write to RAM if the LSB is 0, otherwise it must wait.
-        """
-        with self.semaphore:
-            binary = hex_to_binary(RAM[HEX_KEYBOARD['port']])
-            if binary[-1] != 0:
-                self.condition.acquire()
-            self.write_ram()
-
-    def write_ram(self):
-        global cleared
-        with self.lock:
-            RAM[HEX_KEYBOARD['port']] = convert_to_hex(
-                int(f'{self.queue.get()}0001', 2), 8)
-
-            self.mem_table.data_list.clear()
-            self.mem_table.get_data()
-
-            self.blinking_on.cancel()
-            self.blinking_off.cancel()
-
-            self.blinking_on()
-            self.blinking_off()
-            sleep(1)
-            self.condition.release()
-
-        cleared = False
+FILE_PATH = ''
+CAN_WRITE = False
+LOADED_FILE = False
+EDITOR_SAVED = False
+IS_OBJ = False
 
 
 class RunWindow(FloatLayout):
@@ -187,15 +84,13 @@ class RunWindow(FloatLayout):
                                                     0.3)
 
         # Creates a clock thread that updates all tables and i/o's every 0.2 seconds. Does not get cancelled.
-        self.event_io = Clock.schedule_interval(self.update_io, 0.2)
+        self.event_io = Clock.create_trigger(self.update_io)
 
         # Since the instancing of the events actually starts the scheduling, needs to be canceled right away
         self.blinking_on.cancel()
         self.blinking_off.cancel()
 
         self.hex_keyboard_layout = HexKeyboard(mem_table=self.mem_table,
-                                               blinking_on=self.blinking_on,
-                                               blinking_off=self.blinking_off,
                                                dpi=self.dpi)
         box = FloatLayout()
         box.add_widget(self.hex_keyboard_layout)
@@ -234,10 +129,10 @@ class RunWindow(FloatLayout):
         self.add_widget(self.ascii)
 
     def check_loader(self, dt):
-        global file_path, can_write
-        if file_path and can_write:
-            self.editor.load_file(file_path)
-            can_write = False
+        global FILE_PATH, CAN_WRITE
+        if FILE_PATH and CAN_WRITE:
+            self.editor.load_file(FILE_PATH)
+            CAN_WRITE = False
 
     def open_keyboard(self, instance):
         self.popup.open()
@@ -333,7 +228,7 @@ class MainWindow(BoxLayout):
                                         pos_hint={
                                             'y': self.buttons_y_pos
                                         }, theme_text_color='Custom',
-                                        text_color=self.app.theme_cls.primary_color,
+                                        text_color=[0, 0.6, 0, 1],
                                         on_release=self.buttons_information
                                         )
         self.not_loaded_file = MDIconButton(icon='file-alert',
@@ -354,19 +249,20 @@ class MainWindow(BoxLayout):
         self.add_widget(self.not_loaded_file)
 
     def run_micro_instructions(self, instance):
-        global loaded_file, file_path, editor_saved, is_obj
+        global LOADED_FILE, FILE_PATH, EDITOR_SAVED, IS_OBJ
         toast_message = 'File executed successfully'
-        if not self.run_window.editor.valid_text and not is_obj:
+        if not self.run_window.editor.valid_text and not IS_OBJ:
             toast("Invalid code. Load file to run or write valid code in editor")
-        elif editor_saved:
+        elif EDITOR_SAVED:
             self.clear_run()
             # If file is an .obj file, runs simulator
-            if file_path.endswith('.obj'):
-                self.run_micro_sim(file_path)
+            if FILE_PATH.endswith('.obj'):
+                self.run_micro_sim(FILE_PATH)
             else:
                 self.assembler()
 
             if self.micro_sim.is_ram_loaded:
+                # TODO: Change this to a while loop
                 for m in range(2):
                     if self.first_inst:
                         self.run_window.inst_table.data_list.clear()
@@ -383,7 +279,7 @@ class MainWindow(BoxLayout):
                         self.run_window.blinking_on()
                         self.run_window.blinking_off()
 
-                        timeout = time.time() + 5   # 5 seconds from now
+                        timeout = time.time() + 5  # 5 seconds from now
                         while self.micro_sim.is_running:
                             try:
                                 self.micro_sim.run_micro_instructions(timeout)
@@ -400,18 +296,19 @@ class MainWindow(BoxLayout):
                     self.run_window.reg_table.get_data()
                     self.run_window.mem_table.data_list.clear()
                     self.run_window.mem_table.get_data()
+                    self.run_window.event_io()
                     toast(toast_message)
         else:
             toast('Please save changes on editor before running')
 
     def run_micro_instructions_step(self, instance):
-        global loaded_file, file_path, editor_saved, is_obj
-        if not self.run_window.editor.valid_text and not is_obj:
+        global LOADED_FILE, FILE_PATH, EDITOR_SAVED, IS_OBJ
+        if not self.run_window.editor.valid_text and not IS_OBJ:
             toast("Invalid code. Load file to run or write valid code in editor")
-        elif editor_saved:
+        elif EDITOR_SAVED:
             # If file is an .obj file, runs simulator
-            if file_path.endswith('.obj'):
-                self.run_micro_sim(file_path)
+            if FILE_PATH.endswith('.obj'):
+                self.run_micro_sim(FILE_PATH)
             else:
                 self.assembler()
 
@@ -436,6 +333,7 @@ class MainWindow(BoxLayout):
                     self.run_window.reg_table.get_data()
                     self.run_window.mem_table.data_list.clear()
                     self.run_window.mem_table.get_data()
+                    self.run_window.event_io()
         else:
             toast('Please save changes on editor before running')
 
@@ -444,9 +342,9 @@ class MainWindow(BoxLayout):
         # Obtains last name on path string using ntpath and then
         # strips file extension using os.path.splitext
         # Should work across different OS
-        filename = os.path.splitext(ntpath.basename(file_path))[0]
+        filename = os.path.splitext(ntpath.basename(FILE_PATH))[0]
         try:
-            asm = Assembler(filename=file_path)
+            asm = Assembler(filename=FILE_PATH)
             asm.read_source()
             asm.store_instructions_in_ram()
             verify_ram_content()
@@ -454,7 +352,7 @@ class MainWindow(BoxLayout):
             output_file_location = 'output/' + filename + '.obj'
 
             f = open(output_file_location, 'w')
-            for m in range(50):
+            while i < 100:
                 f.write(f'{RAM_ASSEMBLER[i]} {RAM_ASSEMBLER[i + 1]}' + '\n')
                 i += 2
             f.close()
@@ -469,11 +367,11 @@ class MainWindow(BoxLayout):
         self.micro_sim.read_obj_file(file)
 
     def clear_dialog(self, instance):
-        global editor_saved, cleared
+        global EDITOR_SAVED
 
-        if editor_saved:
+        if EDITOR_SAVED:
             self.clear()
-        elif cleared:
+        elif EVENTS['IS_RAM_EMPTY']:
             toast('There is nothing to clear')
         else:
 
@@ -497,15 +395,15 @@ class MainWindow(BoxLayout):
             toast('Please save your changes')
 
     def clear(self):
-        global loaded_file, file_path, cleared, is_obj
+        global LOADED_FILE, FILE_PATH, IS_OBJ
 
-        if cleared:
+        if EVENTS['IS_RAM_EMPTY']:
             toast('There is nothing to clear')
         else:
             self.step_index = 0
             clear_ram()
-            file_path = ''
-            loaded_file = False
+            FILE_PATH = ''
+            LOADED_FILE = False
             self.run_window.editor.clear()
             self.micro_sim.micro_clear()
             self.run_window.reg_table.data_list.clear()
@@ -527,9 +425,9 @@ class MainWindow(BoxLayout):
                 self.micro_sim.seven_segment_binary())
             self.run_window.seven_segment_display.clear_seven_segment()
             toast('Micro memory cleared! Load new data')
-            cleared = True
-            update_indicators(self, loaded_file)
-            is_obj = False
+            EVENTS['IS_RAM_EMPTY'] = True
+            update_indicators(self, LOADED_FILE)
+            IS_OBJ = False
             self.run_window.editor.disabled = False
 
     def clear_run(self):
@@ -577,15 +475,15 @@ class MainWindow(BoxLayout):
         dialog.open()
 
     def open_editor_save_dialog(self, instance):
-        global loaded_file, file_path, editor_saved, is_obj
-        if is_obj:
+        global LOADED_FILE, FILE_PATH, EDITOR_SAVED, IS_OBJ
+        if IS_OBJ:
             toast('Obj files cannot be modified.')
 
         else:
-            if loaded_file:
-                self.run_window.editor.save(file_path)
+            if LOADED_FILE:
+                self.run_window.editor.save(FILE_PATH)
                 toast('Content saved on loaded file')
-                editor_saved = True
+                EDITOR_SAVED = True
             else:
                 dialog = MDInputDialog(title='Save file: Enter file name',
                                        hint_text='Enter file name',
@@ -602,7 +500,7 @@ class MainWindow(BoxLayout):
                 dialog.open()
 
     def save_asm_file(self, *args):
-        global editor_saved, file_path, loaded_file, cleared
+        global EDITOR_SAVED, FILE_PATH, LOADED_FILE
 
         if args[0] == 'Save':
             filename = args[0]
@@ -613,10 +511,10 @@ class MainWindow(BoxLayout):
 
             self.run_window.editor.save('input/' + filename + '.asm')
             toast('File saved in input folder as ' + filename + '.asm')
-            editor_saved = True
-            file_path = 'input/' + filename + '.asm'
-            loaded_file = True
-            update_indicators(self, loaded_file)
+            EDITOR_SAVED = True
+            FILE_PATH = 'input/' + filename + '.asm'
+            LOADED_FILE = True
+            update_indicators(self, LOADED_FILE)
         else:
             toast('File save cancelled')
 
@@ -642,7 +540,7 @@ class MainWindow(BoxLayout):
 
             i = 0
             f.write('\nMemory Content: \n')
-            for m in range(50):
+            while i < 100:
                 f.write(f'\n{RAM[i]}    {RAM[i + 1]}')
                 i += 2
 
@@ -653,7 +551,7 @@ class MainWindow(BoxLayout):
             toast('File save cancelled')
 
     def buttons_information(self, instance):
-        global file_path
+        global FILE_PATH
         """
         It is called when user clicks on information buttons.
         :param instance:
@@ -661,7 +559,7 @@ class MainWindow(BoxLayout):
         if instance.icon == 'file-alert':
             toast('No file loaded yet')
         if instance.icon == 'file-check':
-            toast('File at  ' + "'" + file_path + "'" + '  loaded')
+            toast('File at  ' + "'" + FILE_PATH + "'" + '  loaded')
 
 
 class NavDrawer(MDNavigationDrawer):
@@ -781,19 +679,19 @@ class NavDrawer(MDNavigationDrawer):
         :param path: path to the selected directory or file;
 
         """
-        global file_path, loaded_file, can_write, cleared, is_obj, editor_saved
+        global FILE_PATH, LOADED_FILE, CAN_WRITE, IS_OBJ, EDITOR_SAVED
         self.exit_manager()
 
         if path.endswith('.obj'):
-            is_obj = True
-            editor_saved = True
+            IS_OBJ = True
+            EDITOR_SAVED = True
 
-        can_write = True
-        file_path = path
-        loaded_file = True
+        CAN_WRITE = True
+        FILE_PATH = path
+        LOADED_FILE = True
         toast(f'{path} loaded successfully')
-        cleared = False
-        update_indicators(self.main_window, loaded_file)
+        EVENTS['IS_RAM_EMPTY'] = False
+        update_indicators(self.main_window, LOADED_FILE)
 
     def exit_manager(self, *args):
         """Called when the user reaches the root of the directory tree."""
@@ -862,11 +760,11 @@ class RegisterTable(RecycleView):
                     self.data_list[i + 1]:
                 _data.append({
                     'text': self.data_list[i].upper(),
-                    'color': (177 / 255, 62 / 255, 88 / 255, 1)
+                    'color': (1, 0, 0, 1)
                 })
                 _data.append({
                     'text': self.data_list[i + 1].upper(),
-                    'color': (177 / 255, 62 / 255, 88 / 255, 1)
+                    'color': (1, 0, 0, 1)
                 })
             else:
                 _data.append({
@@ -924,7 +822,7 @@ class MemoryTable(RecycleView):
         self.data_list.append('MEMORY BYTE')
         self.data_list.append('MEMORY BYTE')
         i = 0
-        for m in range(50):
+        while i < 100:
             self.data_list.append(f'{RAM[i]}')
             self.data_list.append(f'{RAM[i + 1]}')
             i += 2
@@ -974,253 +872,6 @@ class InstructionTable(RecycleView):
         } for x in self.data_list]
 
 
-class TrafficLights(Widget):
-    red_1 = ListProperty([1, 0, 0])
-    red_2 = ListProperty([1, 0, 0])
-    yellow_1 = ListProperty([1, 1, 0])
-    yellow_2 = ListProperty([1, 1, 0])
-    green_1 = ListProperty([0, 1, 0])
-    green_2 = ListProperty([0, 1, 0])
-
-    def __init__(self, **kwargs):
-        super(TrafficLights, self).__init__(**kwargs)
-        # Index of last bits of the byte used as Input for traffic lights
-        self.control_bit_1 = 6
-        self.control_bit_2 = 7
-        self.binary = ''  # variable needed for intermittent function
-
-    # Scheduler calls method to turn off all lights
-    # Parameter dt is the scheduling time
-    def intermittent_off(self, dt):
-        # First traffic light
-        if self.binary[self.control_bit_1] == '1' and self.binary[self.control_bit_2] == '1':
-            if self.binary[0] == '1':
-                self.red_2 = (0, 0, 0)
-            if self.binary[1] == '1':
-                self.yellow_2 = (0, 0, 0)
-            if self.binary[2] == '1':
-                self.green_2 = (0, 0, 0)
-            # Second traffic ligth
-            if self.binary[3] == '1':
-                self.red_1 = (0, 0, 0)
-            if self.binary[4] == '1':
-                self.yellow_1 = (0, 0, 0)
-            if self.binary[5] == '1':
-                self.green_1 = (0, 0, 0)
-
-    # Scheduler calls method to turn on all lights
-    # Parameter dt is the scheduling time
-    def intermittent_on(self, dt):
-
-        # First traffic light
-        if self.binary[self.control_bit_1] == '1' and self.binary[self.control_bit_2] == '1':
-            if self.binary[0] == '1':
-                self.red_2 = (1, 0, 0)
-            if self.binary[1] == '1':
-                self.yellow_2 = (1, 1, 0)
-            if self.binary[2] == '1':
-                self.green_2 = (0, 1, 0)
-            # Second traffic ligth
-            if self.binary[3] == '1':
-                self.red_1 = (1, 0, 0)
-            if self.binary[4] == '1':
-                self.yellow_1 = (1, 1, 0)
-            if self.binary[5] == '1':
-                self.green_1 = (0, 1, 0)
-
-    # Iterates through the binary at the Input location (RAM) to determine which are 1s and which are 0s
-    # Then, changes colors accordingly.
-    def change_color(self, binary):
-        self.binary = binary
-        for bit in range(len(binary)):
-
-            # First traffic ligth
-            if bit == 0:
-                if binary[bit] == '0':
-                    self.red_2 = (0, 0, 0)
-                else:
-                    self.red_2 = (1, 0, 0)
-            elif bit == 1:
-                if binary[bit] == '0':
-                    self.yellow_2 = (0, 0, 0)
-                else:
-                    self.yellow_2 = (1, 1, 0)
-            elif bit == 2:
-                if binary[bit] == '0':
-                    self.green_2 = (0, 0, 0)
-                else:
-                    self.green_2 = (0, 1, 0)
-
-            # Second traffic ligth
-            elif bit == 3:
-                if binary[bit] == '0':
-                    self.red_1 = (0, 0, 0)
-                else:
-                    self.red_1 = (1, 0, 0)
-            elif bit == 4:
-                if binary[bit] == '0':
-                    self.yellow_1 = (0, 0, 0)
-                else:
-                    self.yellow_1 = (1, 1, 0)
-            elif bit == 5:
-                if binary[bit] == '0':
-                    self.green_1 = (0, 0, 0)
-                else:
-                    self.green_1 = (0, 1, 0)
-
-
-class SevenSegmentDisplay(Widget):
-    leftA = ListProperty([.41, .41, .41])
-    leftB = ListProperty([.41, .41, .41])
-    leftC = ListProperty([.41, .41, .41])
-    leftD = ListProperty([.41, .41, .41])
-    leftE = ListProperty([.41, .41, .41])
-    leftF = ListProperty([.41, .41, .41])
-    leftG = ListProperty([.41, .41, .41])
-
-    rightA = ListProperty([.41, .41, .41])
-    rightB = ListProperty([.41, .41, .41])
-    rightC = ListProperty([.41, .41, .41])
-    rightD = ListProperty([.41, .41, .41])
-    rightE = ListProperty([.41, .41, .41])
-    rightF = ListProperty([.41, .41, .41])
-    rightG = ListProperty([.41, .41, .41])
-
-    # Iterates through the binary at the Input location (RAM) to determine which are 1s and which are 0s
-    # Then, activate segments accordingly.
-    def activate_segments(self, binary):
-        control_bit = int(binary[-1])
-        for bit in range(len(binary) - 1):
-            if control_bit == 0:
-                # if control_bit == 1 then activate the seven left segments depending of the bit.
-                if bit == 0:
-                    if binary[bit] == '0':
-                        self.leftA = (.41, .41, .41)
-                    else:
-                        self.leftA = (1, 0, 0)
-                elif bit == 1:
-                    if binary[bit] == '0':
-                        self.leftB = (.41, .41, .41)
-                    else:
-                        self.leftB = (1, 0, 0)
-                elif bit == 2:
-                    if binary[bit] == '0':
-                        self.leftC = (.41, .41, .41)
-                    else:
-                        self.leftC = (1, 0, 0)
-                elif bit == 3:
-                    if binary[bit] == '0':
-                        self.leftD = (.41, .41, .41)
-                    else:
-                        self.leftD = (1, 0, 0)
-                elif bit == 4:
-                    if binary[bit] == '0':
-                        self.leftE = (.41, .41, .41)
-                    else:
-                        self.leftE = (1, 0, 0)
-                elif bit == 5:
-                    if binary[bit] == '0':
-                        self.leftF = (.41, .41, .41)
-                    else:
-                        self.leftF = (1, 0, 0)
-                elif bit == 6:
-                    if binary[bit] == '0':
-                        self.leftG = (.41, .41, .41)
-                    else:
-                        self.leftG = (1, 0, 0)
-            elif control_bit == 1:
-                # if control_bit == 1 then activate the seven right segments depending of the bit.
-                if bit == 0:
-                    if binary[bit] == '0':
-                        self.rightA = (.41, .41, .41)
-                    else:
-                        self.rightA = (1, 0, 0)
-                elif bit == 1:
-                    if binary[bit] == '0':
-                        self.rightB = (.41, .41, .41)
-                    else:
-                        self.rightB = (1, 0, 0)
-                elif bit == 2:
-                    if binary[bit] == '0':
-                        self.rightC = (.41, .41, .41)
-                    else:
-                        self.rightC = (1, 0, 0)
-                elif bit == 3:
-                    if binary[bit] == '0':
-                        self.rightD = (.41, .41, .41)
-                    else:
-                        self.rightD = (1, 0, 0)
-                elif bit == 4:
-                    if binary[bit] == '0':
-                        self.rightE = (.41, .41, .41)
-                    else:
-                        self.rightE = (1, 0, 0)
-                elif bit == 5:
-                    if binary[bit] == '0':
-                        self.rightF = (.41, .41, .41)
-                    else:
-                        self.rightF = (1, 0, 0)
-                elif bit == 6:
-                    if binary[bit] == '0':
-                        self.rightG = (.41, .41, .41)
-                    else:
-                        self.rightG = (1, 0, 0)
-
-    def clear_seven_segment(self):
-        self.leftA = (.41, .41, .41)
-        self.leftB = (.41, .41, .41)
-        self.leftC = (.41, .41, .41)
-        self.leftD = (.41, .41, .41)
-        self.leftE = (.41, .41, .41)
-        self.leftF = (.41, .41, .41)
-        self.leftG = (.41, .41, .41)
-
-        self.rightA = (.41, .41, .41)
-        self.rightB = (.41, .41, .41)
-        self.rightC = (.41, .41, .41)
-        self.rightD = (.41, .41, .41)
-        self.rightE = (.41, .41, .41)
-        self.rightF = (.41, .41, .41)
-        self.rightG = (.41, .41, .41)
-
-
-class ASCIIGrid(GridLayout):
-
-    def __init__(self, **kwargs):
-        self.dpi = kwargs.pop('dpi')
-        super().__init__(**kwargs)
-        self.labels = [
-            Label(text='A', color=(0, 0, 0, 1), font_size=sp(30)),
-            Label(text='B', color=(0, 0, 0, 1), font_size=sp(30)),
-            Label(text='C', color=(0, 0, 0, 1), font_size=sp(30)),
-            Label(text='D', color=(0, 0, 0, 1), font_size=sp(30)),
-            Label(text='E', color=(0, 0, 0, 1), font_size=sp(30)),
-            Label(text='F', color=(0, 0, 0, 1), font_size=sp(30)),
-            Label(text='G', color=(0, 0, 0, 1), font_size=sp(30)),
-            Label(text='H', color=(0, 0, 0, 1), font_size=sp(30))
-        ]
-        if self.dpi < 192:
-            self.size_hint = (0.35, 0.1)
-            self.pos_hint = {
-                'x': dp(0.297),
-                'y': dp(-0.066)
-            }
-        else:
-            self.size_hint = (0.35, 0.1)
-            self.pos_hint = {
-                'x': dp(0.148),
-                'y': dp(-0.033)
-            }
-        for label in self.labels:
-            self.add_widget(label)
-
-    def update_ascii_grid(self):
-        i = 0
-        while i < len(self.labels):
-            self.labels[i].text = chr(int(RAM[ASCII_TABLE["port"] + i], 16))
-            i += 1
-
-
 class TextEditor(CodeInput):
 
     def __init__(self, **kwargs):
@@ -1231,7 +882,6 @@ class TextEditor(CodeInput):
         self.lexer = SemrefLexer()
         self.font_name = 'assets/fonts/Inconsolata-Regular.ttf'
         if self.dpi < 192:
-
             self.size_hint = (0.55, 0.46)
             self.pos_hint = {
                 'x': dp(0.20),
@@ -1245,36 +895,36 @@ class TextEditor(CodeInput):
             }
 
     def on_text(self, instance, value):
-        global editor_saved, cleared, is_obj
+        global EDITOR_SAVED, IS_OBJ
 
-        if not is_obj:
-            editor_saved = False
+        if not IS_OBJ:
+            EDITOR_SAVED = False
         if value:
             self.valid_text = True
-            cleared = False
+            EVENTS['IS_RAM_EMPTY'] = False
 
         else:
             self.valid_text = False
 
-    def load_file(self, file_path):
-        global editor_saved, is_obj
-        if is_obj:
+    def load_file(self, FILE_PATH):
+        global EDITOR_SAVED, IS_OBJ
+        if IS_OBJ:
             self.disabled = True
         else:
             self.disabled = False
-            with open(file_path, 'r') as file:
+            with open(FILE_PATH, 'r') as file:
                 data = file.read()
                 file.close()
             self.text = data
-            editor_saved = True
+            EDITOR_SAVED = True
         print(self.disabled)
 
     def clear(self):
         self.text = ''
         self.valid_text = False
 
-    def save(self, file_path):
-        with open(file_path, 'w') as file:
+    def save(self, FILE_PATH):
+        with open(FILE_PATH, 'w') as file:
             file.write(self.text)
             file.close()
 
@@ -1298,7 +948,8 @@ class GUI(NavigationLayout):
 
 class SemrefApp(App):
     theme_cls = ThemeManager()
-    theme_cls.primary_palette = 'Teal'
+    theme_cls.primary_palette = 'BlueGray'
+    theme_cls.accent_palette = 'Orange'
 
     def build(self):
         return GUI()

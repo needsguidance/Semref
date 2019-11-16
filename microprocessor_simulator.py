@@ -20,8 +20,6 @@ class MicroSim:
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.is_ram_loaded = False
-        # TODO: Verify if micro_instructions & decoded_mirco_instructions are necessary
-        self.micro_instructions = []
         self.decoded_micro_instructions = []
         self.index = 0
         self.is_running = True
@@ -128,7 +126,6 @@ class MicroSim:
 
     def micro_clear(self):
         self.is_ram_loaded = False
-        self.micro_instructions = []
         self.decoded_micro_instructions = []
         self.index = 0
         self.is_running = True

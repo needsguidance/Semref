@@ -1,4 +1,3 @@
-
 def convert_to_hex(num, bits):
     """
     Converts number to hexadecimal
@@ -12,6 +11,12 @@ def convert_to_hex(num, bits):
 
 
 def convert_to_binary(num, bits):
+    """
+    Converts number to its binary representation
+    :param num: int
+    :param bits: str
+    :return: str
+    """
     if not isinstance(num, int):
         raise ValueError("Invalid number type, num must be of type int.")
     return f'{num:0{bits}b}'
@@ -65,16 +70,21 @@ def update_reserved_ports(device, port_to_remove, port_to_add, reserve_block=Fal
 
 
 def update_indicators(instance, is_file_loaded):
-
+    """
+    This method manage Loaded/NotLoaded File indicators using a condition.
+    :param instance: obj
+    :param is_ram_loaded: bool
+    """
     if is_file_loaded:
         instance.remove_widget(instance.not_loaded_file)
         instance.remove_widget(instance.loaded_file)
         instance.add_widget(instance.loaded_file)
-        
+
     else:
         instance.remove_widget(instance.not_loaded_file)
         instance.remove_widget(instance.loaded_file)
         instance.add_widget(instance.not_loaded_file)
+
 
 def clear_registers():
     value = '00'
@@ -88,7 +98,7 @@ def clear_registers():
         REGISTER[key] = value
 
 
-
+# OPCODE initialization list.
 OPCODE = {
     'load': f'{0:05b}',
     'loadim': f'{1:05b}',
@@ -123,7 +133,7 @@ OPCODE = {
     'call': f'{30:05b}',
     'return': f'{31:05b}'
 }
-
+# Registers initialization.
 REGISTER = {
     'r0': f'{0:02x}',
     'r1': f'{0:02x}',
@@ -138,7 +148,7 @@ REGISTER = {
     'ir': f'{0:04x}',
     'cond': f'{0:01x}'
 }
-
+# Format 1 of the different OPCODE.
 FORMAT_1_OPCODE = [
     'loadrind',
     'storerind',
@@ -161,7 +171,7 @@ FORMAT_1_OPCODE = [
     'nop',
 
 ]
-
+# Format 2 of the different OPCODE.
 FORMAT_2_OPCODE = [
     'load',
     'loadim',
@@ -172,34 +182,35 @@ FORMAT_2_OPCODE = [
     'subim',
     'loop'
 ]
-
+# Format 3 of the different OPCODE.
 FORMAT_3_OPCODE = [
     'jmpaddr',
     'jcondrin',
     'jcondaddr',
     'call'
 ]
-
+# General Information of Traffic Light Object.
 TRAFFIC_LIGHT = {
     'menu_title': 'Configure Traffic Light Port',
     'port': 0
 }
-
+# General Information of Seven Segment Display Object.
 SEVEN_SEGMENT_DISPLAY = {
     'menu_title': 'Configure 7 Segment Display Port',
     'port': 1
 }
-
+# General Information of ASCII Table Object.
 ASCII_TABLE = {
     'menu_title': 'Configure ASCII Table Port',
     'port': 3
 }
-
+# General Information of HEX Keyboard Object.
 HEX_KEYBOARD = {
     'menu_title': 'Configure Hex Keyboard Port',
     'port': 2
 }
 
+# Reserved ports for I/O devices.
 RESERVED_PORTS = [
     0,
     1,
@@ -213,3 +224,7 @@ RESERVED_PORTS = [
     9,
     10
 ]
+
+EVENTS = {
+    'IS_RAM_EMPTY': True
+}
