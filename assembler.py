@@ -55,14 +55,40 @@ class Assembler:
                 f'Unsupported file type [{self.filename}]. Only accepting files ending in .asm')
         source = open(self.filename, 'r')
         lines = source.readlines()
-        for line in lines:
-            if line != '\n':
-                self.micro_instr.append(line.strip())
+        self.verify_indentation(lines[0], 0)
+        self.micro_instr.append(lines[0].strip())
+        for i in range(1, len(lines)):
+            if lines[i] != '\n':
+                self.verify_indentation(lines[i], i)
+                self.compare_indentation_between_lines(lines[i - 1], lines[i], i)
+                self.micro_instr.append(lines[i].strip())
         lines.clear()
         source.close()
 
+    def verify_indentation(self, line, index):
+        if index == 0 and self.is_indented(line):
+            raise AssertionError('Indentation Error: the first line cannot be indented.')
+        if "\t" in line:
+            raise AssertionError(f'Indentation error: Line {index + 1}: Tab detected.')
+        if not self.is_indented(line) and line.startswith(" ") and not line.isspace():
+            raise AssertionError(f'Indentation error: Line {index + 1}: Ensure that '
+                                 f'all indented lines have exactly 4 spaces.')
+        if ":" in line and self.is_indented(line):
+            raise AssertionError(
+                f'Indentation error: Line {index + 1}: Lines with \':\' cannot be indented.')
+
+    def compare_indentation_between_lines(self, line1, line2, index):
+        if self.is_indented(line2) and ((not self.is_indented(line1) and ":" not in line1)
+                                        or line1.isspace() or line1 == '\n'):
+            raise AssertionError(f'Indentation Error: Verify lines {index} and {index + 1}')
+        if not self.is_indented(line2) and ":" in line1:
+            raise AssertionError(f'Indentation Error: Line {index + 1}: lines under label must be indented.')
+
     def is_valid_source(self):
         return re.match(r'^.+\.asm$', self.filename)
+
+    def is_indented(self, line):
+        return line.startswith("    ") and not line[4].startswith(" ")
 
     def store_instructions_in_ram(self):
         for instruction in self.micro_instr:

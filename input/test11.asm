@@ -8,7 +8,7 @@ start:
     call multiply_by_four
     JMPRIND R5
 
-
 multiply_by_four:
     SHIFTL R2, R1, R3
     RETURN
+    
