@@ -33,6 +33,7 @@ from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
 
 from GUI.IO.hex_keyboard import HexKeyboard
 from GUI.IO.traffic_lights import TrafficLights
+from GUI.IO.seven_segment_display import SevenSegmentDisplay
 from assembler import (Assembler, clear_ram, hexify_ram_content,
                        verify_ram_content)
 from assembler import RAM as RAM_ASSEMBLER
@@ -869,131 +870,6 @@ class InstructionTable(RecycleView):
             "text": str(x.upper()),
             "color": (.1, .1, .1, 1)
         } for x in self.data_list]
-
-
-class SevenSegmentDisplay(Widget):
-    leftA = ListProperty([.41, .41, .41])
-    leftB = ListProperty([.41, .41, .41])
-    leftC = ListProperty([.41, .41, .41])
-    leftD = ListProperty([.41, .41, .41])
-    leftE = ListProperty([.41, .41, .41])
-    leftF = ListProperty([.41, .41, .41])
-    leftG = ListProperty([.41, .41, .41])
-
-    rightA = ListProperty([.41, .41, .41])
-    rightB = ListProperty([.41, .41, .41])
-    rightC = ListProperty([.41, .41, .41])
-    rightD = ListProperty([.41, .41, .41])
-    rightE = ListProperty([.41, .41, .41])
-    rightF = ListProperty([.41, .41, .41])
-    rightG = ListProperty([.41, .41, .41])
-    border_color = ListProperty([0, 0, 0, 1])
-
-    # For change the position of the SevenSegment display we need only need change this initials values.
-    # Changing this attributes not change the size of the widget.
-    box_pos_x = dp(25)
-    box_pos_y = dp(100)
-
-    def __init__(self, **kwargs):
-        super(SevenSegmentDisplay, self).__init__(**kwargs)
-        self.border_color = get_color_from_hex(colors["Blue"]["500"])
-
-    # Iterates through the binary at the Input location (RAM) to determine which are 1s and which are 0s
-    # Then, activate segments accordingly.
-    def activate_segments(self, binary):
-        control_bit = int(binary[-1])
-        for bit in range(len(binary) - 1):
-            if control_bit == 0:
-                # if control_bit == 1 then activate the seven left segments depending of the bit.
-                if bit == 0:
-                    if binary[bit] == '0':
-                        self.leftA = (.41, .41, .41)
-                    else:
-                        self.leftA = (1, 0, 0)
-                elif bit == 1:
-                    if binary[bit] == '0':
-                        self.leftB = (.41, .41, .41)
-                    else:
-                        self.leftB = (1, 0, 0)
-                elif bit == 2:
-                    if binary[bit] == '0':
-                        self.leftC = (.41, .41, .41)
-                    else:
-                        self.leftC = (1, 0, 0)
-                elif bit == 3:
-                    if binary[bit] == '0':
-                        self.leftD = (.41, .41, .41)
-                    else:
-                        self.leftD = (1, 0, 0)
-                elif bit == 4:
-                    if binary[bit] == '0':
-                        self.leftE = (.41, .41, .41)
-                    else:
-                        self.leftE = (1, 0, 0)
-                elif bit == 5:
-                    if binary[bit] == '0':
-                        self.leftF = (.41, .41, .41)
-                    else:
-                        self.leftF = (1, 0, 0)
-                elif bit == 6:
-                    if binary[bit] == '0':
-                        self.leftG = (.41, .41, .41)
-                    else:
-                        self.leftG = (1, 0, 0)
-            elif control_bit == 1:
-                # if control_bit == 1 then activate the seven right segments depending of the bit.
-                if bit == 0:
-                    if binary[bit] == '0':
-                        self.rightA = (.41, .41, .41)
-                    else:
-                        self.rightA = (1, 0, 0)
-                elif bit == 1:
-                    if binary[bit] == '0':
-                        self.rightB = (.41, .41, .41)
-                    else:
-                        self.rightB = (1, 0, 0)
-                elif bit == 2:
-                    if binary[bit] == '0':
-                        self.rightC = (.41, .41, .41)
-                    else:
-                        self.rightC = (1, 0, 0)
-                elif bit == 3:
-                    if binary[bit] == '0':
-                        self.rightD = (.41, .41, .41)
-                    else:
-                        self.rightD = (1, 0, 0)
-                elif bit == 4:
-                    if binary[bit] == '0':
-                        self.rightE = (.41, .41, .41)
-                    else:
-                        self.rightE = (1, 0, 0)
-                elif bit == 5:
-                    if binary[bit] == '0':
-                        self.rightF = (.41, .41, .41)
-                    else:
-                        self.rightF = (1, 0, 0)
-                elif bit == 6:
-                    if binary[bit] == '0':
-                        self.rightG = (.41, .41, .41)
-                    else:
-                        self.rightG = (1, 0, 0)
-
-    def clear_seven_segment(self):
-        self.leftA = (.41, .41, .41)
-        self.leftB = (.41, .41, .41)
-        self.leftC = (.41, .41, .41)
-        self.leftD = (.41, .41, .41)
-        self.leftE = (.41, .41, .41)
-        self.leftF = (.41, .41, .41)
-        self.leftG = (.41, .41, .41)
-
-        self.rightA = (.41, .41, .41)
-        self.rightB = (.41, .41, .41)
-        self.rightC = (.41, .41, .41)
-        self.rightD = (.41, .41, .41)
-        self.rightE = (.41, .41, .41)
-        self.rightF = (.41, .41, .41)
-        self.rightG = (.41, .41, .41)
 
 
 class ASCIIGrid(GridLayout):

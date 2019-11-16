@@ -124,7 +124,7 @@
             pos: self.box_pos_x + dp(320), self.box_pos_y + dp(5)
             size: dp(40), dp(40)  
             
-<SevenSegmentDisplay>
+<SevenSegmentDisplay>:
     canvas.before:
         Color:
             rgb: self.border_color
@@ -138,96 +138,96 @@
             size: dp(150), dp(130)
         # A
         Color:
-            rgb: self.leftA
+            rgb: self.left_display[0]
         Rectangle:
             pos: self.box_pos_x + dp(20), self.box_pos_y + dp(110)
             size: dp(40), dp(10)
         # B   
         Color:
-            rgb: self.leftB
+            rgb: self.left_display[1]
         Rectangle:
             pos: self.box_pos_x + dp(60), self.box_pos_y + dp(70)
             size: dp(10), dp(40)   
         # C
         Color:
-            rgb: self.leftC
+            rgb: self.left_display[2]
         Rectangle:
             pos: self.box_pos_x + dp(60), self.box_pos_y + dp(20)
             size: dp(10), dp(40) 
         # D
         Color:
-            rgb: self.leftD
+            rgb: self.left_display[3]
         Rectangle:
             pos: self.box_pos_x + dp(20), self.box_pos_y + dp(10)
             size: dp(40), dp(10)
         # E
         Color:
-            rgb: self.leftE
+            rgb: self.left_display[4]
         Rectangle:
             pos: self.box_pos_x + dp(10), self.box_pos_y + dp(20)
             size: dp(10), dp(40)       
         # F
         Color:
-            rgb: self.leftF
+            rgb: self.left_display[5]
         Rectangle:
             pos: self.box_pos_x + dp(10), self.box_pos_y + dp(70)
             size: dp(10), dp(40)   
 
         # G
         Color:
-            rgb: self.leftG
+            rgb: self.left_display[6]
         Rectangle:
             pos: self.box_pos_x + dp(20), self.box_pos_y + dp(60)
             size: dp(40), dp(10)
 # ############    Right Number ############
        # A
         Color:
-            rgb: self.rightA
+            rgb: self.right_display[0]
         Rectangle:
             pos: self.box_pos_x + dp(90), self.box_pos_y + dp(110)
             size: dp(40), dp(10)
         # B   
         Color:
-            rgb: self.rightB
+            rgb: self.right_display[1]
         Rectangle:
             pos: self.box_pos_x + dp(130), self.box_pos_y + dp(70)
             size: dp(10), dp(40)   
         # C
         Color:
-            rgb: self.rightC
+            rgb: self.right_display[2]
         Rectangle:
             pos: self.box_pos_x + dp(130), self.box_pos_y + dp(20)
             size: dp(10), dp(40) 
         # D
         Color:
-            rgb: self.rightD
+            rgb: self.right_display[3]
         Rectangle:
             pos: self.box_pos_x + dp(90), self.box_pos_y + dp(10)
             size: dp(40), dp(10)
         # E
         Color:
-            rgb: self.rightE
+            rgb: self.right_display[4]
         Rectangle:
             pos: self.box_pos_x + dp(80), self.box_pos_y + dp(20)
             size: dp(10), dp(40)       
         # F
         Color:
-            rgb: self.rightF
+            rgb: self.right_display[5]
         Rectangle:
             pos: self.box_pos_x + dp(80), self.box_pos_y + dp(70)
             size: dp(10), dp(40)   
 
         # G
         Color:
-            rgb: self.rightG
+            rgb: self.right_display[6]
         Rectangle:
             pos: self.box_pos_x + dp(90), self.box_pos_y + dp(60)
             size: dp(40), dp(10)
 
-<TextEditor>
+<TextEditor>:
     multiline: True
 
 
-<HexKeyboard>
+<HexKeyboard>:
     cols: 4
     
