@@ -22,7 +22,7 @@ from kivy.utils import get_color_from_hex
 from kivymd.color_definitions import colors
 from kivymd.theming import ThemeManager
 from kivymd.toast import toast
-from kivymd.uix.button import (MDFillRoundFlatIconButton, MDIconButton)
+from kivymd.uix.button import MDFillRoundFlatIconButton, MDIconButton
 from kivymd.uix.dialog import MDDialog, MDInputDialog
 from kivymd.uix.filemanager import MDFileManager
 from kivymd.uix.menu import MDDropdownMenu
@@ -31,17 +31,18 @@ from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
                                          NavigationDrawerSubheader,
                                          NavigationLayout)
 
-from GUI.IO.hex_keyboard import HexKeyboard
-from GUI.IO.traffic_lights import TrafficLights
-from GUI.IO.seven_segment_display import SevenSegmentDisplay
+from assembler import RAM as RAM_ASSEMBLER
 from assembler import (Assembler, clear_ram, hexify_ram_content,
                        verify_ram_content)
-from assembler import RAM as RAM_ASSEMBLER
+from GUI.IO.ascii_grid import ASCIIGrid
+from GUI.IO.hex_keyboard import HexKeyboard
+from GUI.IO.seven_segment_display import SevenSegmentDisplay
+from GUI.IO.traffic_lights import TrafficLights
 from lexer import SemrefLexer
 from microprocessor_simulator import RAM, MicroSim
-from utils import (ASCII_TABLE, HEX_KEYBOARD, REGISTER, SEVEN_SEGMENT_DISPLAY,
-                   TRAFFIC_LIGHT, is_valid_port,
-                   update_indicators, update_reserved_ports, EVENTS)
+from utils import (ASCII_TABLE, EVENTS, HEX_KEYBOARD, REGISTER,
+                   SEVEN_SEGMENT_DISPLAY, TRAFFIC_LIGHT, is_valid_port,
+                   update_indicators, update_reserved_ports)
 
 FILE_PATH = ''
 CAN_WRITE = False
@@ -870,45 +871,6 @@ class InstructionTable(RecycleView):
             "text": str(x.upper()),
             "color": (.1, .1, .1, 1)
         } for x in self.data_list]
-
-
-class ASCIIGrid(GridLayout):
-    box_pos_x = dp(300)
-    box_pos_y = dp(15)
-
-    def __init__(self, **kwargs):
-        self.dpi = kwargs.pop('dpi')
-        super().__init__(**kwargs)
-        self.labels = [
-            Label(text='A', color=(0, 0, 0, 1), font_size=sp(30)),
-            Label(text='B', color=(0, 0, 0, 1), font_size=sp(30)),
-            Label(text='C', color=(0, 0, 0, 1), font_size=sp(30)),
-            Label(text='D', color=(0, 0, 0, 1), font_size=sp(30)),
-            Label(text='E', color=(0, 0, 0, 1), font_size=sp(30)),
-            Label(text='F', color=(0, 0, 0, 1), font_size=sp(30)),
-            Label(text='G', color=(0, 0, 0, 1), font_size=sp(30)),
-            Label(text='H', color=(0, 0, 0, 1), font_size=sp(30))
-        ]
-        if self.dpi < 192:
-            self.size_hint = (0.35, 0.1)
-            self.pos_hint = {
-                'x': dp(0.297),
-                'y': dp(-0.066)
-            }
-        else:
-            self.size_hint = (0.35, 0.1)
-            self.pos_hint = {
-                'x': dp(0.148),
-                'y': dp(-0.033)
-            }
-        for label in self.labels:
-            self.add_widget(label)
-
-    def update_ascii_grid(self):
-        i = 0
-        while i < len(self.labels):
-            self.labels[i].text = chr(int(RAM[ASCII_TABLE["port"] + i], 16))
-            i += 1
 
 
 class TextEditor(CodeInput):
