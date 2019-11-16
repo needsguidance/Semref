@@ -34,10 +34,8 @@ from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
 from assembler import RAM as RAM_ASSEMBLER
 from assembler import (Assembler, clear_ram, hexify_ram_content,
                        verify_ram_content)
-from GUI.IO.ascii_grid import ASCIIGrid
-from GUI.IO.hex_keyboard import HexKeyboard
-from GUI.IO.seven_segment_display import SevenSegmentDisplay
-from GUI.IO.traffic_lights import TrafficLights
+from GUI.IO.devices import (ASCIIGrid, HexKeyboard, SevenSegmentDisplay,
+                            TrafficLights)
 from lexer import SemrefLexer
 from microprocessor_simulator import RAM, MicroSim
 from utils import (ASCII_TABLE, EVENTS, HEX_KEYBOARD, REGISTER,
