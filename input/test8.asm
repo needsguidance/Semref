@@ -11,5 +11,3 @@ STORERIND R1, R6
 
 fin:
     JMPADDR fin
-
-
