@@ -12,14 +12,10 @@ from kivy.properties import ListProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.codeinput import CodeInput
 from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.modalview import ModalView
 from kivy.uix.popup import Popup
 from kivy.uix.recycleview import RecycleView
-from kivy.uix.widget import Widget
-from kivy.utils import get_color_from_hex
-from kivymd.color_definitions import colors
 from kivymd.theming import ThemeManager
 from kivymd.toast import toast
 from kivymd.uix.button import MDFillRoundFlatIconButton, MDIconButton
@@ -31,31 +27,34 @@ from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
                                          NavigationDrawerSubheader,
                                          NavigationLayout)
 
-from assembler import RAM as RAM_ASSEMBLER
-from assembler import (Assembler, clear_ram, hexify_ram_content,
-                       verify_ram_content)
 from GUI.IO.devices import (ASCIIGrid, HexKeyboard, SevenSegmentDisplay,
                             TrafficLights)
+from assembler import (Assembler, clear_ram, hexify_ram_content,
+                       verify_ram_content)
+from assembler import RAM as RAM_ASSEMBLER
 from lexer import SemrefLexer
 from microprocessor_simulator import RAM, MicroSim
 from utils import (ASCII_TABLE, EVENTS, HEX_KEYBOARD, REGISTER,
                    SEVEN_SEGMENT_DISPLAY, TRAFFIC_LIGHT, is_valid_port,
                    update_indicators, update_reserved_ports)
 
-FILE_PATH = ''
-CAN_WRITE = False
-LOADED_FILE = False
-EDITOR_SAVED = False
-IS_OBJ = False
 
-
-class RunWindow(FloatLayout):
+class DataWindow(FloatLayout):
+    """
+    Collection of widgets that displays data.
+    User will see the following:
+        - Register Table
+        - Memory Table
+        - 7 Segment Display
+        - LED lights organized as traffic lights
+        - ASCII Grid
+    """
 
     def __init__(self, **kwargs):
         self.app = kwargs.pop('app')
         self.micro_sim = kwargs.pop('micro_sim')
         self.dpi = kwargs.pop('dpi')
-        super(RunWindow, self).__init__(**kwargs)
+        super(DataWindow, self).__init__(**kwargs)
         self.ascii = ASCIIGrid(dpi=self.dpi)
         self.reg_table = RegisterTable(dpi=self.dpi)
         self.mem_table = MemoryTable(dpi=self.dpi)
@@ -129,15 +128,26 @@ class RunWindow(FloatLayout):
         self.add_widget(self.ascii)
 
     def check_loader(self, dt):
-        global FILE_PATH, CAN_WRITE
-        if FILE_PATH and CAN_WRITE:
-            self.editor.load_file(FILE_PATH)
-            CAN_WRITE = False
+        """
+        Checks if a file is loaded
+        :param dt: float
+        """
+        if EVENTS['FILE_PATH'] and EVENTS['CAN_WRITE']:
+            self.editor.load_file(EVENTS['FILE_PATH'])
+            EVENTS['CAN_WRITE'] = False
 
     def open_keyboard(self, instance):
+        """
+        Opens dialog box with hex keyboard
+        :param instance: obj
+        """
         self.popup.open()
 
     def update_io(self, dt):
+        """
+        Updates IO devices on run/debug events
+        :param dt: float
+        """
         self.light.change_color(self.micro_sim.traffic_lights_binary())
         self.seven_segment_display.activate_segments(
             self.micro_sim.seven_segment_binary())
@@ -171,9 +181,9 @@ class MainWindow(BoxLayout):
                 "callback": self.open_editor_save_dialog
             }
         ]
-        self.run_window = RunWindow(app=self.app,
-                                    micro_sim=self.micro_sim,
-                                    dpi=self.dpi)
+        self.run_window = DataWindow(app=self.app,
+                                     micro_sim=self.micro_sim,
+                                     dpi=self.dpi)
         self.md_toolbar = MDToolbar(title='Semref Micro Sim',
                                     md_bg_color=self.app.theme_cls.primary_color,
                                     background_palette='Primary',

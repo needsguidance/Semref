@@ -226,5 +226,10 @@ RESERVED_PORTS = [
 ]
 
 EVENTS = {
-    'IS_RAM_EMPTY': True
+    'IS_RAM_EMPTY': True,
+    'FILE_PATH': '',
+    'CAN_WRITE': False,
+    'LOADED_FILE': False,
+    'EDITOR_SAVED': False,
+    'IS_OBJ': False
 }
