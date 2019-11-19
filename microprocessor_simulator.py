@@ -99,12 +99,18 @@ class MicroSim:
         return dis_instruction.upper()
 
     def run_micro_instructions(self, timeout):
-        if (time.time() > timeout):
+        if time.time() > timeout:
+            self.is_running = False
             raise TimeoutError('Infinite loop detected.')
         REGISTER['ir'] = f'{RAM[self.index]}{RAM[self.index + 1]}'
         binary_instruction = hex_to_binary(
             f'{RAM[self.index]}{RAM[self.index + 1]}')
         self.execute_instruction(binary_instruction)
+
+        if self.prev_index == self.index:
+            self.is_running = False
+        else:
+            self.prev_index = self.index
 
     def run_micro_instructions_step(self, step_index):
 

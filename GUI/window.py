@@ -172,14 +172,14 @@ class MainWindow(BoxLayout):
         self.toolbar_layout = BoxLayout(orientation='vertical')
         self.menu_items = [
             {
-                "viewclass": "MDMenuItem",
-                "text": "Save Register/Memory Content",
-                "callback": self.open_reg_mem_save_dialog,
+                'viewclass': 'MDMenuItem',
+                'text': 'Save Register/Memory Content',
+                'callback': self.open_reg_mem_save_dialog,
             },
             {
-                "viewclass": "MDMenuItem",
-                "text": "Save Editor Content",
-                "callback": self.open_editor_save_dialog
+                'viewclass': 'MDMenuItem',
+                'text': 'Save Editor Content',
+                'callback': self.open_editor_save_dialog
             }
         ]
         self.run_window = DataWindow(app=self.app,
@@ -269,6 +269,7 @@ class MainWindow(BoxLayout):
             toast("Invalid code. Load file to run or write valid code in editor")
         elif EVENTS['EDITOR_SAVED']:
             self.clear_run()
+
             # If file is an .obj file, runs simulator
             if EVENTS['FILE_PATH'].endswith('.obj'):
                 self.run_micro_sim(EVENTS['FILE_PATH'])
@@ -276,42 +277,30 @@ class MainWindow(BoxLayout):
                 self.assembler()
 
             if self.micro_sim.is_ram_loaded:
-                # TODO: Change this to a while loop
-                for m in range(2):
-                    if self.first_inst:
-                        self.run_window.inst_table.data_list.clear()
+                self.run_window.inst_table.get_data(self.micro_sim.index,
+                                                    self.micro_sim.disassembled_instruction())
+                self.micro_sim.prev_index = -1
+
+                self.run_window.blinking_on.cancel()
+                self.run_window.blinking_off.cancel()
+
+                self.run_window.blinking_on()
+                self.run_window.blinking_off()
+
+                timeout = time.time() + 5  # 5 seconds from now
+                while self.micro_sim.is_running:
+                    try:
+                        self.micro_sim.run_micro_instructions(timeout)
                         self.run_window.inst_table.get_data(self.micro_sim.index,
                                                             self.micro_sim.disassembled_instruction())
-                        self.run_window.inst_table.get_data(self.micro_sim.index,
-                                                            self.micro_sim.disassembled_instruction())
-                        self.first_inst = False
-                    else:
-                        self.micro_sim.prev_index = -1
-                        self.run_window.blinking_on.cancel()
-                        self.run_window.blinking_off.cancel()
 
-                        self.run_window.blinking_on()
-                        self.run_window.blinking_off()
-
-                        timeout = time.time() + 5  # 5 seconds from now
-                        while self.micro_sim.is_running:
-                            try:
-                                self.micro_sim.run_micro_instructions(timeout)
-                                self.run_window.inst_table.get_data(self.micro_sim.index,
-                                                                    self.micro_sim.disassembled_instruction())
-
-                                if self.micro_sim.prev_index == self.micro_sim.index:
-                                    self.micro_sim.is_running = False
-                                else:
-                                    self.micro_sim.prev_index = self.micro_sim.index
-                            except (SystemError, TimeoutError) as e:
-                                self.micro_sim.is_running = False
-                                toast_message = f'Error! {e}'
-                    self.run_window.reg_table.get_data()
-                    self.run_window.mem_table.data_list.clear()
-                    self.run_window.mem_table.get_data()
-                    self.run_window.event_io()
-                    toast(toast_message)
+                    except (SystemError, TimeoutError) as e:
+                        toast_message = f'Error! {e}'
+                self.run_window.reg_table.get_data()
+                self.run_window.mem_table.data_list.clear()
+                self.run_window.mem_table.get_data()
+                self.run_window.event_io()
+                toast(toast_message)
         else:
             toast('Please save changes on editor before running')
 
