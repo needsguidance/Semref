@@ -155,6 +155,7 @@ class DataWindow(FloatLayout):
 
 
 class MainWindow(BoxLayout):
+    """Contains navbar buttons and DataWindow to display UI"""
 
     def __init__(self, **kwargs):
         self.nav_drawer = kwargs.pop('nav_drawer')
@@ -259,15 +260,18 @@ class MainWindow(BoxLayout):
         self.add_widget(self.not_loaded_file)
 
     def run_micro_instructions(self, instance):
-        global LOADED_FILE, FILE_PATH, EDITOR_SAVED, IS_OBJ
+        """
+        Runs micro instructions from start to finish
+        :param instance: obj
+        """
         toast_message = 'File executed successfully'
-        if not self.run_window.editor.valid_text and not IS_OBJ:
+        if not self.run_window.editor.valid_text and not EVENTS['IS_OBJ']:
             toast("Invalid code. Load file to run or write valid code in editor")
-        elif EDITOR_SAVED:
+        elif EVENTS['EDITOR_SAVED']:
             self.clear_run()
             # If file is an .obj file, runs simulator
-            if FILE_PATH.endswith('.obj'):
-                self.run_micro_sim(FILE_PATH)
+            if EVENTS['FILE_PATH'].endswith('.obj'):
+                self.run_micro_sim(EVENTS['FILE_PATH'])
             else:
                 self.assembler()
 
@@ -312,13 +316,12 @@ class MainWindow(BoxLayout):
             toast('Please save changes on editor before running')
 
     def run_micro_instructions_step(self, instance):
-        global LOADED_FILE, FILE_PATH, EDITOR_SAVED, IS_OBJ
-        if not self.run_window.editor.valid_text and not IS_OBJ:
+        if not self.run_window.editor.valid_text and not EVENTS['IS_OBJ']:
             toast("Invalid code. Load file to run or write valid code in editor")
-        elif EDITOR_SAVED:
+        elif EVENTS['EDITOR_SAVED']:
             # If file is an .obj file, runs simulator
-            if FILE_PATH.endswith('.obj'):
-                self.run_micro_sim(FILE_PATH)
+            if EVENTS['FILE_PATH'].endswith('.obj'):
+                self.run_micro_sim(EVENTS['FILE_PATH'])
             else:
                 self.assembler()
 
@@ -352,9 +355,9 @@ class MainWindow(BoxLayout):
         # Obtains last name on path string using ntpath and then
         # strips file extension using os.path.splitext
         # Should work across different OS
-        filename = os.path.splitext(ntpath.basename(FILE_PATH))[0]
+        filename = os.path.splitext(ntpath.basename(EVENTS['FILE_PATH']))[0]
         try:
-            asm = Assembler(filename=FILE_PATH)
+            asm = Assembler(filename=EVENTS['FILE_PATH'])
             asm.read_source()
             asm.store_instructions_in_ram()
             verify_ram_content()
@@ -377,9 +380,8 @@ class MainWindow(BoxLayout):
         self.micro_sim.read_obj_file(file)
 
     def clear_dialog(self, instance):
-        global EDITOR_SAVED
 
-        if EDITOR_SAVED:
+        if EVENTS['EDITOR_SAVED']:
             self.clear()
         elif EVENTS['IS_RAM_EMPTY']:
             toast('There is nothing to clear')
@@ -405,15 +407,14 @@ class MainWindow(BoxLayout):
             toast('Please save your changes')
 
     def clear(self):
-        global LOADED_FILE, FILE_PATH, IS_OBJ
 
         if EVENTS['IS_RAM_EMPTY']:
             toast('There is nothing to clear')
         else:
             self.step_index = 0
             clear_ram()
-            FILE_PATH = ''
-            LOADED_FILE = False
+            EVENTS['FILE_PATH'] = ''
+            EVENTS['LOADED_FILE'] = False
             self.run_window.editor.clear()
             self.micro_sim.micro_clear()
             self.run_window.reg_table.data_list.clear()
@@ -436,8 +437,8 @@ class MainWindow(BoxLayout):
             self.run_window.seven_segment_display.clear_seven_segment()
             toast('Micro memory cleared! Load new data')
             EVENTS['IS_RAM_EMPTY'] = True
-            update_indicators(self, LOADED_FILE)
-            IS_OBJ = False
+            update_indicators(self, EVENTS['LOADED_FILE'])
+            EVENTS['IS_OBJ'] = False
             self.run_window.editor.disabled = False
 
     def clear_run(self):
@@ -485,15 +486,14 @@ class MainWindow(BoxLayout):
         dialog.open()
 
     def open_editor_save_dialog(self, instance):
-        global LOADED_FILE, FILE_PATH, EDITOR_SAVED, IS_OBJ
-        if IS_OBJ:
+        if EVENTS['IS_OBJ']:
             toast('Obj files cannot be modified.')
 
         else:
-            if LOADED_FILE:
-                self.run_window.editor.save(FILE_PATH)
+            if EVENTS['LOADED_FILE']:
+                self.run_window.editor.save(EVENTS['FILE_PATH'])
                 toast('Content saved on loaded file')
-                EDITOR_SAVED = True
+                EVENTS['EDITOR_SAVED'] = True
             else:
                 dialog = MDInputDialog(title='Save file: Enter file name',
                                        hint_text='Enter file name',
@@ -510,7 +510,6 @@ class MainWindow(BoxLayout):
                 dialog.open()
 
     def save_asm_file(self, *args):
-        global EDITOR_SAVED, FILE_PATH, LOADED_FILE
 
         if args[0] == 'Save':
             filename = args[0]
@@ -521,10 +520,10 @@ class MainWindow(BoxLayout):
 
             self.run_window.editor.save('input/' + filename + '.asm')
             toast('File saved in input folder as ' + filename + '.asm')
-            EDITOR_SAVED = True
-            FILE_PATH = 'input/' + filename + '.asm'
-            LOADED_FILE = True
-            update_indicators(self, LOADED_FILE)
+            EVENTS['EDITOR_SAVED'] = True
+            EVENTS['FILE_PATH'] = 'input/' + filename + '.asm'
+            EVENTS['LOADED_FILE'] = True
+            update_indicators(self, EVENTS['LOADED_FILE'])
         else:
             toast('File save cancelled')
 
@@ -561,7 +560,6 @@ class MainWindow(BoxLayout):
             toast('File save cancelled')
 
     def buttons_information(self, instance):
-        global FILE_PATH
         """
         It is called when user clicks on information buttons.
         :param instance:
@@ -569,7 +567,7 @@ class MainWindow(BoxLayout):
         if instance.icon == 'file-alert':
             toast('No file loaded yet')
         if instance.icon == 'file-check':
-            toast('File at  ' + "'" + FILE_PATH + "'" + '  loaded')
+            toast('File at  ' + "'" + EVENTS['FILE_PATH'] + "'" + '  loaded')
 
 
 class NavDrawer(MDNavigationDrawer):
@@ -689,19 +687,18 @@ class NavDrawer(MDNavigationDrawer):
         :param path: path to the selected directory or file;
 
         """
-        global FILE_PATH, LOADED_FILE, CAN_WRITE, IS_OBJ, EDITOR_SAVED
         self.exit_manager()
 
         if path.endswith('.obj'):
-            IS_OBJ = True
-            EDITOR_SAVED = True
+            EVENTS['IS_OBJ'] = True
+            EVENTS['EDITOR_SAVED'] = True
 
-        CAN_WRITE = True
-        FILE_PATH = path
-        LOADED_FILE = True
+        EVENTS['CAN_WRITE'] = True
+        EVENTS['FILE_PATH'] = path
+        EVENTS['LOADED_FILE'] = True
         toast(f'{path} loaded successfully')
         EVENTS['IS_RAM_EMPTY'] = False
-        update_indicators(self.main_window, LOADED_FILE)
+        update_indicators(self.main_window, EVENTS['LOADED_FILE'])
 
     def exit_manager(self, *args):
         """Called when the user reaches the root of the directory tree."""
@@ -905,10 +902,9 @@ class TextEditor(CodeInput):
             }
 
     def on_text(self, instance, value):
-        global EDITOR_SAVED, IS_OBJ
 
-        if not IS_OBJ:
-            EDITOR_SAVED = False
+        if not EVENTS['IS_OBJ']:
+            EVENTS['EDITOR_SAVED'] = False
         if value:
             self.valid_text = True
             EVENTS['IS_RAM_EMPTY'] = False
@@ -916,25 +912,24 @@ class TextEditor(CodeInput):
         else:
             self.valid_text = False
 
-    def load_file(self, FILE_PATH):
-        global EDITOR_SAVED, IS_OBJ
-        if IS_OBJ:
+    def load_file(self, file_path):
+        if EVENTS['IS_OBJ']:
             self.disabled = True
         else:
             self.disabled = False
-            with open(FILE_PATH, 'r') as file:
+            with open(file_path, 'r') as file:
                 data = file.read()
                 file.close()
             self.text = data
-            EDITOR_SAVED = True
+            EVENTS['EDITOR_SAVED'] = True
         print(self.disabled)
 
     def clear(self):
         self.text = ''
         self.valid_text = False
 
-    def save(self, FILE_PATH):
-        with open(FILE_PATH, 'w') as file:
+    def save(self, file_path):
+        with open(file_path, 'w') as file:
             file.write(self.text)
             file.close()
 
