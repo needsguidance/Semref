@@ -311,6 +311,7 @@ class MainWindow(BoxLayout):
                                                         self.micro_sim.disassembled_instruction())
                 except (SystemError, TimeoutError) as e:
                     toast_message = f'Error! {e}'
+            self.first_inst = False
             self.run_window.event_data_tables()
             self.run_window.event_io()
             toast(toast_message)
@@ -375,7 +376,10 @@ class MainWindow(BoxLayout):
         self.micro_sim.read_obj_file(file)
 
     def clear_dialog(self, instance):
-
+        """
+        Dialog box warning user if they wish to clear all content prior to saving
+        :param instance: obj
+        """
         if EVENTS['EDITOR_SAVED']:
             self.clear()
         elif EVENTS['IS_RAM_EMPTY']:
@@ -395,13 +399,19 @@ class MainWindow(BoxLayout):
             dialog.open()
 
     def clear_decision(self, *args):
+        """
+        User decision from [clear_dialog]. 
+        :param *args: tuple
+        """
         if args[0] == 'Clear':
             self.clear()
         else:
             toast('Please save your changes')
 
     def clear(self):
-
+        """
+        Clears all data from app
+        """
         if EVENTS['IS_RAM_EMPTY']:
             toast('There is nothing to clear')
         else:
@@ -412,23 +422,18 @@ class MainWindow(BoxLayout):
             self.run_window.editor.clear()
             self.micro_sim.micro_clear()
             self.run_window.reg_table.data_list.clear()
-            self.run_window.reg_table.get_data()
-            self.run_window.mem_table.data_list.clear()
-            self.run_window.mem_table.get_data()
             self.run_window.inst_table.data_list.clear()
+
             self.run_window.inst_table.get_data(self.micro_sim.index,
                                                 self.micro_sim.disassembled_instruction())
+            self.run_window.event_data_tables()
+
             self.first_inst = True
 
             self.run_window.blinking_on.cancel()
             self.run_window.blinking_off.cancel()
 
-            self.run_window.light.change_color(
-                self.micro_sim.traffic_lights_binary())
-            self.run_window.ascii.update_ascii_grid()
-            self.run_window.seven_segment_display.activate_segments(
-                self.micro_sim.seven_segment_binary())
-            self.run_window.seven_segment_display.clear_seven_segment()
+            self.run_window.event_io()
             toast('Micro memory cleared! Load new data')
             EVENTS['IS_RAM_EMPTY'] = True
             update_indicators(self, EVENTS['LOADED_FILE'])
@@ -436,34 +441,30 @@ class MainWindow(BoxLayout):
             self.run_window.editor.disabled = False
 
     def clear_run(self):
-
+        """
+        Clears all data for microprocessor execution
+        """
         self.step_index = 0
         clear_ram()
         self.micro_sim.micro_clear()
         self.run_window.reg_table.data_list.clear()
-        self.run_window.reg_table.get_data()
-        self.run_window.mem_table.data_list.clear()
-        self.run_window.mem_table.get_data()
         self.run_window.inst_table.data_list.clear()
+
         self.run_window.inst_table.get_data(self.micro_sim.index,
                                             self.micro_sim.disassembled_instruction())
+        self.run_window.event_data_tables()
+
         self.first_inst = True
 
         self.run_window.blinking_on.cancel()
         self.run_window.blinking_off.cancel()
 
-        self.run_window.light.change_color(
-            self.micro_sim.traffic_lights_binary())
-        self.run_window.ascii.update_ascii_grid()
-        self.run_window.seven_segment_display.activate_segments(
-            self.micro_sim.seven_segment_binary())
-        self.run_window.seven_segment_display.clear_seven_segment()
+        self.run_window.event_io()
 
     def open_reg_mem_save_dialog(self, instance):
-        """It will be called when user click on the save file button.
-
-        :param instance: used as event handler for button click;
-
+        """
+        It will be called when user click on the save file button.
+        :param instance: obj
         """
         dialog = MDInputDialog(title='Save file: Enter file name',
                                hint_text='Enter file name',
@@ -480,54 +481,35 @@ class MainWindow(BoxLayout):
         dialog.open()
 
     def open_editor_save_dialog(self, instance):
+        """
+        Opens code editor save dialog
+        :param instance: obj
+        """
         if EVENTS['IS_OBJ']:
             toast('Obj files cannot be modified.')
-
+        elif EVENTS['LOADED_FILE']:
+            self.run_window.editor.save(EVENTS['FILE_PATH'])
+            toast('Content saved on loaded file')
+            EVENTS['EDITOR_SAVED'] = True
         else:
-            if EVENTS['LOADED_FILE']:
-                self.run_window.editor.save(EVENTS['FILE_PATH'])
-                toast('Content saved on loaded file')
-                EVENTS['EDITOR_SAVED'] = True
-            else:
-                dialog = MDInputDialog(title='Save file: Enter file name',
-                                       hint_text='Enter file name',
-                                       size_hint=(.3, .3),
-                                       text_button_ok='Save',
-                                       text_button_cancel='Cancel',
-                                       events_callback=self.save_asm_file)
-                if self.dpi >= 192:
-                    dialog.pos_hint = {
-                        'x': dp(0.18),
-                        'y': dp(0.18)
-                    }
-                toast('Save Editor Content')
-                dialog.open()
+            dialog = MDInputDialog(title='Save file: Enter file name',
+                                    hint_text='Enter file name',
+                                    size_hint=(.3, .3),
+                                    text_button_ok='Save',
+                                    text_button_cancel='Cancel',
+                                    events_callback=self.save_asm_file)
+            if self.dpi >= 192:
+                dialog.pos_hint = {
+                    'x': dp(0.18),
+                    'y': dp(0.18)
+                }
+            toast('Save Editor Content')
+            dialog.open()
 
     def save_asm_file(self, *args):
-
-        if args[0] == 'Save':
-            filename = args[0]
-
-            # Checks if user input is valid or null for filename. if null, assigns a default filename
-            if args[1].text_field.text:
-                filename = args[1].text_field.text
-
-            self.run_window.editor.save('input/' + filename + '.asm')
-            toast('File saved in input folder as ' + filename + '.asm')
-            EVENTS['EDITOR_SAVED'] = True
-            EVENTS['FILE_PATH'] = 'input/' + filename + '.asm'
-            EVENTS['LOADED_FILE'] = True
-            update_indicators(self, EVENTS['LOADED_FILE'])
-        else:
-            toast('File save cancelled')
-
-    def save_file(self, *args):
-        """It is called when user clicks on 'Save' or 'Cancel' button of dialog.
-
-        :type *args: object array
-        :param *args: passes an object array generated when opening open_reg_mem_save_dialog. 
-                Said object indcludes input text used for file saving;
-
+        """
+        Saves asm file
+        :param args: tuple
         """
         if args[0] == 'Save':
             filename = args[0]
@@ -536,10 +518,32 @@ class MainWindow(BoxLayout):
             if args[1].text_field.text:
                 filename = args[1].text_field.text
 
-            f = open('output/' + filename + '.txt', 'w')
+            self.run_window.editor.save(f'input/{filename}.asm')
+            toast(f'File saved in input folder as {filename}.asm')
+            EVENTS['EDITOR_SAVED'] = True
+            EVENTS['FILE_PATH'] = f'input/{filename}.asm'
+            EVENTS['LOADED_FILE'] = True
+            update_indicators(self, EVENTS['LOADED_FILE'])
+        else:
+            toast('File save cancelled')
+
+    def save_file(self, *args):
+        """
+        It is called when user clicks on 'Save' or 'Cancel' button of dialog.
+        Saves file.
+        :param *args: obj
+        """
+        if args[0] == 'Save':
+            filename = args[0]
+
+            # Checks if user input is valid or null for filename. if null, assigns a default filename
+            if args[1].text_field.text:
+                filename = args[1].text_field.text
+
+            f = open(f'output/{filename}.txt', 'w')
             f.write('\nRegister Content: \n')
             for k, v in REGISTER.items():
-                f.write('\n' + k.upper() + ':' + '       ' + v.upper() + '\n')
+                f.write(f'\nk.upper():       {v.upper()}\n')
 
             i = 0
             f.write('\nMemory Content: \n')
@@ -547,7 +551,7 @@ class MainWindow(BoxLayout):
                 f.write(f'\n{RAM[i]}    {RAM[i + 1]}')
                 i += 2
 
-            toast('File saved in output folder as ' + filename + '.txt')
+            toast(f'File saved in output folder as {filename.txt}')
             f.close()
 
         else:
@@ -561,7 +565,7 @@ class MainWindow(BoxLayout):
         if instance.icon == 'file-alert':
             toast('No file loaded yet')
         if instance.icon == 'file-check':
-            toast('File at  ' + "'" + EVENTS['FILE_PATH'] + "'" + '  loaded')
+            toast(f"File at '{EVENTS['FILE_PATH']}' loaded")
 
 
 class NavDrawer(MDNavigationDrawer):
