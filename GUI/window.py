@@ -62,12 +62,6 @@ class DataWindow(FloatLayout):
         self.light = TrafficLights()
         self.editor = TextEditor(dpi=self.dpi)
         self.seven_segment_display = SevenSegmentDisplay()
-
-        self.reg_table.get_data()
-        self.mem_table.data_list.clear()
-        self.mem_table.get_data()
-        self.inst_table.get_data(self.micro_sim.index,
-                                 self.micro_sim.disassembled_instruction())
         self.hex_keyboard_label = Label(text='HEX KEYBOARD',
                                         font_size=sp(20),
                                         color=(0, 0, 0, 1))
@@ -82,8 +76,9 @@ class DataWindow(FloatLayout):
         self.blinking_off = Clock.schedule_interval(self.light.intermittent_off,
                                                     0.3)
 
-        # Creates a clock thread that updates all tables and i/o's every 0.2 seconds. Does not get cancelled.
         self.event_io = Clock.create_trigger(self.update_io)
+        self.event_data_tables = Clock.create_trigger(self.update_data_tables)
+        self.event_data_tables()
 
         # Since the instancing of the events actually starts the scheduling, needs to be canceled right away
         self.blinking_on.cancel()
@@ -153,6 +148,15 @@ class DataWindow(FloatLayout):
             self.micro_sim.seven_segment_binary())
         self.ascii.update_ascii_grid()
 
+    def update_data_tables(self, dt):
+        """
+        Updates Register, and Memory tables
+        :param dt: float
+        """
+        self.reg_table.get_data()
+        self.mem_table.data_list.clear()
+        self.mem_table.get_data()
+
 
 class MainWindow(BoxLayout):
     """Contains navbar buttons and DataWindow to display UI"""
@@ -203,14 +207,14 @@ class MainWindow(BoxLayout):
                                                     pos_hint={
                                                         'y': self.buttons_y_pos
                                                     },
-                                                    on_release=self.run_micro_instructions)
+                                                    on_release=self.execute_micro_instructions)
         self.debug_button = MDFillRoundFlatIconButton(text='Debug',
                                                       icon='android-debug-bridge',
                                                       size_hint=(None, None),
                                                       pos_hint={
                                                           'y': self.buttons_y_pos
                                                       },
-                                                      on_release=self.run_micro_instructions_step)
+                                                      on_release=lambda *args: self.execute_micro_instructions(*args, mode='debug'))
         self.refresh_button = MDFillRoundFlatIconButton(text='Clear',
                                                         icon='refresh',
                                                         size_hint=(None, None),
@@ -259,87 +263,85 @@ class MainWindow(BoxLayout):
         self.add_widget(self.run_window)
         self.add_widget(self.not_loaded_file)
 
-    def run_micro_instructions(self, instance):
+    def execute_micro_instructions(self, instance, mode='run'):
         """
-        Runs micro instructions from start to finish
+        Runs micro instructions in the specified mode
+            run -> from start to finish
+            debug -> step-by-step execution
         :param instance: obj
+        :param mode: str
         """
         toast_message = 'File executed successfully'
         if not self.run_window.editor.valid_text and not EVENTS['IS_OBJ']:
             toast("Invalid code. Load file to run or write valid code in editor")
         elif EVENTS['EDITOR_SAVED']:
-            self.clear_run()
-
-            # If file is an .obj file, runs simulator
-            if EVENTS['FILE_PATH'].endswith('.obj'):
-                self.run_micro_sim(EVENTS['FILE_PATH'])
-            else:
-                self.assembler()
-
-            if self.micro_sim.is_ram_loaded:
-                self.run_window.inst_table.get_data(self.micro_sim.index,
-                                                    self.micro_sim.disassembled_instruction())
-                self.micro_sim.prev_index = -1
-
-                self.run_window.blinking_on.cancel()
-                self.run_window.blinking_off.cancel()
-
-                self.run_window.blinking_on()
-                self.run_window.blinking_off()
-
-                timeout = time.time() + 5  # 5 seconds from now
-                while self.micro_sim.is_running:
-                    try:
-                        self.micro_sim.run_micro_instructions(timeout)
-                        self.run_window.inst_table.get_data(self.micro_sim.index,
-                                                            self.micro_sim.disassembled_instruction())
-
-                    except (SystemError, TimeoutError) as e:
-                        toast_message = f'Error! {e}'
-                self.run_window.reg_table.get_data()
-                self.run_window.mem_table.data_list.clear()
-                self.run_window.mem_table.get_data()
-                self.run_window.event_io()
-                toast(toast_message)
-        else:
-            toast('Please save changes on editor before running')
-
-    def run_micro_instructions_step(self, instance):
-        if not self.run_window.editor.valid_text and not EVENTS['IS_OBJ']:
-            toast("Invalid code. Load file to run or write valid code in editor")
-        elif EVENTS['EDITOR_SAVED']:
-            # If file is an .obj file, runs simulator
-            if EVENTS['FILE_PATH'].endswith('.obj'):
-                self.run_micro_sim(EVENTS['FILE_PATH'])
-            else:
-                self.assembler()
-
-            if not self.micro_sim.is_running:
+            if mode == 'run':
                 self.clear_run()
-                self.micro_sim.is_running = True
-            else:
-                if self.micro_sim.is_ram_loaded:
-                    self.step_index += 1
-                    if self.first_inst:
-                        self.run_window.inst_table.get_data(self.micro_sim.index,
-                                                            self.micro_sim.disassembled_instruction())
-                        self.first_inst = False
-                    else:
-                        self.micro_sim.run_micro_instructions_step(
-                            self.step_index)
-                        self.run_window.inst_table.get_data(self.micro_sim.index,
-                                                            self.micro_sim.disassembled_instruction())
 
-                    toast(
-                        f'Runnin instruction in step-by-step mode. Step {self.step_index} is running')
-                    self.run_window.reg_table.get_data()
-                    self.run_window.mem_table.data_list.clear()
-                    self.run_window.mem_table.get_data()
-                    self.run_window.event_io()
+            # If file is an .obj file, runs simulator
+            if EVENTS['FILE_PATH'].endswith('.obj'):
+                self.load_micro_sim_ram(EVENTS['FILE_PATH'])
+            else:
+                self.assembler()
+
+            if mode == 'run':
+                self.run_micro_instructions(toast_message)
+            else:
+                self.debug_micro_instructions(toast_message)
         else:
             toast('Please save changes on editor before running')
+
+    def run_micro_instructions(self, toast_message):
+        """
+        Runs micro instructions from start to finish
+        :param toast_message: str
+        """
+        if self.micro_sim.is_ram_loaded:
+            self.run_window.inst_table.get_data(self.micro_sim.index,
+                                                self.micro_sim.disassembled_instruction())
+
+            self.run_window.blinking_on()
+            self.run_window.blinking_off()
+
+            timeout = time.time() + 5  # 5 seconds from now
+            while self.micro_sim.is_running:
+                try:
+                    self.micro_sim.run_micro_instructions(timeout)
+                    self.run_window.inst_table.get_data(self.micro_sim.index,
+                                                        self.micro_sim.disassembled_instruction())
+                except (SystemError, TimeoutError) as e:
+                    toast_message = f'Error! {e}'
+            self.run_window.event_data_tables()
+            self.run_window.event_io()
+            toast(toast_message)
+
+    def debug_micro_instructions(self, toast_message):
+        """
+        Step-by-step execution of microprocessor instructions
+        :param toast_message: str
+        """
+        if self.micro_sim.is_ram_loaded:
+            self.step_index += 1
+        if self.first_inst:
+            self.run_window.inst_table.get_data(self.micro_sim.index,
+                                                self.micro_sim.disassembled_instruction())
+            self.first_inst = False
+        elif self.micro_sim.is_running:
+            self.micro_sim.run_micro_instructions_step(
+                self.step_index)
+            self.run_window.inst_table.get_data(self.micro_sim.index,
+                                                self.micro_sim.disassembled_instruction())
+            toast(
+                f'Running instruction in step-by-step mode. Step {self.step_index} is running')
+            self.run_window.event_data_tables()
+            self.run_window.event_io()
+        else:
+            toast('File executed successfully')
 
     def assembler(self):
+        """
+        Assembles source code and generate obj file
+        """
         i = 0
         # Obtains last name on path string using ntpath and then
         # strips file extension using os.path.splitext
@@ -351,21 +353,25 @@ class MainWindow(BoxLayout):
             asm.store_instructions_in_ram()
             verify_ram_content()
             hexify_ram_content()
-            output_file_location = 'output/' + filename + '.obj'
+            output_file_location = f'output/{filename}.obj'
 
             f = open(output_file_location, 'w')
             while i < 100:
-                f.write(f'{RAM_ASSEMBLER[i]} {RAM_ASSEMBLER[i + 1]}' + '\n')
+                f.write(f'{RAM_ASSEMBLER[i]} {RAM_ASSEMBLER[i + 1]}\n')
                 i += 2
             f.close()
 
             # Runs simulator using generated .obj file
-            self.run_micro_sim(output_file_location)
+            self.load_micro_sim_ram(output_file_location)
 
         except (AssertionError, FileNotFoundError, ValueError, MemoryError, KeyError, SyntaxError) as e:
             toast(f'{e}')
 
-    def run_micro_sim(self, file):
+    def load_micro_sim_ram(self, file):
+        """
+        Loads microprocessor simulator ram with the contents of specified file
+        :param file: str
+        """
         self.micro_sim.read_obj_file(file)
 
     def clear_dialog(self, instance):
@@ -375,7 +381,6 @@ class MainWindow(BoxLayout):
         elif EVENTS['IS_RAM_EMPTY']:
             toast('There is nothing to clear')
         else:
-
             dialog = MDDialog(title='Warning',
                               text='Are you sure you want to clear without saving?',
                               size_hint=(.3, .3),
