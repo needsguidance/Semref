@@ -55,33 +55,39 @@ class Assembler:
                 f'Unsupported file type [{self.filename}]. Only accepting files ending in .asm')
         source = open(self.filename, 'r')
         lines = source.readlines()
-        self.verify_indentation(lines[0], 0)
+        self.verify_indentation(lines[0], 0, source)
         self.micro_instr.append(lines[0].strip())
         for i in range(1, len(lines)):
             if lines[i] != '\n':
-                self.verify_indentation(lines[i], i)
-                self.compare_indentation_between_lines(lines[i - 1], lines[i], i)
+                self.verify_indentation(lines[i], i, source)
+                self.compare_indentation_between_lines(lines[i - 1], lines[i], i, source)
                 self.micro_instr.append(lines[i].strip())
         lines.clear()
         source.close()
 
-    def verify_indentation(self, line, index):
+    def verify_indentation(self, line, index, file):
         if index == 0 and self.is_indented(line):
+            file.close()
             raise AssertionError('Indentation Error: the first line cannot be indented.')
         if "\t" in line:
+            file.close()
             raise AssertionError(f'Indentation error: Line {index + 1}: Tab detected.')
         if not self.is_indented(line) and line.startswith(" ") and not line.isspace():
+            file.close()
             raise AssertionError(f'Indentation error: Line {index + 1}: Ensure that '
                                  f'all indented lines have exactly 4 spaces.')
         if ":" in line and self.is_indented(line):
+            file.close()
             raise AssertionError(
                 f'Indentation error: Line {index + 1}: Lines with \':\' cannot be indented.')
 
-    def compare_indentation_between_lines(self, line1, line2, index):
+    def compare_indentation_between_lines(self, line1, line2, index, file):
         if self.is_indented(line2) and ((not self.is_indented(line1) and ":" not in line1)
                                         or line1.isspace() or line1 == '\n'):
+            file.close()
             raise AssertionError(f'Indentation Error: Verify lines {index} and {index + 1}')
         if not self.is_indented(line2) and ":" in line1:
+            file.close()
             raise AssertionError(f'Indentation Error: Line {index + 1}: lines under label must be indented.')
 
     def is_valid_source(self):

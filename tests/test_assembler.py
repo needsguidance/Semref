@@ -1,11 +1,11 @@
+import sys
 from unittest import TestCase
 
 import mock
-import sys
 
-from assembler import (RAM, Assembler, clear_ram, hexify_ram_content,
-                       verify_ram_content)
-from tests.test_utils import assert_ram_content, verify_ram_content_helper
+from assembler import (Assembler)
+from tests.test_utils import verify_ram_content_helper
+
 
 class AssemblerTestCase(TestCase):
     # List of tuples that contain binary/hexadecimal representation of
@@ -299,3 +299,68 @@ class AssemblerTestCase(TestCase):
             asm.read_source()
             with self.assertRaises(SyntaxError):
                 asm.store_instructions_in_ram()
+
+    def test_invalid_indentation(self):
+        """
+        Verifies assembler detects indentation errors and raises an error
+        """
+        if sys.platform == 'win32':
+            return_values = [
+                '../input/indent_test1.asm',
+                '../input/indent_test2.asm',
+                '../input/indent_test3.asm',
+                '../input/indent_test4.asm',
+                '../input/indent_test5.asm',
+                '../input/indent_test6.asm',
+                '../input/test3.asm'
+            ]
+        else:
+            return_values = [
+                'input/indent_test1.asm',
+                'input/indent_test2.asm',
+                'input/indent_test3.asm',
+                'input/indent_test4.asm',
+                'input/indent_test5.asm',
+                'input/indent_test6.asm',
+                'input/test3.asm'
+            ]
+        with mock.patch('builtins.input', return_value=return_values[0]):
+            filename = input()
+            asm = Assembler(filename=filename)
+            with self.assertRaises(AssertionError):
+                asm.read_source()
+
+        with mock.patch('builtins.input', return_value=return_values[1]):
+            filename = input()
+            asm = Assembler(filename=filename)
+            with self.assertRaises(AssertionError):
+                asm.read_source()
+
+        with mock.patch('builtins.input', return_value=return_values[2]):
+            filename = input()
+            asm = Assembler(filename=filename)
+            with self.assertRaises(AssertionError):
+                asm.read_source()
+
+        with mock.patch('builtins.input', return_value=return_values[3]):
+            filename = input()
+            asm = Assembler(filename=filename)
+            with self.assertRaises(AssertionError):
+                asm.read_source()
+
+        with mock.patch('builtins.input', return_value=return_values[4]):
+            filename = input()
+            asm = Assembler(filename=filename)
+            with self.assertRaises(AssertionError):
+                asm.read_source()
+
+        with mock.patch('builtins.input', return_value=return_values[5]):
+            filename = input()
+            asm = Assembler(filename=filename)
+            with self.assertRaises(AssertionError):
+                asm.read_source()
+
+        with mock.patch('builtins.input', return_value=return_values[6]):
+            filename = input()
+            asm = Assembler(filename=filename)
+            asm.read_source
