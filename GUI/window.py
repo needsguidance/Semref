@@ -400,7 +400,7 @@ class MainWindow(BoxLayout):
 
     def clear_decision(self, *args):
         """
-        User decision from [clear_dialog]. 
+        User decision from [clear_dialog].
         :param *args: tuple
         """
         if args[0] == 'Clear':
@@ -493,11 +493,11 @@ class MainWindow(BoxLayout):
             EVENTS['EDITOR_SAVED'] = True
         else:
             dialog = MDInputDialog(title='Save file: Enter file name',
-                                    hint_text='Enter file name',
-                                    size_hint=(.3, .3),
-                                    text_button_ok='Save',
-                                    text_button_cancel='Cancel',
-                                    events_callback=self.save_asm_file)
+                                   hint_text='Enter file name',
+                                   size_hint=(.3, .3),
+                                   text_button_ok='Save',
+                                   text_button_cancel='Cancel',
+                                   events_callback=self.save_asm_file)
             if self.dpi >= 192:
                 dialog.pos_hint = {
                     'x': dp(0.18),
@@ -569,6 +569,7 @@ class MainWindow(BoxLayout):
 
 
 class NavDrawer(MDNavigationDrawer):
+    """Main menu of application"""
 
     def __init__(self, **kwargs):
         self.micro_sim = kwargs.pop('micro_sim')
@@ -604,14 +605,17 @@ class NavDrawer(MDNavigationDrawer):
                                                    on_release=self.io_config_open))
 
     def io_config_open(self, instance):
+        """
+        Opens IO configuration dialog
+        :param instance: obj
+        """
         dialog = MDInputDialog(title=instance.text,
                                hint_text='Input port number [0-4095]',
                                text_button_ok='Save',
                                text_button_cancel='Cancel',
+                               size_hint=(dp(0.4), dp(0.4)),
                                events_callback=self.save_io_ports)
-        if self.dpi < 192:
-            dialog.size_hint = (dp(0.4), dp(0.4))
-        else:
+        if self.dpi >= 192:
             dialog.size_hint = (dp(0.2), dp(0.2))
             dialog.pos_hint = {
                 'x': dp(0.15),
@@ -620,6 +624,10 @@ class NavDrawer(MDNavigationDrawer):
         dialog.open()
 
     def save_io_ports(self, *args):
+        """
+        Saves IO port configurations
+        :param args: tuple
+        """
         if args[0] == 'Save':
             title = args[1].title
             text = args[1].text_field.text
@@ -628,40 +636,52 @@ class NavDrawer(MDNavigationDrawer):
                 if port < 0 or port > 4095:
                     toast('Invalid port number. Valid port numbers [0-4095]')
                 else:
-                    if is_valid_port(port):
-                        if title == TRAFFIC_LIGHT['menu_title']:
-                            update_reserved_ports(TRAFFIC_LIGHT,
-                                                  TRAFFIC_LIGHT['port'],
-                                                  port)
-                            toast_message = f'Changed Traffic Light I/O port number to {port}'
-                        elif title == SEVEN_SEGMENT_DISPLAY['menu_title']:
-                            update_reserved_ports(SEVEN_SEGMENT_DISPLAY,
-                                                  SEVEN_SEGMENT_DISPLAY['port'],
-                                                  port)
-                            toast_message = f'Changed Seven Segment I/O port number to {port}'
-                        elif title == ASCII_TABLE['menu_title']:
-                            if port > 4088:
-                                toast_message = 'Invalid port for ASCII Table. Valid ports [0-4088]'
-                            else:
-                                try:
-                                    update_reserved_ports(ASCII_TABLE,
-                                                          ASCII_TABLE['port'],
-                                                          port, True)
-                                    toast_message = f'Changed ASCII Table I/O port number to {port}'
-                                except MemoryError as e:
-                                    toast_message = str(e)
-                        else:
-                            update_reserved_ports(HEX_KEYBOARD,
-                                                  HEX_KEYBOARD['port'],
-                                                  port)
-                            toast_message = f'Changed HEX Keyboard I/O port number to {port}'
-                        toast(toast_message)
-                    else:
-                        toast('Invalid input. That port is reserved!')
+                    self.update_io_port(title, port)
             else:
                 toast('Invalid input. Not a number!')
 
+    def update_io_port(self, title, port):
+        """
+        Updates IO port for specified IO
+        :param title: str
+        :param port: int
+        """
+        if is_valid_port(port):
+            if title == TRAFFIC_LIGHT['menu_title']:
+                update_reserved_ports(TRAFFIC_LIGHT,
+                                      TRAFFIC_LIGHT['port'],
+                                      port)
+                toast_message = f'Changed Traffic Light I/O port number to {port}'
+            elif title == SEVEN_SEGMENT_DISPLAY['menu_title']:
+                update_reserved_ports(SEVEN_SEGMENT_DISPLAY,
+                                      SEVEN_SEGMENT_DISPLAY['port'],
+                                      port)
+                toast_message = f'Changed Seven Segment I/O port number to {port}'
+            elif title == ASCII_TABLE['menu_title']:
+                if port > 4088:
+                    toast_message = 'Invalid port for ASCII Table. Valid ports [0-4088]'
+                else:
+                    try:
+                        update_reserved_ports(ASCII_TABLE,
+                                              ASCII_TABLE['port'],
+                                              port, True)
+                        toast_message = f'Changed ASCII Table I/O port number to {port}'
+                    except MemoryError as e:
+                        toast_message = str(e)
+            else:
+                update_reserved_ports(HEX_KEYBOARD,
+                                      HEX_KEYBOARD['port'],
+                                      port)
+                toast_message = f'Changed HEX Keyboard I/O port number to {port}'
+            toast(toast_message)
+        else:
+            toast('Invalid input. That port is reserved!')
+
     def file_manager_open(self, instance):
+        """
+        Opens file manager
+        :param instance: obj
+        """
         if not self.manager:
             manager_size = (dp(1), 1) if self.dpi < 192 else (dp(0.5), 1)
             self.manager = ModalView(auto_dismiss=False,
@@ -678,12 +698,11 @@ class NavDrawer(MDNavigationDrawer):
         self.history = self.file_manager.history
 
     def select_path(self, path):
-        """It will be called when you click on the file name
+        """
+        It will be called when you click on the file name
         or the catalog selection button.
 
-        :type path: str;
-        :param path: path to the selected directory or file;
-
+        :param path: str
         """
         self.exit_manager()
 
@@ -706,7 +725,6 @@ class NavDrawer(MDNavigationDrawer):
 
     def events(self, instance, keyboard, keycode, text, modifiers):
         """Called when buttons are pressed on the mobile device.."""
-
         if keyboard in (1001, 27):
             if self.manager_open:
                 self.file_manager.back()
