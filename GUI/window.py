@@ -256,7 +256,7 @@ class MainWindow(BoxLayout):
                 self.run_micro_sim(FILE_PATH)
             else:
                 self.assembler()
-
+            self.micro_sim.is_running = True
             if self.micro_sim.is_ram_loaded:
                 # TODO: Change this to a while loop
                 for m in range(2):
@@ -268,10 +268,6 @@ class MainWindow(BoxLayout):
                                                             self.micro_sim.disassembled_instruction())
                         self.first_inst = False
                     else:
-                        self.micro_sim.prev_index = -1
-                        self.run_window.blinking_on.cancel()
-                        self.run_window.blinking_off.cancel()
-
                         self.run_window.blinking_on()
                         self.run_window.blinking_off()
 

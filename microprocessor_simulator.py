@@ -3,10 +3,13 @@ import time
 
 from utils import (FORMAT_1_OPCODE, FORMAT_2_OPCODE, FORMAT_3_OPCODE, OPCODE,
                    REGISTER, SEVEN_SEGMENT_DISPLAY, TRAFFIC_LIGHT,
-                   clear_registers, convert_to_hex, hex_to_binary, RAM)
+                   clear_registers, convert_to_hex, hex_to_binary, RAM, load_ram)
 
 
 def get_opcode_key(val):
+    """
+    Gets the opcode for the given value
+    """
     for key, value in OPCODE.items():
         if val == value:
             return key
@@ -14,41 +17,46 @@ def get_opcode_key(val):
 
 
 class MicroSim:
+    """Microprocessor simulator"""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.is_ram_loaded = False
         self.decoded_micro_instructions = []
         self.index = 0
-        self.is_running = True
+        self.is_running = False
         self.prev_index = -1
         self.counter = 0
         self.filename = ''
         self.error = ''
 
     def read_obj_file(self, filename):
+        """
+        Reads obj file and stores content in RAM
+        :param filename: str
+        """
         if not self.is_valid_source(filename):
             raise AssertionError(
                 f"Unsupported file '{filename}'. Microprocesor simulator files must be of type 'obj'")
         self.filename = filename
+
         file = open(filename, 'r')
         lines = file.readlines()
-        i = 0
-        for line in lines:
-            line.strip()
-            hex_instruction = ''.join(line.split())
-            RAM[i] = hex_instruction[0:2]
-            RAM[i + 1] = hex_instruction[2:]
-            i += 2
+        load_ram(lines)
+
         self.is_ram_loaded = True
         lines.clear()
         file.close()
 
     def is_valid_source(self, filename):
+        """
+        Validates file is of type .obj
+        :param filename: str
+        """
         return re.match(r'^.+\.obj$', filename)
 
     def disassembled_instruction(self):
-
+        """Disassembles executed assembly instruction"""
         instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
 
         opcode = get_opcode_key(instruction[0:5])
@@ -96,8 +104,13 @@ class MicroSim:
 
         return dis_instruction.upper()
 
-    def run_micro_instructions(self, timeout):
-        if (time.time() > timeout):
+    def run_micro_instructions(self, timeout=0):
+        """
+        Runs assembly instructions
+        :param timeout: int
+        """
+        if timeout != 0 and time.time() > timeout:
+            self.is_running = False
             raise TimeoutError('Infinite loop detected.')
         REGISTER['ir'] = f'{RAM[self.index]}{RAM[self.index + 1]}'
         binary_instruction = hex_to_binary(
@@ -123,10 +136,13 @@ class MicroSim:
         return hex_to_binary(f'{RAM[SEVEN_SEGMENT_DISPLAY["port"]]}')
 
     def micro_clear(self):
+        """
+        Resets microprocessor simulator to initial conditions
+        """
         self.is_ram_loaded = False
         self.decoded_micro_instructions = []
         self.index = 0
-        self.is_running = True
+        self.is_running = False
         self.prev_index = -1
         self.counter = 0
         for m in range(4096):
@@ -134,6 +150,10 @@ class MicroSim:
         clear_registers()
 
     def execute_instruction(self, instruction):
+        """
+        Executes assembly instruction
+        :param instruction: str
+        """
         if re.match('^[0]+$', instruction):
             self.prev_index = self.index
             self.index += 2
@@ -283,9 +303,19 @@ class MicroSim:
                 self.index = int(REGISTER['pc'], 16)
 
     def bit_not(self, n, numbits=8):
+        """
+        1's complementing a binary number up to the given amount of bits
+        :param n: int
+        :param numbits: int
+        """
         return (1 << numbits) - 1 - n
 
     def rotl(self, num, bits):
+        """
+        Rotates bits to the left
+        :param num: int
+        :param bits: int
+        """
         bit = num & (1 << (bits - 1))
         num <<= 1
         if bit:
@@ -295,10 +325,14 @@ class MicroSim:
         return num
 
     def rotr(self, num, bits):
+        """
+        Rotates bits to the right
+        :param num: int
+        :param bits: int
+        """
         num &= (2 << bits - 1)
         bit = num & 1
         num >>= 1
         if bit:
             num |= (1 << (bits - 1))
-
         return num

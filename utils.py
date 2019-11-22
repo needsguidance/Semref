@@ -98,6 +98,20 @@ def clear_registers():
         REGISTER[key] = value
 
 
+def load_ram(data):
+    """
+    Loads data into RAM
+    :param data: list
+    """
+    i = 0
+    for item in data:
+        item.strip()
+        hex_instruction = ''.join(item.split())
+        RAM[i] = hex_instruction[0:2]
+        RAM[i + 1] = hex_instruction[2:]
+        i += 2
+
+
 RAM = ['00' for i in range(4096)]
 
 # OPCODE initialization list.
