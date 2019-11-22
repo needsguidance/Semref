@@ -314,7 +314,7 @@ class MainWindow(BoxLayout):
                                                             self.micro_sim.disassembled_instruction())
 
                     toast(
-                        f'Runnin instruction in step-by-step mode. Step {self.step_index} is running')
+                        f'Running instruction in step-by-step mode. Step {self.step_index} is running')
                     self.run_window.reg_table.get_data()
                     self.run_window.mem_table.data_list.clear()
                     self.run_window.mem_table.get_data()
