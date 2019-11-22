@@ -2,8 +2,7 @@ import re
 import time
 
 from utils import (FORMAT_1_OPCODE, FORMAT_2_OPCODE, FORMAT_3_OPCODE, OPCODE,
-                   REGISTER, SEVEN_SEGMENT_DISPLAY, TRAFFIC_LIGHT,
-                   clear_registers, convert_to_hex, hex_to_binary, RAM, load_ram, is_valid_file)
+                   REGISTER, clear_registers, convert_to_hex, hex_to_binary, RAM, load_ram, is_valid_file)
 
 
 def get_opcode_key(val):
@@ -102,13 +101,6 @@ class MicroSim:
             self.is_running = False
         else:
             self.prev_index = self.index
-
-    def traffic_lights_binary(self):
-        return hex_to_binary(f'{RAM[TRAFFIC_LIGHT["port"]]}')
-
-    def seven_segment_binary(self):
-
-        return hex_to_binary(f'{RAM[SEVEN_SEGMENT_DISPLAY["port"]]}')
 
     def micro_clear(self):
         """

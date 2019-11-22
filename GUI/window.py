@@ -36,7 +36,8 @@ from lexer import SemrefLexer
 from microprocessor_simulator import MicroSim
 from utils import (ASCII_TABLE, EVENTS, HEX_KEYBOARD, REGISTER,
                    SEVEN_SEGMENT_DISPLAY, TRAFFIC_LIGHT, is_valid_port,
-                   update_indicators, update_reserved_ports, RAM)
+                   update_indicators, update_reserved_ports, RAM, seven_segment_binary,
+                   traffic_lights_binary)
 
 FILE_PATH = ''
 CAN_WRITE = False
@@ -134,9 +135,8 @@ class RunWindow(FloatLayout):
         self.popup.open()
 
     def update_io(self, dt):
-        self.light.change_color(self.micro_sim.traffic_lights_binary())
-        self.seven_segment_display.activate_segments(
-            self.micro_sim.seven_segment_binary())
+        self.light.change_color(traffic_lights_binary())
+        self.seven_segment_display.activate_segments(seven_segment_binary())
         self.ascii.update_ascii_grid()
 
 
@@ -277,11 +277,6 @@ class MainWindow(BoxLayout):
                                 self.micro_sim.run_micro_instructions(timeout)
                                 self.run_window.inst_table.get_data(self.micro_sim.index,
                                                                     self.micro_sim.disassembled_instruction())
-
-                                # if self.micro_sim.prev_index == self.micro_sim.index:
-                                #     self.micro_sim.is_running = False
-                                # else:
-                                #     self.micro_sim.prev_index = self.micro_sim.index
                             except (SystemError, TimeoutError) as e:
                                 self.micro_sim.is_running = False
                                 toast_message = f'Error! {e}'
@@ -409,11 +404,9 @@ class MainWindow(BoxLayout):
             self.run_window.blinking_on.cancel()
             self.run_window.blinking_off.cancel()
 
-            self.run_window.light.change_color(
-                self.micro_sim.traffic_lights_binary())
+            self.run_window.light.change_color(traffic_lights_binary())
             self.run_window.ascii.update_ascii_grid()
-            self.run_window.seven_segment_display.activate_segments(
-                self.micro_sim.seven_segment_binary())
+            self.run_window.seven_segment_display.activate_segments(seven_segment_binary())
             self.run_window.seven_segment_display.clear_seven_segment()
             toast('Micro memory cleared! Load new data')
             EVENTS['IS_RAM_EMPTY'] = True
@@ -438,11 +431,9 @@ class MainWindow(BoxLayout):
         self.run_window.blinking_on.cancel()
         self.run_window.blinking_off.cancel()
 
-        self.run_window.light.change_color(
-            self.micro_sim.traffic_lights_binary())
+        self.run_window.light.change_color(traffic_lights_binary())
         self.run_window.ascii.update_ascii_grid()
-        self.run_window.seven_segment_display.activate_segments(
-            self.micro_sim.seven_segment_binary())
+        self.run_window.seven_segment_display.activate_segments(seven_segment_binary())
         self.run_window.seven_segment_display.clear_seven_segment()
 
     def open_reg_mem_save_dialog(self, instance):

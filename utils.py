@@ -123,6 +123,22 @@ def is_valid_file(filename):
     return re.match(r'^.+\.?(obj|asm)$', filename) is not None, filename[-3:]
 
 
+def traffic_lights_binary():
+    """
+    Gets traffic lights binary representation from RAM
+    :return: str
+    """
+    return hex_to_binary(f'{RAM[TRAFFIC_LIGHT["port"]]}')
+
+
+def seven_segment_binary():
+    """
+    Gets seven segment display binary representation from RAM
+    :return: str
+    """
+    return hex_to_binary(f'{RAM[SEVEN_SEGMENT_DISPLAY["port"]]}')
+
+
 RAM = ['00' for i in range(4096)]
 
 # OPCODE initialization list.
