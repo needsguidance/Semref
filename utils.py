@@ -48,7 +48,6 @@ def is_valid_port(port):
 def update_reserved_ports(device, port_to_remove, port_to_add, reserve_block=False):
     """
     Update RESERVED_PORTS List.
-    
     :param reserve_block: bool
     :param device: dict
     :param port_to_remove: int
@@ -76,7 +75,7 @@ def update_indicators(instance, is_file_loaded):
     """
     This method manage Loaded/NotLoaded File indicators using a condition.
     :param instance: obj
-    :param is_ram_loaded: bool
+    :param is_file_loaded: bool
     """
     if is_file_loaded:
         instance.remove_widget(instance.not_loaded_file)
@@ -94,10 +93,10 @@ def clear_registers():
     Sets register values to 0
     """
     value = '00'
-    for key in REGISTER.keys():
+    for key in REGISTER:
         if key == 'cond':
             value = '0'
-        elif key == 'pc' or key == 'sp':
+        elif key in ('pc', 'sp'):
             value = '000'
         elif key == 'ir':
             value = '0000'

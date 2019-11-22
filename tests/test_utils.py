@@ -10,38 +10,40 @@ def clear_ram():
         ASSEMBLER_RAM[i] = '00000000'
         SIM_RAM[i] = '00'
 
+
 def assert_ram_content(tester, content, RAM):
-        """
-        Verifies that actual output is aligned with the expected outputs
-        :param start: starts reading RAM from given memory location as an int value
-        :param content: binary/hexadecimal content to verify
-        """
-        for c in content:
-            tester.assertEqual(RAM[c[1]] + RAM[c[1] + 1],
-                             c[0], f'Verify line # {content.index(c) + 1} "{c}"')
+    """
+    Verifies that actual output is aligned with the expected outputs
+    :param start: starts reading RAM from given memory location as an int value
+    :param content: binary/hexadecimal content to verify
+    """
+    for c in content:
+        tester.assertEqual(RAM[c[1]] + RAM[c[1] + 1],
+                           c[0], f'Verify line # {content.index(c) + 1} "{c}"')
+
 
 def verify_ram_content_helper(tester, instance):
-        """
-        Helper to test different input files and verify expected outputs vs actual outputs
-        """
-        filename = input()
-        clear_ram()
-        if isinstance(instance, Assembler):
-            instance.micro_instr.clear()
-            instance.read_source(filename)
-            instance.store_instructions_in_ram()
+    """
+    Helper to test different input files and verify expected outputs vs actual outputs
+    """
+    filename = input()
+    clear_ram()
+    if isinstance(instance, Assembler):
+        instance.micro_instr.clear()
+        instance.read_source(filename)
+        instance.store_instructions_in_ram()
 
-            verify_ram_content()
-            assert_ram_content(tester, tester.binary_content, ASSEMBLER_RAM)
+        verify_ram_content()
+        assert_ram_content(tester, tester.binary_content, ASSEMBLER_RAM)
 
-            hexify_ram_content()
-            assert_ram_content(tester, tester.hex_content, ASSEMBLER_RAM)
-        else:
-            instance.read_obj_file(filename)
-            instance.is_running = True
-            timeout = time.time() + 5
-            while instance.is_running:
-                instance.run_micro_instructions(timeout)
-            assert_ram_content(tester, tester.ram_content, SIM_RAM)
-            instance.program_counter = 0
-            instance.prev_program_counter = -1
+        hexify_ram_content()
+        assert_ram_content(tester, tester.hex_content, ASSEMBLER_RAM)
+    else:
+        instance.read_obj_file(filename)
+        instance.is_running = True
+        timeout = time.time() + 5
+        while instance.is_running:
+            instance.run_micro_instructions(timeout)
+        assert_ram_content(tester, tester.ram_content, SIM_RAM)
+        instance.program_counter = 0
+        instance.prev_program_counter = -1
