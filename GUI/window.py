@@ -278,10 +278,10 @@ class MainWindow(BoxLayout):
                                 self.run_window.inst_table.get_data(self.micro_sim.index,
                                                                     self.micro_sim.disassembled_instruction())
 
-                                if self.micro_sim.prev_index == self.micro_sim.index:
-                                    self.micro_sim.is_running = False
-                                else:
-                                    self.micro_sim.prev_index = self.micro_sim.index
+                                # if self.micro_sim.prev_index == self.micro_sim.index:
+                                #     self.micro_sim.is_running = False
+                                # else:
+                                #     self.micro_sim.prev_index = self.micro_sim.index
                             except (SystemError, TimeoutError) as e:
                                 self.micro_sim.is_running = False
                                 toast_message = f'Error! {e}'
@@ -315,8 +315,7 @@ class MainWindow(BoxLayout):
                                                             self.micro_sim.disassembled_instruction())
                         self.first_inst = False
                     else:
-                        self.micro_sim.run_micro_instructions_step(
-                            self.step_index)
+                        self.micro_sim.run_micro_instructions()
                         self.run_window.inst_table.get_data(self.micro_sim.index,
                                                             self.micro_sim.disassembled_instruction())
 

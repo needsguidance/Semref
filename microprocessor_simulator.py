@@ -53,50 +53,37 @@ class MicroSim:
     def disassembled_instruction(self):
         """Disassembles executed assembly instruction"""
         instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
-
         opcode = get_opcode_key(instruction[0:5])
-
         if opcode in FORMAT_1_OPCODE:
-
-            ra = f'R{int(instruction[5:8], 2)}'
-            rb = f'R{int(instruction[8:11], 2)}'
-            rc = f'R{int(instruction[11:14], 2)}'
-
+            register_a = f'R{int(instruction[5:8], 2)}'
+            register_b = f'R{int(instruction[8:11], 2)}'
+            register_c = f'R{int(instruction[11:14], 2)}'
             if opcode == 'nop':
                 dis_instruction = f'{opcode}'
             elif opcode == 'jmprind':
-                dis_instruction = f'{opcode} {ra}'
-            elif opcode == 'loadrind' or opcode == 'storerind' or opcode == 'not' or \
-                    opcode == 'neg' or opcode == 'grt' or opcode == 'grteq' or \
-                    opcode == 'eq' or opcode == 'neq':
-                dis_instruction = f'{opcode} {ra}, {rb}'
+                dis_instruction = f'{opcode} {register_a}'
+            elif opcode in ('loadrind', 'storerind', 'not', 'neg', 'grt', 'grteq', 'eq', 'neq'):
+                dis_instruction = f'{opcode} {register_a}, {register_b}'
             else:
-                dis_instruction = f'{opcode} {ra}, {rb}, {rc}'
-
+                dis_instruction = f'{opcode} {register_a}, {register_b}, {register_c}'
         elif opcode in FORMAT_2_OPCODE:
-
-            ra = f'R{int(instruction[5:8], 2)}'
+            register_a = f'R{int(instruction[5:8], 2)}'
             address_or_const = f'{int(instruction[8:], 2):02x}'
-
-            if opcode == 'pop' or opcode == 'push':
-                dis_instruction = f'{opcode} {ra}'
-            elif opcode == 'loadim' or opcode == 'addim' or opcode == 'subim':
-                dis_instruction = f'{opcode} {ra}, #{address_or_const}'
+            if opcode in ('pop', 'push'):
+                dis_instruction = f'{opcode} {register_a}'
+            elif opcode in ('loadim', 'addim', 'subim'):
+                dis_instruction = f'{opcode} {register_a}, #{address_or_const}'
             else:
-                dis_instruction = f'{opcode} {ra}, {address_or_const}'
-
+                dis_instruction = f'{opcode} {register_a}, {address_or_const}'
         elif opcode in FORMAT_3_OPCODE:
-            ra = f'R{int(instruction[5:8], 2)}'
+            register_a = f'R{int(instruction[5:8], 2)}'
             address = f'{int(instruction[5:], 2):02x}'
-
             if opcode == 'jcondrin':
-                dis_instruction = f'{opcode} {ra}'
+                dis_instruction = f'{opcode} {register_a}'
             else:
                 dis_instruction = f'{opcode} {address}'
-
         else:
             dis_instruction = f'{opcode}'
-
         return dis_instruction.upper()
 
     def run_micro_instructions(self, timeout=0):
@@ -107,13 +94,6 @@ class MicroSim:
         if timeout != 0 and time.time() > timeout:
             self.is_running = False
             raise TimeoutError('Infinite loop detected.')
-        REGISTER['ir'] = f'{RAM[self.index]}{RAM[self.index + 1]}'
-        binary_instruction = hex_to_binary(
-            f'{RAM[self.index]}{RAM[self.index + 1]}')
-        self.execute_instruction(binary_instruction)
-
-    def run_micro_instructions_step(self, step_index):
-
         REGISTER['ir'] = f'{RAM[self.index]}{RAM[self.index + 1]}'
         binary_instruction = hex_to_binary(
             f'{RAM[self.index]}{RAM[self.index + 1]}')
