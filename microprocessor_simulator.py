@@ -2,7 +2,7 @@ import re
 import time
 
 from utils import (FORMAT_1_OPCODE, FORMAT_2_OPCODE, FORMAT_3_OPCODE, OPCODE,
-                   REGISTER, clear_registers, convert_to_hex, hex_to_binary, RAM, load_ram, is_valid_file)
+                   REGISTER, clear_registers, convert_to_hex, hex_to_binary, RAM, load_ram, is_valid_file, clear_ram)
 
 
 def get_opcode_key(val):
@@ -112,8 +112,7 @@ class MicroSim:
         self.is_running = False
         self.prev_index = -1
         self.counter = 0
-        for m in range(4096):
-            RAM[m] = '00'
+        clear_ram()
         clear_registers()
 
     def execute_instruction(self, instruction):

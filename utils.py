@@ -90,6 +90,9 @@ def update_indicators(instance, is_file_loaded):
 
 
 def clear_registers():
+    """
+    Sets register values to 0
+    """
     value = '00'
     for key in REGISTER.keys():
         if key == 'cond':
@@ -137,6 +140,16 @@ def seven_segment_binary():
     :return: str
     """
     return hex_to_binary(f'{RAM[SEVEN_SEGMENT_DISPLAY["port"]]}')
+
+
+def clear_ram():
+    """
+    Sets ram values to 0
+    """
+    i = 0
+    while i < len(RAM):
+        RAM[i] = '00'
+        i += 1
 
 
 RAM = ['00' for i in range(4096)]
