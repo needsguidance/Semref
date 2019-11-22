@@ -258,7 +258,6 @@ class MainWindow(BoxLayout):
                 self.assembler()
             self.micro_sim.is_running = True
             if self.micro_sim.is_ram_loaded:
-                # TODO: Change this to a while loop
                 for m in range(2):
                     if self.first_inst:
                         self.run_window.inst_table.data_list.clear()
