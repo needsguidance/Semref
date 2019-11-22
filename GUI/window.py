@@ -732,6 +732,7 @@ class NavDrawer(MDNavigationDrawer):
 
 
 class RegisterTable(RecycleView):
+    """Holds data relevant to registers"""
     data_list = ListProperty([])
 
     def __init__(self, **kwargs):
@@ -768,6 +769,7 @@ class RegisterTable(RecycleView):
                 Line(width=2, rectangle=(dp(0), dp(0), dp(115), dp(390)))
 
     def get_data(self):
+        """Updates data inside Register table"""
         _data_list = self.data_list.copy()
         self.data_list.clear()
         self.data_list.append('REGISTER')
@@ -803,6 +805,7 @@ class RegisterTable(RecycleView):
 
 
 class MemoryTable(RecycleView):
+    """Holds data relevant to RAM"""
     data_list = ListProperty([])
 
     def __init__(self, **kwargs):
@@ -842,6 +845,7 @@ class MemoryTable(RecycleView):
                 Line(width=2, rectangle=(dp(0), dp(0), dp(135), dp(1530)))
 
     def get_data(self):
+        """Updates data in memory table"""
         self.data_list.append('MEMORY BYTE')
         self.data_list.append('MEMORY BYTE')
         i = 0
@@ -857,6 +861,7 @@ class MemoryTable(RecycleView):
 
 
 class InstructionTable(RecycleView):
+    """Holds relevant data to Instructions table"""
     data_list = ListProperty([])
 
     def __init__(self, **kwargs):
@@ -879,12 +884,16 @@ class InstructionTable(RecycleView):
             self.size_hint_y = dp(0.265)
 
     def get_data(self, address, instruction):
+        """
+        Updates data in Instructions table
+        :param address: str
+        :param instruction: str
+        """
         if not self.data_list:
             self.data_list.append('ADDRESS')
             self.data_list.append('CONTENT')
             self.data_list.append('DISASSEMBLY')
         else:
-            inst = instruction.split()
             self.data_list.append((f'{address:02x}').upper())
             self.data_list.append(f'{RAM[address]}')
             self.data_list.append(instruction.upper())
@@ -896,6 +905,7 @@ class InstructionTable(RecycleView):
 
 
 class TextEditor(CodeInput):
+    """Application text editor for assembly code"""
 
     def __init__(self, **kwargs):
         self.dpi = kwargs.pop('dpi')
@@ -918,17 +928,25 @@ class TextEditor(CodeInput):
             }
 
     def on_text(self, instance, value):
-
+        """
+        On text change reapply syntax highlighting on keywords
+        :param instance: obj
+        :param value: str
+        """
         if not EVENTS['IS_OBJ']:
             EVENTS['EDITOR_SAVED'] = False
+
         if value:
             self.valid_text = True
             EVENTS['IS_RAM_EMPTY'] = False
-
         else:
             self.valid_text = False
 
     def load_file(self, file_path):
+        """
+        Loads file into text editor
+        :param file_path: str
+        """
         if EVENTS['IS_OBJ']:
             self.disabled = True
         else:
@@ -938,19 +956,26 @@ class TextEditor(CodeInput):
                 file.close()
             self.text = data
             EVENTS['EDITOR_SAVED'] = True
-        print(self.disabled)
 
     def clear(self):
+        """
+        Clears text in text editor
+        """
         self.text = ''
         self.valid_text = False
 
     def save(self, file_path):
+        """
+        Save contents of code editor in a file
+        :param file_path: str
+        """
         with open(file_path, 'w') as file:
             file.write(self.text)
             file.close()
 
 
 class GUI(NavigationLayout):
+    """Main layout used to display user interface"""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -968,9 +993,11 @@ class GUI(NavigationLayout):
 
 
 class SemrefApp(App):
+    """Main application"""
     theme_cls = ThemeManager()
     theme_cls.primary_palette = 'BlueGray'
     theme_cls.accent_palette = 'Orange'
 
     def build(self):
+        """Initializes app with a widget tree"""
         return GUI()
