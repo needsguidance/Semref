@@ -113,6 +113,9 @@ class Assembler:
                         self.convert_instruction_to_binary(source[1:])
                         self.p_counter += 2
                 else:
+                    if len(source) > 1 and 'db' not in source:
+                        if source[0] != source[0].lower() and source[0] != source[0].upper():
+                            raise SyntaxError("Syntax Error: Instructions written incorrectly.")
                     if is_first_inst:
                         self.p_counter = 0
                     if source[0].lower() == 'org':
