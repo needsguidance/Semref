@@ -2,29 +2,28 @@ import re
 
 from utils import OPCODE, convert_to_binary, RAM
 
-ADDRESSES = {}
-LABELS = {}
 VARIABLES = {}
 CONSTANTS = {}
 
 
-# 4 KB RAM memory that stores assembly instructions to be simulated
-# RAM = ['00000000' for i in range(4096)]
-
-
 def verify_ram_content():
+    """
+    Verifies ram is in binary format. If not will do the necessary changes to achieve this
+    """
     i = 0
     for num in range(2048):
-        if RAM[i] == 'jmprind' or RAM[i] == 'jcondrin':
+        if RAM[i] in ('jmprind', 'jcondrin'):
             opcode = OPCODE[RAM[i]]
-            ra = convert_to_binary(int(RAM[i + 1][1]), 3)
-            binary = opcode + ra + '00000000'
+            register_a = convert_to_binary(int(RAM[i + 1][1]), 3)
+            binary = opcode + register_a + '00000000'
             RAM[i] = binary[0:8]
             RAM[i + 1] = binary[8:]
-        elif RAM[i] == 'jmpaddr' or RAM[i] == 'jcondaddr' or RAM[i] == 'call':
+        elif RAM[i] in ('jmpaddr', 'jcondaddr', 'call'):
             opcode = OPCODE[RAM[i]]
-            address = f'{int(RAM[i + 1], 16):011b}' if RAM[i +
-                                                           1] not in VARIABLES else VARIABLES[RAM[i + 1]]
+            if RAM[i + 1] not in VARIABLES:
+                address = f'{int(RAM[i + 1], 16):011b}'
+            else:
+                address = VARIABLES[RAM[i + 1]]
             binary = opcode + address if len(address) == 11 else address
             RAM[i] = binary[0:8]
             RAM[i + 1] = binary[8:]
@@ -32,7 +31,10 @@ def verify_ram_content():
 
 
 def hexify_ram_content():
-    for i in range(4096):
+    """
+    Converts binary content inside of RAM to hexadecimal
+    """
+    for i in range(len(RAM)):
         RAM[i] = f'{int(RAM[i], 2):02X}'
 
 
