@@ -22,9 +22,9 @@ class MicroSim:
         super().__init__(*args, **kwargs)
         self.is_ram_loaded = False
         self.decoded_micro_instructions = []
-        self.index = 0
+        self.program_counter = 0
         self.is_running = False
-        self.prev_index = -1
+        self.prev_program_counter = -1
         self.counter = 0
         self.filename = ''
         self.error = ''
@@ -51,7 +51,7 @@ class MicroSim:
 
     def disassembled_instruction(self):
         """Disassembles executed assembly instruction"""
-        instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
+        instruction = hex_to_binary(f'{RAM[self.program_counter]}{RAM[self.program_counter + 1]}')
         opcode = get_opcode_key(instruction[0:5])
         if opcode in FORMAT_1_OPCODE:
             register_a = f'R{int(instruction[5:8], 2)}'
@@ -93,14 +93,14 @@ class MicroSim:
         if timeout != 0 and time.time() > timeout:
             self.is_running = False
             raise TimeoutError('Infinite loop detected.')
-        REGISTER['ir'] = f'{RAM[self.index]}{RAM[self.index + 1]}'
+        REGISTER['ir'] = f'{RAM[self.program_counter]}{RAM[self.program_counter + 1]}'
         binary_instruction = hex_to_binary(
-            f'{RAM[self.index]}{RAM[self.index + 1]}')
+            f'{RAM[self.program_counter]}{RAM[self.program_counter + 1]}')
         self.execute_instruction(binary_instruction)
-        if self.prev_index == self.index:
+        if self.prev_program_counter == self.program_counter:
             self.is_running = False
         else:
-            self.prev_index = self.index
+            self.prev_program_counter = self.program_counter
 
     def micro_clear(self):
         """
@@ -108,9 +108,9 @@ class MicroSim:
         """
         self.is_ram_loaded = False
         self.decoded_micro_instructions = []
-        self.index = 0
+        self.program_counter = 0
         self.is_running = False
-        self.prev_index = -1
+        self.prev_program_counter = -1
         self.counter = 0
         clear_ram()
         clear_registers()
@@ -121,10 +121,9 @@ class MicroSim:
         :param instruction: str
         """
         if re.match('^[0]+$', instruction):
-            self.prev_index = self.index
-            self.index += 2
-
-            REGISTER['pc'] = convert_to_hex(self.index, 3)
+            self.prev_program_counter = self.program_counter
+            self.program_counter += 2
+            REGISTER['pc'] = convert_to_hex(self.program_counter, 3)
         else:
             opcode = get_opcode_key(instruction[0:5])
 
@@ -175,8 +174,8 @@ class MicroSim:
                         REGISTER[rc], 16))
                     REGISTER[ra] = convert_to_hex(_rotl, 8)
                 elif opcode == 'jmprind':
-                    self.index = int(REGISTER[ra], 16) - 2
-                    REGISTER['pc'] = f'{self.index:03x}'
+                    self.program_counter = int(REGISTER[ra], 16) - 2
+                    REGISTER['pc'] = f'{self.program_counter:03x}'
                 elif opcode == 'grteq':
                     REGISTER['cond'] = str(int(int(REGISTER[ra], 16) >= int(
                         REGISTER[rb], 16)))
@@ -186,10 +185,7 @@ class MicroSim:
                 elif opcode == 'neq':
                     REGISTER['cond'] = str(int(int(REGISTER[ra], 16) != int(
                         REGISTER[rb], 16)))
-                elif opcode == 'nop':
-                    # Do nothing
-                    pass
-                self.index += 2
+                self.program_counter += 2
                 REGISTER['pc'] = convert_to_hex(
                     int(REGISTER['pc'], 16) + 2, 12)
                 if REGISTER['r0'] != '00':
@@ -229,26 +225,26 @@ class MicroSim:
                     if reg_ra != 0:
                         REGISTER['pc'] = convert_to_hex(
                             address_or_const - 2, 12)
-                        self.index = address_or_const - 2
-                        self.prev_index = self.index - 2
-                self.index += 2
+                        self.program_counter = address_or_const - 2
+                        self.prev_program_counter = self.program_counter - 2
+                self.program_counter += 2
                 REGISTER['pc'] = convert_to_hex(
                     int(REGISTER['pc'], 16) + 2, 12)
             elif opcode in FORMAT_3_OPCODE:
                 ra = f'r{int(instruction[5:8], 2)}'
                 address = int(instruction[5:], 2)
                 if opcode == 'jmpaddr':
-                    self.index = address
+                    self.program_counter = address
                     REGISTER['pc'] = convert_to_hex(address, 12)
                 elif opcode == 'jcondrin':
                     REGISTER['pc'] = REGISTER[ra] if int(REGISTER['cond']) else convert_to_hex(
                         int(REGISTER['pc'], 16) + 2,
                         12)
-                    self.index = int(REGISTER['pc'], 16)
+                    self.program_counter = int(REGISTER['pc'], 16)
                 elif opcode == 'jcondaddr':
                     REGISTER['pc'] = convert_to_hex(address, 12) if int(REGISTER['cond']) \
                         else convert_to_hex(int(REGISTER['pc'], 16) + 2, 12)
-                    self.index = int(REGISTER['pc'], 16)
+                    self.program_counter = int(REGISTER['pc'], 16)
                 elif opcode == 'call':
                     sp = int(REGISTER['sp'], 16) - 2
                     if sp < 0:
@@ -257,7 +253,7 @@ class MicroSim:
                     RAM[sp + 1] = REGISTER["pc"][1:]
                     REGISTER['sp'] = convert_to_hex(sp, 12)
                     REGISTER['pc'] = convert_to_hex(address, 12)
-                    self.index = address
+                    self.program_counter = address
             elif opcode == 'return':
                 sp = int(REGISTER['sp'], 16)
                 pc = RAM[sp][1] + RAM[sp + 1]
@@ -266,7 +262,7 @@ class MicroSim:
                 if sp >= len(RAM):
                     sp -= len(RAM)
                 REGISTER['sp'] = convert_to_hex(sp, 12)
-                self.index = int(REGISTER['pc'], 16)
+                self.program_counter = int(REGISTER['pc'], 16)
 
     def bit_not(self, n, numbits=8):
         """

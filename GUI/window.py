@@ -64,7 +64,7 @@ class RunWindow(FloatLayout):
         self.reg_table.get_data()
         self.mem_table.data_list.clear()
         self.mem_table.get_data()
-        self.inst_table.get_data(self.micro_sim.index,
+        self.inst_table.get_data(self.micro_sim.program_counter,
                                  self.micro_sim.disassembled_instruction())
         self.hex_keyboard_label = Label(text='HEX KEYBOARD',
                                         font_size=sp(20),
@@ -262,9 +262,9 @@ class MainWindow(BoxLayout):
                 for m in range(2):
                     if self.first_inst:
                         self.run_window.inst_table.data_list.clear()
-                        self.run_window.inst_table.get_data(self.micro_sim.index,
+                        self.run_window.inst_table.get_data(self.micro_sim.program_counter,
                                                             self.micro_sim.disassembled_instruction())
-                        self.run_window.inst_table.get_data(self.micro_sim.index,
+                        self.run_window.inst_table.get_data(self.micro_sim.program_counter,
                                                             self.micro_sim.disassembled_instruction())
                         self.first_inst = False
                     else:
@@ -275,7 +275,7 @@ class MainWindow(BoxLayout):
                         while self.micro_sim.is_running:
                             try:
                                 self.micro_sim.run_micro_instructions(timeout)
-                                self.run_window.inst_table.get_data(self.micro_sim.index,
+                                self.run_window.inst_table.get_data(self.micro_sim.program_counter,
                                                                     self.micro_sim.disassembled_instruction())
                             except (SystemError, TimeoutError) as e:
                                 self.micro_sim.is_running = False
@@ -306,12 +306,12 @@ class MainWindow(BoxLayout):
                 if self.micro_sim.is_ram_loaded:
                     self.step_index += 1
                     if self.first_inst:
-                        self.run_window.inst_table.get_data(self.micro_sim.index,
+                        self.run_window.inst_table.get_data(self.micro_sim.program_counter,
                                                             self.micro_sim.disassembled_instruction())
                         self.first_inst = False
                     else:
                         self.micro_sim.run_micro_instructions()
-                        self.run_window.inst_table.get_data(self.micro_sim.index,
+                        self.run_window.inst_table.get_data(self.micro_sim.program_counter,
                                                             self.micro_sim.disassembled_instruction())
 
                     toast(
@@ -397,7 +397,7 @@ class MainWindow(BoxLayout):
             self.run_window.mem_table.data_list.clear()
             self.run_window.mem_table.get_data()
             self.run_window.inst_table.data_list.clear()
-            self.run_window.inst_table.get_data(self.micro_sim.index,
+            self.run_window.inst_table.get_data(self.micro_sim.program_counter,
                                                 self.micro_sim.disassembled_instruction())
             self.first_inst = True
 
@@ -424,7 +424,7 @@ class MainWindow(BoxLayout):
         self.run_window.mem_table.data_list.clear()
         self.run_window.mem_table.get_data()
         self.run_window.inst_table.data_list.clear()
-        self.run_window.inst_table.get_data(self.micro_sim.index,
+        self.run_window.inst_table.get_data(self.micro_sim.program_counter,
                                             self.micro_sim.disassembled_instruction())
         self.first_inst = True
 
