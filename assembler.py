@@ -1,6 +1,6 @@
 import re
 
-from utils import OPCODE, convert_to_binary, RAM
+from utils import OPCODE, convert_to_binary, RAM, is_valid_file
 
 VARIABLES = {}
 CONSTANTS = {}
@@ -39,16 +39,22 @@ def hexify_ram_content():
 
 
 class Assembler:
+    """Assembles assembly code"""
 
     def __init__(self, **kwargs):
         self.micro_instr = []  # Microprocessor instruction.
         self.p_counter = 0  # Program Counter.
         self.filename = kwargs.pop('filename', None)
 
-    def read_source(self, filename=None):
-        if filename:
-            self.filename = filename
-        if not self.is_valid_source():
+    def read_source(self, filepath=None):
+        """
+        Reads source code and stores instructions a list
+        :param filepath: obj
+        """
+        if filepath:
+            self.filename = filepath
+        is_valid, file_ext = is_valid_file(self.filename)
+        if not is_valid and file_ext != 'asm':
             raise AssertionError(
                 f'Unsupported file type [{self.filename}]. Only accepting files ending in .asm')
         source = open(self.filename, 'r')
@@ -92,9 +98,6 @@ class Assembler:
             file.close()
             raise AssertionError(
                 f'Indentation Error: Line {index + 1}: lines under label must be indented.')
-
-    def is_valid_source(self):
-        return re.match(r'^.+\.asm$', self.filename)
 
     def is_indented(self, line):
         return line.startswith("    ") and not line[4].startswith(" ")
