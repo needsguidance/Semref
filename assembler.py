@@ -60,7 +60,8 @@ class Assembler:
         for i in range(1, len(lines)):
             if lines[i] != '\n':
                 self.verify_indentation(lines[i], i, source)
-                self.compare_indentation_between_lines(lines[i - 1], lines[i], i, source)
+                self.compare_indentation_between_lines(
+                    lines[i - 1], lines[i], i, source)
                 self.micro_instr.append(lines[i].strip())
         lines.clear()
         source.close()
@@ -68,10 +69,12 @@ class Assembler:
     def verify_indentation(self, line, index, file):
         if index == 0 and self.is_indented(line):
             file.close()
-            raise AssertionError('Indentation Error: the first line cannot be indented.')
+            raise AssertionError(
+                'Indentation Error: the first line cannot be indented.')
         if "\t" in line:
             file.close()
-            raise AssertionError(f'Indentation error: Line {index + 1}: Tab detected.')
+            raise AssertionError(
+                f'Indentation error: Line {index + 1}: Tab detected.')
         if not self.is_indented(line) and line.startswith(" ") and not line.isspace():
             file.close()
             raise AssertionError(f'Indentation error: Line {index + 1}: Ensure that '
@@ -85,10 +88,12 @@ class Assembler:
         if self.is_indented(line2) and ((not self.is_indented(line1) and ":" not in line1)
                                         or line1.isspace() or line1 == '\n'):
             file.close()
-            raise AssertionError(f'Indentation Error: Verify lines {index} and {index + 1}')
+            raise AssertionError(
+                f'Indentation Error: Verify lines {index} and {index + 1}')
         if not self.is_indented(line2) and ":" in line1:
             file.close()
-            raise AssertionError(f'Indentation Error: Line {index + 1}: lines under label must be indented.')
+            raise AssertionError(
+                f'Indentation Error: Line {index + 1}: lines under label must be indented.')
 
     def is_valid_source(self):
         return re.match(r'^.+\.asm$', self.filename)
@@ -115,7 +120,8 @@ class Assembler:
                 else:
                     if len(source) > 1 and 'db' not in source:
                         if source[0] != source[0].lower() and source[0] != source[0].upper():
-                            raise SyntaxError("Syntax Error: Instructions written incorrectly.")
+                            raise SyntaxError(
+                                "Syntax Error: Instructions written incorrectly.")
                     if is_first_inst:
                         self.p_counter = 0
                     if source[0].lower() == 'org':
