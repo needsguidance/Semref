@@ -36,7 +36,7 @@ from lexer import SemrefLexer
 from microprocessor_simulator import RAM, MicroSim
 from utils import (ASCII_TABLE, EVENTS, HEX_KEYBOARD, REGISTER,
                    SEVEN_SEGMENT_DISPLAY, TRAFFIC_LIGHT, is_valid_port,
-                   update_indicators, update_reserved_ports)
+                   update_indicators, update_reserved_ports, hex_to_binary)
 
 
 class DataWindow(FloatLayout):
@@ -78,6 +78,8 @@ class DataWindow(FloatLayout):
 
         self.event_io = Clock.create_trigger(self.update_io)
         self.event_data_tables = Clock.create_trigger(self.update_data_tables)
+        self.inst_table.get_data(self.micro_sim.index,
+                                 self.micro_sim.disassembled_instruction())
         self.event_data_tables()
 
         # Since the instancing of the events actually starts the scheduling, needs to be canceled right away
@@ -143,9 +145,9 @@ class DataWindow(FloatLayout):
         Updates IO devices on run/debug events
         :param dt: float
         """
-        self.light.change_color(self.micro_sim.traffic_lights_binary())
+        self.light.change_color(hex_to_binary(f'{RAM[TRAFFIC_LIGHT["port"]]}'))
         self.seven_segment_display.activate_segments(
-            self.micro_sim.seven_segment_binary())
+            hex_to_binary(f'{RAM[SEVEN_SEGMENT_DISPLAY["port"]]}'))
         self.ascii.update_ascii_grid()
 
     def update_data_tables(self, dt):
@@ -283,8 +285,7 @@ class MainWindow(BoxLayout):
                 self.load_micro_sim_ram(EVENTS['FILE_PATH'])
             else:
                 self.assembler()
-                
-            self.micro_sim.is_running = True
+
             if mode == 'run':
                 self.run_micro_instructions(toast_message)
             else:
@@ -297,6 +298,7 @@ class MainWindow(BoxLayout):
         Runs micro instructions from start to finish
         :param toast_message: str
         """
+        self.micro_sim.is_running = True
         if self.micro_sim.is_ram_loaded:
             self.run_window.inst_table.get_data(self.micro_sim.index,
                                                 self.micro_sim.disassembled_instruction())
@@ -325,12 +327,12 @@ class MainWindow(BoxLayout):
         if self.micro_sim.is_ram_loaded:
             self.step_index += 1
         if self.first_inst:
+            self.micro_sim.is_running = True
             self.run_window.inst_table.get_data(self.micro_sim.index,
                                                 self.micro_sim.disassembled_instruction())
             self.first_inst = False
         elif self.micro_sim.is_running:
-            self.micro_sim.run_micro_instructions_step(
-                self.step_index)
+            self.micro_sim.run_micro_instructions()
             self.run_window.inst_table.get_data(self.micro_sim.index,
                                                 self.micro_sim.disassembled_instruction())
             toast(
@@ -448,18 +450,15 @@ class MainWindow(BoxLayout):
         self.step_index = 0
         clear_ram()
         self.micro_sim.micro_clear()
-        self.run_window.reg_table.data_list.clear()
         self.run_window.inst_table.data_list.clear()
 
         self.run_window.inst_table.get_data(self.micro_sim.index,
                                             self.micro_sim.disassembled_instruction())
-        self.run_window.event_data_tables()
-
         self.first_inst = True
 
         self.run_window.blinking_on.cancel()
         self.run_window.blinking_off.cancel()
-
+        self.run_window.event_data_tables()
         self.run_window.event_io()
 
     def open_reg_mem_save_dialog(self, instance):
@@ -780,29 +779,25 @@ class RegisterTable(RecycleView):
             self.data_list.append(k)
             self.data_list.append(v)
 
-        i = 0
-        for j in range(int(len(self.data_list) / 2)):
-            if _data_list and len(_data_list) > 2 and _data_list[i] == self.data_list[i] and _data_list[i + 1] != \
-                    self.data_list[i + 1]:
-                _data.append({
-                    'text': self.data_list[i].upper(),
-                    'color': (1, 0, 0, 1)
-                })
-                _data.append({
-                    'text': self.data_list[i + 1].upper(),
-                    'color': (1, 0, 0, 1)
-                })
-            else:
-                _data.append({
-                    'text': self.data_list[i].upper(),
+        if not self.data:
+            for item in self.data_list:
+                self.data.append({
+                    'text': item.upper(),
                     'color': (.1, .1, .1, 1)
                 })
-                _data.append({
-                    'text': self.data_list[i + 1].upper(),
-                    'color': (.1, .1, .1, 1)
-                })
-            i += 2
-        self.data = _data
+        else:
+            i = 0
+            while i < len(self.data):
+                if self.data[i]['text'] == self.data_list[i].upper() \
+                        and self.data[i + 1]['text'] != self.data_list[i + 1]:
+                        self.data[i]['color'] = (1, 0, 0, 1)
+                        self.data[i + 1]['text'] = self.data_list[i + 1]
+                        self.data[i + 1]['color'] = (1, 0, 0, 1)
+                else:
+                    self.data[i]['color'] = (.1, .1, .1, 1)
+                    self.data[i + 1]['color'] = (.1, .1, .1, 1)
+                i += 2
+            self.refresh_from_data()
 
 
 class MemoryTable(RecycleView):
