@@ -283,7 +283,8 @@ class MainWindow(BoxLayout):
                 self.load_micro_sim_ram(EVENTS['FILE_PATH'])
             else:
                 self.assembler()
-
+                
+            self.micro_sim.is_running = True
             if mode == 'run':
                 self.run_micro_instructions(toast_message)
             else:

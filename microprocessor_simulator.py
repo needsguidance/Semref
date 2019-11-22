@@ -9,6 +9,9 @@ RAM = ['00' for i in range(4096)]
 
 
 def get_opcode_key(val):
+    """
+    Gets the opcode for the given value
+    """
     for key, value in OPCODE.items():
         if val == value:
             return key
@@ -16,19 +19,24 @@ def get_opcode_key(val):
 
 
 class MicroSim:
+    """Microprocessor simulator"""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.is_ram_loaded = False
         self.decoded_micro_instructions = []
         self.index = 0
-        self.is_running = True
+        self.is_running = False
         self.prev_index = -1
         self.counter = 0
         self.filename = ''
         self.error = ''
 
     def read_obj_file(self, filename):
+        """
+        Reads obj file and stores content in RAM
+        :param filename: str
+        """
         if not self.is_valid_source(filename):
             raise AssertionError(
                 f"Unsupported file '{filename}'. Microprocesor simulator files must be of type 'obj'")
