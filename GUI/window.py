@@ -29,7 +29,7 @@ from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
 
 from GUI.IO.devices import (ASCIIGrid, HexKeyboard, SevenSegmentDisplay,
                             TrafficLights)
-from assembler import (Assembler, clear_ram, hexify_ram_content,
+from assembler import (Assembler, hexify_ram_content,
                        verify_ram_content)
 from assembler import RAM as RAM_ASSEMBLER
 from lexer import SemrefLexer
@@ -37,7 +37,7 @@ from microprocessor_simulator import MicroSim
 from utils import (ASCII_TABLE, EVENTS, HEX_KEYBOARD, REGISTER,
                    SEVEN_SEGMENT_DISPLAY, TRAFFIC_LIGHT, is_valid_port,
                    update_indicators, update_reserved_ports, RAM, seven_segment_binary,
-                   traffic_lights_binary)
+                   traffic_lights_binary, clear_ram)
 
 FILE_PATH = ''
 CAN_WRITE = False
@@ -386,7 +386,6 @@ class MainWindow(BoxLayout):
             toast('There is nothing to clear')
         else:
             self.step_index = 0
-            clear_ram()
             FILE_PATH = ''
             LOADED_FILE = False
             self.run_window.editor.clear()

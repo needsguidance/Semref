@@ -1,14 +1,8 @@
 import time
 
 from assembler import Assembler, verify_ram_content, hexify_ram_content
-from assembler import RAM as ASSEMBLER_RAM
-from microprocessor_simulator import RAM as SIM_RAM
-
-
-def clear_ram():
-    for i in range(4096):
-        ASSEMBLER_RAM[i] = '00000000'
-        SIM_RAM[i] = '00'
+from microprocessor_simulator import RAM
+from utils import clear_ram
 
 
 def assert_ram_content(tester, content, RAM):
@@ -34,16 +28,14 @@ def verify_ram_content_helper(tester, instance):
         instance.store_instructions_in_ram()
 
         verify_ram_content()
-        assert_ram_content(tester, tester.binary_content, ASSEMBLER_RAM)
-
         hexify_ram_content()
-        assert_ram_content(tester, tester.hex_content, ASSEMBLER_RAM)
+        assert_ram_content(tester, tester.hex_content, RAM)
     else:
         instance.read_obj_file(filename)
         instance.is_running = True
         timeout = time.time() + 5
         while instance.is_running:
             instance.run_micro_instructions(timeout)
-        assert_ram_content(tester, tester.ram_content, SIM_RAM)
+        assert_ram_content(tester, tester.ram_content, RAM)
         instance.program_counter = 0
         instance.prev_program_counter = -1

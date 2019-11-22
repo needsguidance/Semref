@@ -68,13 +68,13 @@ class AssemblerTestCase(TestCase):
             ]
         else:
             return_values = [
-            'input/test.asm',
-            'input/test3.asm',
-            'input/test7.asm',
-            'input/test8.asm',
-            'input/test9.asm',
-            'input/test10.asm'
-        ]
+                'input/test.asm',
+                'input/test3.asm',
+                'input/test7.asm',
+                'input/test8.asm',
+                'input/test9.asm',
+                'input/test10.asm'
+            ]
         with mock.patch('builtins.input', return_value=return_values[0]):
             self.binary_content = [
                 ('1010100000000110', 0),  # JMPADDR start

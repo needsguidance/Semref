@@ -1,19 +1,15 @@
 import re
 
-from utils import OPCODE, convert_to_binary
+from utils import OPCODE, convert_to_binary, RAM
 
 ADDRESSES = {}
 LABELS = {}
 VARIABLES = {}
 CONSTANTS = {}
 
+
 # 4 KB RAM memory that stores assembly instructions to be simulated
-RAM = ['00000000' for i in range(4096)]
-
-
-def clear_ram():
-    for i in range(len(RAM)):
-        RAM[i] = '00000000'
+# RAM = ['00000000' for i in range(4096)]
 
 
 def verify_ram_content():
