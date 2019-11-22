@@ -3,7 +3,7 @@ import time
 
 from utils import (FORMAT_1_OPCODE, FORMAT_2_OPCODE, FORMAT_3_OPCODE, OPCODE,
                    REGISTER, SEVEN_SEGMENT_DISPLAY, TRAFFIC_LIGHT,
-                   clear_registers, convert_to_hex, hex_to_binary, RAM, load_ram)
+                   clear_registers, convert_to_hex, hex_to_binary, RAM, load_ram, is_valid_file)
 
 
 def get_opcode_key(val):
@@ -35,9 +35,11 @@ class MicroSim:
         Reads obj file and stores content in RAM
         :param filename: str
         """
-        if not self.is_valid_source(filename):
+        is_valid, file_ext = is_valid_file(filename)
+        if not is_valid and file_ext != 'obj':
             raise AssertionError(
-                f"Unsupported file '{filename}'. Microprocesor simulator files must be of type 'obj'")
+                f"Unsupported file '{filename}'. "
+                f"Microprocesor simulator files must be of type 'obj'")
         self.filename = filename
 
         file = open(filename, 'r')
@@ -48,19 +50,11 @@ class MicroSim:
         lines.clear()
         file.close()
 
-    def is_valid_source(self, filename):
-        """
-        Validates file is of type .obj
-        :param filename: str
-        """
-        return re.match(r'^.+\.obj$', filename)
-
     def disassembled_instruction(self):
         """Disassembles executed assembly instruction"""
         instruction = hex_to_binary(f'{RAM[self.index]}{RAM[self.index + 1]}')
 
         opcode = get_opcode_key(instruction[0:5])
-        dis_instruction = ''
 
         if opcode in FORMAT_1_OPCODE:
 
@@ -72,8 +66,9 @@ class MicroSim:
                 dis_instruction = f'{opcode}'
             elif opcode == 'jmprind':
                 dis_instruction = f'{opcode} {ra}'
-            elif opcode == 'loadrind' or opcode == 'storerind' or opcode == 'not' or opcode == 'neg' or \
-                    opcode == 'grt' or opcode == 'grteq' or opcode == 'eq' or opcode == 'neq':
+            elif opcode == 'loadrind' or opcode == 'storerind' or opcode == 'not' or \
+                    opcode == 'neg' or opcode == 'grt' or opcode == 'grteq' or \
+                    opcode == 'eq' or opcode == 'neq':
                 dis_instruction = f'{opcode} {ra}, {rb}'
             else:
                 dis_instruction = f'{opcode} {ra}, {rb}, {rc}'
@@ -280,8 +275,8 @@ class MicroSim:
                         12)
                     self.index = int(REGISTER['pc'], 16)
                 elif opcode == 'jcondaddr':
-                    REGISTER['pc'] = convert_to_hex(address, 12) if int(REGISTER['cond']) else convert_to_hex(
-                        int(REGISTER['pc'], 16) + 2, 12)
+                    REGISTER['pc'] = convert_to_hex(address, 12) if int(REGISTER['cond']) \
+                        else convert_to_hex(int(REGISTER['pc'], 16) + 2, 12)
                     self.index = int(REGISTER['pc'], 16)
                 elif opcode == 'call':
                     sp = int(REGISTER['sp'], 16) - 2

@@ -1,3 +1,6 @@
+import re
+
+
 def convert_to_hex(num, bits):
     """
     Converts number to hexadecimal
@@ -110,6 +113,14 @@ def load_ram(data):
         RAM[i] = hex_instruction[0:2]
         RAM[i + 1] = hex_instruction[2:]
         i += 2
+
+
+def is_valid_file(filename):
+    """
+    Validates file is of type obj
+    :param filename: str
+    """
+    return re.match(r'^.+\.?(obj|asm)$', filename) is not None, filename[-3:]
 
 
 RAM = ['00' for i in range(4096)]
