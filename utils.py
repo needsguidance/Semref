@@ -98,6 +98,8 @@ def clear_registers():
         REGISTER[key] = value
 
 
+RAM = ['00' for i in range(4096)]
+
 # OPCODE initialization list.
 OPCODE = {
     'load': f'{0:05b}',

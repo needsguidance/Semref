@@ -12,14 +12,10 @@ from kivy.properties import ListProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.codeinput import CodeInput
 from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.modalview import ModalView
 from kivy.uix.popup import Popup
 from kivy.uix.recycleview import RecycleView
-from kivy.uix.widget import Widget
-from kivy.utils import get_color_from_hex
-from kivymd.color_definitions import colors
 from kivymd.theming import ThemeManager
 from kivymd.toast import toast
 from kivymd.uix.button import MDFillRoundFlatIconButton, MDIconButton
@@ -31,16 +27,16 @@ from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
                                          NavigationDrawerSubheader,
                                          NavigationLayout)
 
-from assembler import RAM as RAM_ASSEMBLER
-from assembler import (Assembler, clear_ram, hexify_ram_content,
-                       verify_ram_content)
 from GUI.IO.devices import (ASCIIGrid, HexKeyboard, SevenSegmentDisplay,
                             TrafficLights)
+from assembler import (Assembler, clear_ram, hexify_ram_content,
+                       verify_ram_content)
+from assembler import RAM as RAM_ASSEMBLER
 from lexer import SemrefLexer
-from microprocessor_simulator import RAM, MicroSim
+from microprocessor_simulator import MicroSim
 from utils import (ASCII_TABLE, EVENTS, HEX_KEYBOARD, REGISTER,
                    SEVEN_SEGMENT_DISPLAY, TRAFFIC_LIGHT, is_valid_port,
-                   update_indicators, update_reserved_ports)
+                   update_indicators, update_reserved_ports, RAM)
 
 FILE_PATH = ''
 CAN_WRITE = False

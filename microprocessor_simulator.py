@@ -3,9 +3,7 @@ import time
 
 from utils import (FORMAT_1_OPCODE, FORMAT_2_OPCODE, FORMAT_3_OPCODE, OPCODE,
                    REGISTER, SEVEN_SEGMENT_DISPLAY, TRAFFIC_LIGHT,
-                   clear_registers, convert_to_hex, hex_to_binary)
-
-RAM = ['00' for i in range(4096)]
+                   clear_registers, convert_to_hex, hex_to_binary, RAM)
 
 
 def get_opcode_key(val):
