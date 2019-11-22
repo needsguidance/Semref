@@ -581,22 +581,22 @@ class NavDrawer(MDNavigationDrawer):
                                                    text='Load File',
                                                    on_release=self.file_manager_open))
         self.traffic_lights = NavigationDrawerIconButton(icon='traffic-light',
-                                                   text=TRAFFIC_LIGHT['menu_title'] + '. Current Port: ' + str(
-                                                       TRAFFIC_LIGHT['port']),
-                                                   on_release=self.io_config_open)
-        
+                                                         text=TRAFFIC_LIGHT['menu_title'] + '. Current Port: ' + str(
+                                                             TRAFFIC_LIGHT['port']),
+                                                         on_release=self.io_config_open)
+
         self.seven_segment = NavigationDrawerIconButton(icon='numeric-7-box-multiple',
-                                                   text=SEVEN_SEGMENT_DISPLAY['menu_title'] + '. Current Port: ' + str(
-                                                       SEVEN_SEGMENT_DISPLAY['port']),
-                                                   on_release=self.io_config_open)
+                                                        text=SEVEN_SEGMENT_DISPLAY['menu_title'] + '. Current Port: ' + str(
+                                                            SEVEN_SEGMENT_DISPLAY['port']),
+                                                        on_release=self.io_config_open)
         self.ascii_table = NavigationDrawerIconButton(icon='alphabetical-variant',
-                                                   text=ASCII_TABLE['menu_title'] + '. Current Port: ' + str(
-                                                       ASCII_TABLE['port']),
-                                                   on_release=self.io_config_open)
+                                                      text=ASCII_TABLE['menu_title'] + '. Current Port: ' + str(
+                                                          ASCII_TABLE['port']),
+                                                      on_release=self.io_config_open)
         self.hex_keyboard = NavigationDrawerIconButton(icon='keyboard',
-                                                   text=HEX_KEYBOARD['menu_title'] + '. Current Port: ' + str(
-                                                       HEX_KEYBOARD['port']),
-                                                   on_release=self.io_config_open)
+                                                       text=HEX_KEYBOARD['menu_title'] + '. Current Port: ' + str(
+                                                           HEX_KEYBOARD['port']),
+                                                       on_release=self.io_config_open)
 
         self.add_widget(self.traffic_lights)
         self.add_widget(self.seven_segment)
@@ -624,27 +624,27 @@ class NavDrawer(MDNavigationDrawer):
             title = args[1].title
             text = args[1].text_field.text
             if text.isdigit():
-                
+
                 port = int(text)
                 if port < 0 or port > 4095:
                     toast('Invalid port number. Valid port numbers [0-4095]')
                 else:
                     if is_valid_port(port):
-                        
+
                         if TRAFFIC_LIGHT['menu_title'] in title:
-                            
+
                             update_reserved_ports(TRAFFIC_LIGHT,
                                                   TRAFFIC_LIGHT['port'],
                                                   port)
                             self.traffic_lights.text = TRAFFIC_LIGHT['menu_title'] + '. Current Port: ' + str(
-                                                       TRAFFIC_LIGHT['port'])
+                                TRAFFIC_LIGHT['port'])
                             toast_message = f'Changed Traffic Light I/O port number to {port}'
                         elif SEVEN_SEGMENT_DISPLAY['menu_title'] in title:
                             update_reserved_ports(SEVEN_SEGMENT_DISPLAY,
                                                   SEVEN_SEGMENT_DISPLAY['port'],
                                                   port)
                             self.seven_segment.text = SEVEN_SEGMENT_DISPLAY['menu_title'] + '. Current Port: ' + str(
-                                                       SEVEN_SEGMENT_DISPLAY['port'])
+                                SEVEN_SEGMENT_DISPLAY['port'])
                             toast_message = f'Changed Seven Segment I/O port number to {port}'
                         elif ASCII_TABLE['menu_title'] in title:
                             if port > 4088:
@@ -655,7 +655,7 @@ class NavDrawer(MDNavigationDrawer):
                                                           ASCII_TABLE['port'],
                                                           port, True)
                                     self.ascii_table.text = ASCII_TABLE['menu_title'] + '. Current Port: ' + str(
-                                                       ASCII_TABLE['port'])
+                                        ASCII_TABLE['port'])
                                     toast_message = f'Changed ASCII Table I/O port number to {port}'
                                 except MemoryError as e:
                                     toast_message = str(e)
@@ -664,7 +664,7 @@ class NavDrawer(MDNavigationDrawer):
                                                   HEX_KEYBOARD['port'],
                                                   port)
                             self.hex_keyboard.text = HEX_KEYBOARD['menu_title'] + '. Current Port: ' + str(
-                                                       HEX_KEYBOARD['port'])
+                                HEX_KEYBOARD['port'])
                             toast_message = f'Changed HEX Keyboard I/O port number to {port}'
                         toast(toast_message)
                     else:
@@ -934,7 +934,6 @@ class TextEditor(CodeInput):
                 file.close()
             self.text = data
             EDITOR_SAVED = True
-        print(self.disabled)
 
     def clear(self):
         self.text = ''
