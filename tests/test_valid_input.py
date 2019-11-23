@@ -2,7 +2,7 @@ import unittest
 
 import mock
 
-from assembler import Assembler, verify_ram_content, RAM, hexify_ram_content, clear_ram
+from assembler import Assembler
 from microprocessor_simulator import MicroSim
 
 

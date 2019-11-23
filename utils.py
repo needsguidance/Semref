@@ -1,3 +1,6 @@
+import re
+
+
 def convert_to_hex(num, bits):
     """
     Converts number to hexadecimal
@@ -45,7 +48,6 @@ def is_valid_port(port):
 def update_reserved_ports(device, port_to_remove, port_to_add, reserve_block=False):
     """
     Update RESERVED_PORTS List.
-    
     :param reserve_block: bool
     :param device: dict
     :param port_to_remove: int
@@ -73,7 +75,7 @@ def update_indicators(instance, is_file_loaded):
     """
     This method manage Loaded/NotLoaded File indicators using a condition.
     :param instance: obj
-    :param is_ram_loaded: bool
+    :param is_file_loaded: bool
     """
     if is_file_loaded:
         instance.remove_widget(instance.not_loaded_file)
@@ -87,16 +89,69 @@ def update_indicators(instance, is_file_loaded):
 
 
 def clear_registers():
+    """
+    Sets register values to 0
+    """
     value = '00'
-    for key in REGISTER.keys():
+    for key in REGISTER:
         if key == 'cond':
             value = '0'
-        elif key == 'pc' or key == 'sp':
+        elif key in ('pc', 'sp'):
             value = '000'
         elif key == 'ir':
             value = '0000'
         REGISTER[key] = value
 
+
+def load_ram(data):
+    """
+    Loads data into RAM
+    :param data: list
+    """
+    i = 0
+    for item in data:
+        item.strip()
+        hex_instruction = ''.join(item.split())
+        RAM[i] = hex_instruction[0:2]
+        RAM[i + 1] = hex_instruction[2:]
+        i += 2
+
+
+def is_valid_file(filename):
+    """
+    Validates file is of type obj
+    :param filename: str
+    """
+    return re.match(r'^.+\.?(obj|asm)$', filename) is not None, filename[-3:]
+
+
+def traffic_lights_binary():
+    """
+    Gets traffic lights binary representation from RAM
+    :return: str
+    """
+    return hex_to_binary(f'{RAM[TRAFFIC_LIGHT["port"]]}')
+
+
+def seven_segment_binary():
+    """
+    Gets seven segment display binary representation from RAM
+    :return: str
+    """
+    return hex_to_binary(f'{RAM[SEVEN_SEGMENT_DISPLAY["port"]]}')
+
+
+def clear_ram():
+    """
+    Sets ram values to 0
+    """
+    i = 0
+    while i < len(RAM):
+        RAM[i] = '00'
+        i += 1
+
+
+RAM = ['00' for i in range(4096)]
 
 # OPCODE initialization list.
 OPCODE = {
@@ -226,5 +281,10 @@ RESERVED_PORTS = [
 ]
 
 EVENTS = {
-    'IS_RAM_EMPTY': True
+    'IS_RAM_EMPTY': True,
+    'FILE_PATH': '',
+    'CAN_WRITE': False,
+    'LOADED_FILE': False,
+    'EDITOR_SAVED': False,
+    'IS_OBJ': False
 }

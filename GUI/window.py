@@ -12,14 +12,10 @@ from kivy.properties import ListProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.codeinput import CodeInput
 from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.modalview import ModalView
 from kivy.uix.popup import Popup
 from kivy.uix.recycleview import RecycleView
-from kivy.uix.widget import Widget
-from kivy.utils import get_color_from_hex
-from kivymd.color_definitions import colors
 from kivymd.theming import ThemeManager
 from kivymd.toast import toast
 from kivymd.uix.button import MDFillRoundFlatIconButton, MDIconButton
@@ -31,22 +27,16 @@ from kivymd.uix.navigationdrawer import (MDNavigationDrawer, MDToolbar,
                                          NavigationDrawerSubheader,
                                          NavigationLayout)
 
-from assembler import RAM as RAM_ASSEMBLER
-from assembler import (Assembler, clear_ram, hexify_ram_content,
-                       verify_ram_content)
 from GUI.IO.devices import (ASCIIGrid, HexKeyboard, SevenSegmentDisplay,
                             TrafficLights)
+from assembler import (Assembler, hexify_ram_content,
+                       verify_ram_content)
 from lexer import SemrefLexer
-from microprocessor_simulator import RAM, MicroSim
+from microprocessor_simulator import MicroSim
 from utils import (ASCII_TABLE, EVENTS, HEX_KEYBOARD, REGISTER,
                    SEVEN_SEGMENT_DISPLAY, TRAFFIC_LIGHT, is_valid_port,
-                   update_indicators, update_reserved_ports)
-
-FILE_PATH = ''
-CAN_WRITE = False
-LOADED_FILE = False
-EDITOR_SAVED = False
-IS_OBJ = False
+                   update_indicators, update_reserved_ports, RAM, seven_segment_binary,
+                   traffic_lights_binary, clear_ram)
 
 
 class RunWindow(FloatLayout):
@@ -67,7 +57,7 @@ class RunWindow(FloatLayout):
         self.reg_table.get_data()
         self.mem_table.data_list.clear()
         self.mem_table.get_data()
-        self.inst_table.get_data(self.micro_sim.index,
+        self.inst_table.get_data(self.micro_sim.program_counter,
                                  self.micro_sim.disassembled_instruction())
         self.hex_keyboard_label = Label(text='HEX KEYBOARD',
                                         font_size=sp(20),
@@ -129,22 +119,33 @@ class RunWindow(FloatLayout):
         self.add_widget(self.ascii)
 
     def check_loader(self, dt):
-        global FILE_PATH, CAN_WRITE
-        if FILE_PATH and CAN_WRITE:
-            self.editor.load_file(FILE_PATH)
-            CAN_WRITE = False
+        """
+        Checks if a file is loaded
+        :param dt: float
+        """
+        if EVENTS['FILE_PATH'] and EVENTS['CAN_WRITE']:
+            self.editor.load_file(EVENTS['FILE_PATH'])
+            EVENTS['CAN_WRITE'] = False
 
     def open_keyboard(self, instance):
+        """
+        Opens dialog box with hex keyboard
+        :param instance: obj
+        """
         self.popup.open()
 
     def update_io(self, dt):
-        self.light.change_color(self.micro_sim.traffic_lights_binary())
-        self.seven_segment_display.activate_segments(
-            self.micro_sim.seven_segment_binary())
+        """
+        Updates IO devices on run/debug events
+        :param dt: float
+        """
+        self.light.change_color(traffic_lights_binary())
+        self.seven_segment_display.activate_segments(seven_segment_binary())
         self.ascii.update_ascii_grid()
 
 
 class MainWindow(BoxLayout):
+    """Contains navbar buttons and DataWindow to display UI"""
 
     def __init__(self, **kwargs):
         self.nav_drawer = kwargs.pop('nav_drawer')
@@ -249,33 +250,31 @@ class MainWindow(BoxLayout):
         self.add_widget(self.not_loaded_file)
 
     def run_micro_instructions(self, instance):
-        global LOADED_FILE, FILE_PATH, EDITOR_SAVED, IS_OBJ
+        """
+        Runs micro instructions from start to finish
+        :param instance: obj
+        """
         toast_message = 'File executed successfully'
-        if not self.run_window.editor.valid_text and not IS_OBJ:
+        if not self.run_window.editor.valid_text and not EVENTS['IS_OBJ']:
             toast("Invalid code. Load file to run or write valid code in editor")
-        elif EDITOR_SAVED:
+        elif EVENTS['EDITOR_SAVED']:
             self.clear_run()
             # If file is an .obj file, runs simulator
-            if FILE_PATH.endswith('.obj'):
-                self.run_micro_sim(FILE_PATH)
+            if EVENTS['FILE_PATH'].endswith('.obj'):
+                self.run_micro_sim(EVENTS['FILE_PATH'])
             else:
                 self.assembler()
-
+            self.micro_sim.is_running = True
             if self.micro_sim.is_ram_loaded:
-                # TODO: Change this to a while loop
                 for m in range(2):
                     if self.first_inst:
                         self.run_window.inst_table.data_list.clear()
-                        self.run_window.inst_table.get_data(self.micro_sim.index,
+                        self.run_window.inst_table.get_data(self.micro_sim.program_counter,
                                                             self.micro_sim.disassembled_instruction())
-                        self.run_window.inst_table.get_data(self.micro_sim.index,
+                        self.run_window.inst_table.get_data(self.micro_sim.program_counter,
                                                             self.micro_sim.disassembled_instruction())
                         self.first_inst = False
                     else:
-                        self.micro_sim.prev_index = -1
-                        self.run_window.blinking_on.cancel()
-                        self.run_window.blinking_off.cancel()
-
                         self.run_window.blinking_on()
                         self.run_window.blinking_off()
 
@@ -283,13 +282,8 @@ class MainWindow(BoxLayout):
                         while self.micro_sim.is_running:
                             try:
                                 self.micro_sim.run_micro_instructions(timeout)
-                                self.run_window.inst_table.get_data(self.micro_sim.index,
+                                self.run_window.inst_table.get_data(self.micro_sim.program_counter,
                                                                     self.micro_sim.disassembled_instruction())
-
-                                if self.micro_sim.prev_index == self.micro_sim.index:
-                                    self.micro_sim.is_running = False
-                                else:
-                                    self.micro_sim.prev_index = self.micro_sim.index
                             except (SystemError, TimeoutError) as e:
                                 self.micro_sim.is_running = False
                                 toast_message = f'Error! {e}'
@@ -302,13 +296,12 @@ class MainWindow(BoxLayout):
             toast('Please save changes on editor before running')
 
     def run_micro_instructions_step(self, instance):
-        global LOADED_FILE, FILE_PATH, EDITOR_SAVED, IS_OBJ
-        if not self.run_window.editor.valid_text and not IS_OBJ:
+        if not self.run_window.editor.valid_text and not EVENTS['IS_OBJ']:
             toast("Invalid code. Load file to run or write valid code in editor")
-        elif EDITOR_SAVED:
+        elif EVENTS['EDITOR_SAVED']:
             # If file is an .obj file, runs simulator
-            if FILE_PATH.endswith('.obj'):
-                self.run_micro_sim(FILE_PATH)
+            if EVENTS['FILE_PATH'].endswith('.obj'):
+                self.run_micro_sim(EVENTS['FILE_PATH'])
             else:
                 self.assembler()
 
@@ -319,17 +312,16 @@ class MainWindow(BoxLayout):
                 if self.micro_sim.is_ram_loaded:
                     self.step_index += 1
                     if self.first_inst:
-                        self.run_window.inst_table.get_data(self.micro_sim.index,
+                        self.run_window.inst_table.get_data(self.micro_sim.program_counter,
                                                             self.micro_sim.disassembled_instruction())
                         self.first_inst = False
                     else:
-                        self.micro_sim.run_micro_instructions_step(
-                            self.step_index)
-                        self.run_window.inst_table.get_data(self.micro_sim.index,
+                        self.micro_sim.run_micro_instructions()
+                        self.run_window.inst_table.get_data(self.micro_sim.program_counter,
                                                             self.micro_sim.disassembled_instruction())
 
                     toast(
-                        f'Runnin instruction in step-by-step mode. Step {self.step_index} is running')
+                        f'Running instruction in step-by-step mode. Step {self.step_index} is running')
                     self.run_window.reg_table.get_data()
                     self.run_window.mem_table.data_list.clear()
                     self.run_window.mem_table.get_data()
@@ -342,9 +334,9 @@ class MainWindow(BoxLayout):
         # Obtains last name on path string using ntpath and then
         # strips file extension using os.path.splitext
         # Should work across different OS
-        filename = os.path.splitext(ntpath.basename(FILE_PATH))[0]
+        filename = os.path.splitext(ntpath.basename(EVENTS['FILE_PATH']))[0]
         try:
-            asm = Assembler(filename=FILE_PATH)
+            asm = Assembler(filename=EVENTS['FILE_PATH'])
             asm.read_source()
             asm.store_instructions_in_ram()
             verify_ram_content()
@@ -353,7 +345,7 @@ class MainWindow(BoxLayout):
 
             f = open(output_file_location, 'w')
             while i < 100:
-                f.write(f'{RAM_ASSEMBLER[i]} {RAM_ASSEMBLER[i + 1]}' + '\n')
+                f.write(f'{RAM[i]} {RAM[i + 1]}' + '\n')
                 i += 2
             f.close()
 
@@ -367,9 +359,8 @@ class MainWindow(BoxLayout):
         self.micro_sim.read_obj_file(file)
 
     def clear_dialog(self, instance):
-        global EDITOR_SAVED
 
-        if EDITOR_SAVED:
+        if EVENTS['EDITOR_SAVED']:
             self.clear()
         elif EVENTS['IS_RAM_EMPTY']:
             toast('There is nothing to clear')
@@ -395,15 +386,13 @@ class MainWindow(BoxLayout):
             toast('Please save your changes')
 
     def clear(self):
-        global LOADED_FILE, FILE_PATH, IS_OBJ
 
         if EVENTS['IS_RAM_EMPTY']:
             toast('There is nothing to clear')
         else:
             self.step_index = 0
-            clear_ram()
-            FILE_PATH = ''
-            LOADED_FILE = False
+            EVENTS['FILE_PATH'] = ''
+            EVENTS['LOADED_FILE'] = False
             self.run_window.editor.clear()
             self.micro_sim.micro_clear()
             self.run_window.reg_table.data_list.clear()
@@ -411,23 +400,21 @@ class MainWindow(BoxLayout):
             self.run_window.mem_table.data_list.clear()
             self.run_window.mem_table.get_data()
             self.run_window.inst_table.data_list.clear()
-            self.run_window.inst_table.get_data(self.micro_sim.index,
+            self.run_window.inst_table.get_data(self.micro_sim.program_counter,
                                                 self.micro_sim.disassembled_instruction())
             self.first_inst = True
 
             self.run_window.blinking_on.cancel()
             self.run_window.blinking_off.cancel()
 
-            self.run_window.light.change_color(
-                self.micro_sim.traffic_lights_binary())
+            self.run_window.light.change_color(traffic_lights_binary())
             self.run_window.ascii.update_ascii_grid()
-            self.run_window.seven_segment_display.activate_segments(
-                self.micro_sim.seven_segment_binary())
+            self.run_window.seven_segment_display.activate_segments(seven_segment_binary())
             self.run_window.seven_segment_display.clear_seven_segment()
             toast('Micro memory cleared! Load new data')
             EVENTS['IS_RAM_EMPTY'] = True
-            update_indicators(self, LOADED_FILE)
-            IS_OBJ = False
+            update_indicators(self, EVENTS['LOADED_FILE'])
+            EVENTS['IS_OBJ'] = False
             self.run_window.editor.disabled = False
 
     def clear_run(self):
@@ -440,25 +427,22 @@ class MainWindow(BoxLayout):
         self.run_window.mem_table.data_list.clear()
         self.run_window.mem_table.get_data()
         self.run_window.inst_table.data_list.clear()
-        self.run_window.inst_table.get_data(self.micro_sim.index,
+        self.run_window.inst_table.get_data(self.micro_sim.program_counter,
                                             self.micro_sim.disassembled_instruction())
         self.first_inst = True
 
         self.run_window.blinking_on.cancel()
         self.run_window.blinking_off.cancel()
 
-        self.run_window.light.change_color(
-            self.micro_sim.traffic_lights_binary())
+        self.run_window.light.change_color(traffic_lights_binary())
         self.run_window.ascii.update_ascii_grid()
-        self.run_window.seven_segment_display.activate_segments(
-            self.micro_sim.seven_segment_binary())
+        self.run_window.seven_segment_display.activate_segments(seven_segment_binary())
         self.run_window.seven_segment_display.clear_seven_segment()
 
     def open_reg_mem_save_dialog(self, instance):
-        """It will be called when user click on the save file button.
-
+        """
+        It will be called when user click on the save file button.
         :param instance: used as event handler for button click;
-
         """
         dialog = MDInputDialog(title='Save file: Enter file name',
                                hint_text='Enter file name',
@@ -475,15 +459,18 @@ class MainWindow(BoxLayout):
         dialog.open()
 
     def open_editor_save_dialog(self, instance):
-        global LOADED_FILE, FILE_PATH, EDITOR_SAVED, IS_OBJ
-        if IS_OBJ:
+        """
+        Opens editor save dialog
+        :param instance: obj
+        """
+        if EVENTS['IS_OBJ']:
             toast('Obj files cannot be modified.')
 
         else:
-            if LOADED_FILE:
-                self.run_window.editor.save(FILE_PATH)
+            if EVENTS['LOADED_FILE']:
+                self.run_window.editor.save(EVENTS['FILE_PATH'])
                 toast('Content saved on loaded file')
-                EDITOR_SAVED = True
+                EVENTS['EDITOR_SAVED'] = True
             else:
                 dialog = MDInputDialog(title='Save file: Enter file name',
                                        hint_text='Enter file name',
@@ -500,8 +487,10 @@ class MainWindow(BoxLayout):
                 dialog.open()
 
     def save_asm_file(self, *args):
-        global EDITOR_SAVED, FILE_PATH, LOADED_FILE
-
+        """
+        Saves asm file
+        :param args: tuple
+        """
         if args[0] == 'Save':
             filename = args[0]
 
@@ -511,10 +500,10 @@ class MainWindow(BoxLayout):
 
             self.run_window.editor.save('input/' + filename + '.asm')
             toast('File saved in input folder as ' + filename + '.asm')
-            EDITOR_SAVED = True
-            FILE_PATH = 'input/' + filename + '.asm'
-            LOADED_FILE = True
-            update_indicators(self, LOADED_FILE)
+            EVENTS['EDITOR_SAVED'] = True
+            EVENTS['FILE_PATH'] = 'input/' + filename + '.asm'
+            EVENTS['LOADED_FILE'] = True
+            update_indicators(self, EVENTS['LOADED_FILE'])
         else:
             toast('File save cancelled')
 
@@ -540,7 +529,7 @@ class MainWindow(BoxLayout):
 
             i = 0
             f.write('\nMemory Content: \n')
-            while i < 100:
+            while i < len(RAM):
                 f.write(f'\n{RAM[i]}    {RAM[i + 1]}')
                 i += 2
 
@@ -551,7 +540,6 @@ class MainWindow(BoxLayout):
             toast('File save cancelled')
 
     def buttons_information(self, instance):
-        global FILE_PATH
         """
         It is called when user clicks on information buttons.
         :param instance:
@@ -559,10 +547,11 @@ class MainWindow(BoxLayout):
         if instance.icon == 'file-alert':
             toast('No file loaded yet')
         if instance.icon == 'file-check':
-            toast('File at  ' + "'" + FILE_PATH + "'" + '  loaded')
+            toast('File at  ' + "'" + EVENTS['FILE_PATH'] + "'" + '  loaded')
 
 
 class NavDrawer(MDNavigationDrawer):
+    """Main menu"""
 
     def __init__(self, **kwargs):
         self.micro_sim = kwargs.pop('micro_sim')
@@ -574,6 +563,7 @@ class NavDrawer(MDNavigationDrawer):
         self.spacing = 0
         self.manager_open = False
         self.manager = None
+        self.file_manager = None
         self.history = []
 
         self.add_widget(NavigationDrawerSubheader(text='Menu:'))
@@ -586,7 +576,8 @@ class NavDrawer(MDNavigationDrawer):
                                                          on_release=self.io_config_open)
 
         self.seven_segment = NavigationDrawerIconButton(icon='numeric-7-box-multiple',
-                                                        text=SEVEN_SEGMENT_DISPLAY['menu_title'] + '. Current Port: ' + str(
+                                                        text=SEVEN_SEGMENT_DISPLAY[
+                                                                 'menu_title'] + '. Current Port: ' + str(
                                                             SEVEN_SEGMENT_DISPLAY['port']),
                                                         on_release=self.io_config_open)
         self.ascii_table = NavigationDrawerIconButton(icon='alphabetical-variant',
@@ -604,6 +595,10 @@ class NavDrawer(MDNavigationDrawer):
         self.add_widget(self.hex_keyboard)
 
     def io_config_open(self, instance):
+        """
+        Opens IO configuration
+        :param instance: obj
+        """
         dialog = MDInputDialog(title=instance.text,
                                hint_text='Input port number [0-4095]',
                                text_button_ok='Save',
@@ -620,19 +615,20 @@ class NavDrawer(MDNavigationDrawer):
         dialog.open()
 
     def save_io_ports(self, *args):
+        """
+        Saves IO device ports
+        :param args: tuple
+        """
         if args[0] == 'Save':
             title = args[1].title
             text = args[1].text_field.text
             if text.isdigit():
-
                 port = int(text)
                 if port < 0 or port > 4095:
                     toast('Invalid port number. Valid port numbers [0-4095]')
                 else:
                     if is_valid_port(port):
-
                         if TRAFFIC_LIGHT['menu_title'] in title:
-
                             update_reserved_ports(TRAFFIC_LIGHT,
                                                   TRAFFIC_LIGHT['port'],
                                                   port)
@@ -673,6 +669,10 @@ class NavDrawer(MDNavigationDrawer):
                 toast('Invalid input. Not a number!')
 
     def file_manager_open(self, instance):
+        """
+        Opens file manager
+        :param instance: obj
+        """
         if not self.manager:
             manager_size = (dp(1), 1) if self.dpi < 192 else (dp(0.5), 1)
             self.manager = ModalView(auto_dismiss=False,
@@ -682,6 +682,7 @@ class NavDrawer(MDNavigationDrawer):
                                               select_path=self.select_path,
                                               ext=['.asm', '.obj'])
             self.manager.add_widget(self.file_manager)
+
             # output manager to the screen
             self.file_manager.show(str(Path.home()))
         self.manager_open = True
@@ -691,24 +692,21 @@ class NavDrawer(MDNavigationDrawer):
     def select_path(self, path):
         """It will be called when you click on the file name
         or the catalog selection button.
-
         :type path: str;
         :param path: path to the selected directory or file;
-
         """
-        global FILE_PATH, LOADED_FILE, CAN_WRITE, IS_OBJ, EDITOR_SAVED
         self.exit_manager()
 
         if path.endswith('.obj'):
-            IS_OBJ = True
-            EDITOR_SAVED = True
+            EVENTS['IS_OBJ'] = True
+            EVENTS['EDITOR_SAVED'] = True
 
-        CAN_WRITE = True
-        FILE_PATH = path
-        LOADED_FILE = True
+        EVENTS['CAN_WRITE'] = True
+        EVENTS['FILE_PATH'] = path
+        EVENTS['LOADED_FILE'] = True
         toast(f'{path} loaded successfully')
         EVENTS['IS_RAM_EMPTY'] = False
-        update_indicators(self.main_window, LOADED_FILE)
+        update_indicators(self.main_window, EVENTS['LOADED_FILE'])
 
     def exit_manager(self, *args):
         """Called when the user reaches the root of the directory tree."""
@@ -716,9 +714,8 @@ class NavDrawer(MDNavigationDrawer):
         self.manager_open = False
         self.file_manager.history = self.history
 
-    def events(self, instance, keyboard, keycode, text, modifiers):
+    def events(self, instance, keyboard):
         """Called when buttons are pressed on the mobile device.."""
-
         if keyboard in (1001, 27):
             if self.manager_open:
                 self.file_manager.back()
@@ -726,6 +723,7 @@ class NavDrawer(MDNavigationDrawer):
 
 
 class RegisterTable(RecycleView):
+    """Displays Information regarding registers"""
     data_list = ListProperty([])
 
     def __init__(self, **kwargs):
@@ -762,6 +760,9 @@ class RegisterTable(RecycleView):
                 Line(width=2, rectangle=(dp(0), dp(0), dp(115), dp(390)))
 
     def get_data(self):
+        """
+        Updates Register Table
+        """
         _data_list = self.data_list.copy()
         self.data_list.clear()
         self.data_list.append('REGISTER')
@@ -772,7 +773,7 @@ class RegisterTable(RecycleView):
             self.data_list.append(v)
 
         i = 0
-        for j in range(int(len(self.data_list) / 2)):
+        while i < len(self.data_list):
             if _data_list and len(_data_list) > 2 and _data_list[i] == self.data_list[i] and _data_list[i + 1] != \
                     self.data_list[i + 1]:
                 _data.append({
@@ -797,6 +798,7 @@ class RegisterTable(RecycleView):
 
 
 class MemoryTable(RecycleView):
+    """RAM Memory"""
     data_list = ListProperty([])
 
     def __init__(self, **kwargs):
@@ -815,10 +817,10 @@ class MemoryTable(RecycleView):
             self.recycle_grid_layout.size_hint_x = dp(0.83)
             with self.children[0].canvas.before:
                 Color(.50, .50, .50, 1)
-                for i in range(51):
+                for i in range(2049):
                     Line(width=2,
-                         rectangle=(dp(0), dp(0), dp(255), dp(1530 - (30 * i))))
-                Line(width=2, rectangle=(dp(0), dp(0), dp(127.5), dp(1530)))
+                         rectangle=(dp(0), dp(0), dp(255), dp(61470 - (30 * i))))
+                Line(width=2, rectangle=(dp(0), dp(0), dp(127.5), dp(61470)))
         else:
             self.pos_hint = {
                 'x': dp(0.37),
@@ -830,16 +832,19 @@ class MemoryTable(RecycleView):
             self.recycle_grid_layout.size_hint_x = dp(0.47)
             with self.children[0].canvas.before:
                 Color(.50, .50, .50, 1)
-                for i in range(51):
+                for i in range(2049):
                     Line(width=2,
-                         rectangle=(dp(0), dp(0), dp(270), dp(1530 - (30 * i))))
-                Line(width=2, rectangle=(dp(0), dp(0), dp(135), dp(1530)))
+                         rectangle=(dp(0), dp(0), dp(270), dp(61470 - (30 * i))))
+                Line(width=2, rectangle=(dp(0), dp(0), dp(135), dp(61470)))
 
     def get_data(self):
+        """
+        Updates Memory table
+        """
         self.data_list.append('MEMORY BYTE')
         self.data_list.append('MEMORY BYTE')
         i = 0
-        while i < 100:
+        while i < len(RAM):
             self.data_list.append(f'{RAM[i]}')
             self.data_list.append(f'{RAM[i + 1]}')
             i += 2
@@ -851,20 +856,20 @@ class MemoryTable(RecycleView):
 
 
 class InstructionTable(RecycleView):
+    """Disassembly of executed code"""
     data_list = ListProperty([])
 
     def __init__(self, **kwargs):
         self.dpi = kwargs.pop('dpi')
         super(InstructionTable, self).__init__(**kwargs)
         self.viewclass = 'Label'
-        if self.dpi < 192:
-            self.pos_hint = {
-                'x': dp(0.2),
-                'center_y': dp(0.75)
-            }
-            self.size_hint_x = dp(1)
-            self.size_hint_y = dp(0.5)
-        else:
+        self.pos_hint = {
+            'x': dp(0.2),
+            'center_y': dp(0.75)
+        }
+        self.size_hint_x = dp(1)
+        self.size_hint_y = dp(0.5)
+        if self.dpi >= 192:
             self.pos_hint = {
                 'x': dp(0.12),
                 'center_y': dp(0.368)
@@ -873,13 +878,17 @@ class InstructionTable(RecycleView):
             self.size_hint_y = dp(0.265)
 
     def get_data(self, address, instruction):
+        """
+        Updates Instructions Table
+        :param address: int
+        :param instruction: str
+        """
         if not self.data_list:
             self.data_list.append('ADDRESS')
             self.data_list.append('CONTENT')
             self.data_list.append('DISASSEMBLY')
         else:
-            inst = instruction.split()
-            self.data_list.append((f'{address:02x}').upper())
+            self.data_list.append(f'{address:02x}'.upper())
             self.data_list.append(f'{RAM[address]}')
             self.data_list.append(instruction.upper())
 
@@ -890,6 +899,7 @@ class InstructionTable(RecycleView):
 
 
 class TextEditor(CodeInput):
+    """Assembly source code text editor"""
 
     def __init__(self, **kwargs):
         self.dpi = kwargs.pop('dpi')
@@ -898,13 +908,12 @@ class TextEditor(CodeInput):
         self.valid_text = False
         self.lexer = SemrefLexer()
         self.font_name = 'assets/fonts/Inconsolata-Regular.ttf'
-        if self.dpi < 192:
-            self.size_hint = (0.55, 0.46)
-            self.pos_hint = {
-                'x': dp(0.20),
-                'y': dp(0.04)
-            }
-        else:
+        self.size_hint = (0.55, 0.46)
+        self.pos_hint = {
+            'x': dp(0.20),
+            'y': dp(0.04)
+        }
+        if self.dpi >= 192:
             self.size_hint = (0.50, 0.43)
             self.pos_hint = {
                 'x': dp(0.12),
@@ -912,40 +921,53 @@ class TextEditor(CodeInput):
             }
 
     def on_text(self, instance, value):
-        global EDITOR_SAVED, IS_OBJ
+        """
+        On text change highlight reserved keywords
+        :param instance: obj
+        :param value: str
+        """
+        if not EVENTS['IS_OBJ']:
+            EVENTS['EDITOR_SAVED'] = False
 
-        if not IS_OBJ:
-            EDITOR_SAVED = False
         if value:
             self.valid_text = True
             EVENTS['IS_RAM_EMPTY'] = False
-
         else:
             self.valid_text = False
 
-    def load_file(self, FILE_PATH):
-        global EDITOR_SAVED, IS_OBJ
-        if IS_OBJ:
-            self.disabled = True
-        else:
+    def load_file(self, file_path):
+        """
+        Loads file into text editor
+        :param file_path: str
+        """
+        self.disabled = True
+        if not EVENTS['IS_OBJ']:
             self.disabled = False
-            with open(FILE_PATH, 'r') as file:
+            with open(file_path, 'r') as file:
                 data = file.read()
                 file.close()
             self.text = data
-            EDITOR_SAVED = True
+            EVENTS['EDITOR_SAVED'] = True
 
     def clear(self):
+        """
+        Clears text editor
+        """
         self.text = ''
         self.valid_text = False
 
-    def save(self, FILE_PATH):
-        with open(FILE_PATH, 'w') as file:
+    def save(self, file_path):
+        """
+        Saves text editor content in a file
+        :param FILE_PATH: str
+        """
+        with open(file_path, 'w') as file:
             file.write(self.text)
             file.close()
 
 
 class GUI(NavigationLayout):
+    """Main window of the application"""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -963,9 +985,14 @@ class GUI(NavigationLayout):
 
 
 class SemrefApp(App):
+    """Main application"""
     theme_cls = ThemeManager()
     theme_cls.primary_palette = 'BlueGray'
     theme_cls.accent_palette = 'Orange'
 
     def build(self):
+        """
+        Builds application
+        :return: obj
+        """
         return GUI()
