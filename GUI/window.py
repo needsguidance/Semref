@@ -556,6 +556,7 @@ class NavDrawer(MDNavigationDrawer):
         self.spacing = 0
         self.manager_open = False
         self.manager = None
+        self.file_manager = None
         self.history = []
 
         self.add_widget(NavigationDrawerSubheader(text='Menu:'))
@@ -568,7 +569,8 @@ class NavDrawer(MDNavigationDrawer):
                                                          on_release=self.io_config_open)
 
         self.seven_segment = NavigationDrawerIconButton(icon='numeric-7-box-multiple',
-                                                        text=SEVEN_SEGMENT_DISPLAY['menu_title'] + '. Current Port: ' + str(
+                                                        text=SEVEN_SEGMENT_DISPLAY[
+                                                                 'menu_title'] + '. Current Port: ' + str(
                                                             SEVEN_SEGMENT_DISPLAY['port']),
                                                         on_release=self.io_config_open)
         self.ascii_table = NavigationDrawerIconButton(icon='alphabetical-variant',
@@ -606,15 +608,12 @@ class NavDrawer(MDNavigationDrawer):
             title = args[1].title
             text = args[1].text_field.text
             if text.isdigit():
-
                 port = int(text)
                 if port < 0 or port > 4095:
                     toast('Invalid port number. Valid port numbers [0-4095]')
                 else:
                     if is_valid_port(port):
-
                         if TRAFFIC_LIGHT['menu_title'] in title:
-
                             update_reserved_ports(TRAFFIC_LIGHT,
                                                   TRAFFIC_LIGHT['port'],
                                                   port)
@@ -655,6 +654,10 @@ class NavDrawer(MDNavigationDrawer):
                 toast('Invalid input. Not a number!')
 
     def file_manager_open(self, instance):
+        """
+        Opens file manager
+        :param instance: obj
+        """
         if not self.manager:
             manager_size = (dp(1), 1) if self.dpi < 192 else (dp(0.5), 1)
             self.manager = ModalView(auto_dismiss=False,
@@ -664,6 +667,7 @@ class NavDrawer(MDNavigationDrawer):
                                               select_path=self.select_path,
                                               ext=['.asm', '.obj'])
             self.manager.add_widget(self.file_manager)
+
             # output manager to the screen
             self.file_manager.show(str(Path.home()))
         self.manager_open = True
@@ -673,12 +677,9 @@ class NavDrawer(MDNavigationDrawer):
     def select_path(self, path):
         """It will be called when you click on the file name
         or the catalog selection button.
-
         :type path: str;
         :param path: path to the selected directory or file;
-
         """
-        global FILE_PATH, LOADED_FILE, CAN_WRITE, IS_OBJ, EDITOR_SAVED
         self.exit_manager()
 
         if path.endswith('.obj'):
@@ -698,9 +699,8 @@ class NavDrawer(MDNavigationDrawer):
         self.manager_open = False
         self.file_manager.history = self.history
 
-    def events(self, instance, keyboard, keycode, text, modifiers):
+    def events(self, instance, keyboard):
         """Called when buttons are pressed on the mobile device.."""
-
         if keyboard in (1001, 27):
             if self.manager_open:
                 self.file_manager.back()
@@ -708,6 +708,7 @@ class NavDrawer(MDNavigationDrawer):
 
 
 class RegisterTable(RecycleView):
+    """Displays Information regarding registers"""
     data_list = ListProperty([])
 
     def __init__(self, **kwargs):
@@ -744,6 +745,9 @@ class RegisterTable(RecycleView):
                 Line(width=2, rectangle=(dp(0), dp(0), dp(115), dp(390)))
 
     def get_data(self):
+        """
+        Updates Register Table
+        """
         _data_list = self.data_list.copy()
         self.data_list.clear()
         self.data_list.append('REGISTER')
@@ -754,7 +758,7 @@ class RegisterTable(RecycleView):
             self.data_list.append(v)
 
         i = 0
-        for j in range(int(len(self.data_list) / 2)):
+        while i < len(self.data_list):
             if _data_list and len(_data_list) > 2 and _data_list[i] == self.data_list[i] and _data_list[i + 1] != \
                     self.data_list[i + 1]:
                 _data.append({
