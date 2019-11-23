@@ -440,10 +440,9 @@ class MainWindow(BoxLayout):
         self.run_window.seven_segment_display.clear_seven_segment()
 
     def open_reg_mem_save_dialog(self, instance):
-        """It will be called when user click on the save file button.
-
+        """
+        It will be called when user click on the save file button.
         :param instance: used as event handler for button click;
-
         """
         dialog = MDInputDialog(title='Save file: Enter file name',
                                hint_text='Enter file name',
@@ -460,6 +459,10 @@ class MainWindow(BoxLayout):
         dialog.open()
 
     def open_editor_save_dialog(self, instance):
+        """
+        Opens editor save dialog
+        :param instance: obj
+        """
         if EVENTS['IS_OBJ']:
             toast('Obj files cannot be modified.')
 
@@ -484,7 +487,10 @@ class MainWindow(BoxLayout):
                 dialog.open()
 
     def save_asm_file(self, *args):
-
+        """
+        Saves asm file
+        :param args: tuple
+        """
         if args[0] == 'Save':
             filename = args[0]
 
@@ -523,7 +529,7 @@ class MainWindow(BoxLayout):
 
             i = 0
             f.write('\nMemory Content: \n')
-            while i < 4096:
+            while i < len(RAM):
                 f.write(f'\n{RAM[i]}    {RAM[i + 1]}')
                 i += 2
 
@@ -545,6 +551,7 @@ class MainWindow(BoxLayout):
 
 
 class NavDrawer(MDNavigationDrawer):
+    """Main menu"""
 
     def __init__(self, **kwargs):
         self.micro_sim = kwargs.pop('micro_sim')
@@ -588,6 +595,10 @@ class NavDrawer(MDNavigationDrawer):
         self.add_widget(self.hex_keyboard)
 
     def io_config_open(self, instance):
+        """
+        Opens IO configuration
+        :param instance: obj
+        """
         dialog = MDInputDialog(title=instance.text,
                                hint_text='Input port number [0-4095]',
                                text_button_ok='Save',
@@ -604,6 +615,10 @@ class NavDrawer(MDNavigationDrawer):
         dialog.open()
 
     def save_io_ports(self, *args):
+        """
+        Saves IO device ports
+        :param args: tuple
+        """
         if args[0] == 'Save':
             title = args[1].title
             text = args[1].text_field.text
