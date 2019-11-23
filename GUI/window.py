@@ -520,7 +520,7 @@ class MainWindow(BoxLayout):
 
             i = 0
             f.write('\nMemory Content: \n')
-            while i < 100:
+            while i < 4096:
                 f.write(f'\n{RAM[i]}    {RAM[i + 1]}')
                 i += 2
 
@@ -778,10 +778,10 @@ class MemoryTable(RecycleView):
             self.recycle_grid_layout.size_hint_x = dp(0.83)
             with self.children[0].canvas.before:
                 Color(.50, .50, .50, 1)
-                for i in range(51):
+                for i in range(2049):
                     Line(width=2,
-                         rectangle=(dp(0), dp(0), dp(255), dp(1530 - (30 * i))))
-                Line(width=2, rectangle=(dp(0), dp(0), dp(127.5), dp(1530)))
+                         rectangle=(dp(0), dp(0), dp(255), dp(61470 - (30 * i))))
+                Line(width=2, rectangle=(dp(0), dp(0), dp(127.5), dp(61470)))
         else:
             self.pos_hint = {
                 'x': dp(0.37),
@@ -793,16 +793,16 @@ class MemoryTable(RecycleView):
             self.recycle_grid_layout.size_hint_x = dp(0.47)
             with self.children[0].canvas.before:
                 Color(.50, .50, .50, 1)
-                for i in range(51):
+                for i in range(2049):
                     Line(width=2,
-                         rectangle=(dp(0), dp(0), dp(270), dp(1530 - (30 * i))))
-                Line(width=2, rectangle=(dp(0), dp(0), dp(135), dp(1530)))
+                         rectangle=(dp(0), dp(0), dp(270), dp(61470 - (30 * i))))
+                Line(width=2, rectangle=(dp(0), dp(0), dp(135), dp(61470)))
 
     def get_data(self):
         self.data_list.append('MEMORY BYTE')
         self.data_list.append('MEMORY BYTE')
         i = 0
-        while i < 100:
+        while i < 4096:
             self.data_list.append(f'{RAM[i]}')
             self.data_list.append(f'{RAM[i + 1]}')
             i += 2
