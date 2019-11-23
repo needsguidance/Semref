@@ -34,8 +34,54 @@ def hexify_ram_content():
     """
     Converts binary content inside of RAM to hexadecimal
     """
-    for i in range(len(RAM)):
+    i = 0
+    while i < len(RAM):
         RAM[i] = f'{int(RAM[i], 2):02X}'
+        i += 1
+
+
+def verify_indentation(line, index, file):
+    """
+    Verifies source code is indented properly
+    :param line: str
+    :param index: int
+    :param file: obj
+    """
+    if index == 0 and is_indented(line):
+        file.close()
+        raise AssertionError(
+            'Indentation Error: the first line cannot be indented.')
+    if "\t" in line:
+        file.close()
+        raise AssertionError(
+            f'Indentation error: Line {index + 1}: Tab detected.')
+    if not is_indented(line) and line.startswith(" ") and not line.isspace():
+        file.close()
+        raise AssertionError(f'Indentation error: Line {index + 1}: Ensure that '
+                             f'all indented lines have exactly 4 spaces.')
+    if ":" in line and is_indented(line):
+        file.close()
+        raise AssertionError(
+            f'Indentation error: Line {index + 1}: Lines with \':\' cannot be indented.')
+
+
+def compare_indentation_between_lines(line1, line2, index, file):
+    """
+    Compares indentation between two lines
+    :param line1: str
+    :param line2: str
+    :param index: int
+    :param file: obj
+    """
+    if is_indented(line2) and ((not is_indented(line1) and ":" not in line1)
+                               or line1.isspace() or line1 == '\n'):
+        file.close()
+        raise AssertionError(
+            f'Indentation Error: Verify lines {index} and {index + 1}')
+    if not is_indented(line2) and ":" in line1:
+        file.close()
+        raise AssertionError(
+            f'Indentation Error: Line {index + 1}: lines under label must be indented.')
 
 
 def is_indented(line):
@@ -68,58 +114,16 @@ class Assembler:
                 f'Unsupported file type [{self.filename}]. Only accepting files ending in .asm')
         source = open(self.filename, 'r')
         lines = source.readlines()
-        self.verify_indentation(lines[0], 0, source)
+        verify_indentation(lines[0], 0, source)
         self.micro_instr.append(lines[0].strip())
         for i in range(1, len(lines)):
             if lines[i] != '\n':
-                self.verify_indentation(lines[i], i, source)
-                self.compare_indentation_between_lines(
+                verify_indentation(lines[i], i, source)
+                compare_indentation_between_lines(
                     lines[i - 1], lines[i], i, source)
                 self.micro_instr.append(lines[i].strip())
         lines.clear()
         source.close()
-
-    def verify_indentation(self, line, index, file):
-        """
-        Verifies source code is indented properly
-        :param line: str
-        :param index: int
-        :param file: obj
-        """
-        if index == 0 and is_indented(line):
-            file.close()
-            raise AssertionError(
-                'Indentation Error: the first line cannot be indented.')
-        if "\t" in line:
-            file.close()
-            raise AssertionError(
-                f'Indentation error: Line {index + 1}: Tab detected.')
-        if not is_indented(line) and line.startswith(" ") and not line.isspace():
-            file.close()
-            raise AssertionError(f'Indentation error: Line {index + 1}: Ensure that '
-                                 f'all indented lines have exactly 4 spaces.')
-        if ":" in line and is_indented(line):
-            file.close()
-            raise AssertionError(
-                f'Indentation error: Line {index + 1}: Lines with \':\' cannot be indented.')
-
-    def compare_indentation_between_lines(self, line1, line2, index, file):
-        """
-        Compares indentation between two lines
-        :param line1: str
-        :param line2: str
-        :param index: int
-        :param file: obj
-        """
-        if is_indented(line2) and ((not is_indented(line1) and ":" not in line1)
-                                   or line1.isspace() or line1 == '\n'):
-            file.close()
-            raise AssertionError(
-                f'Indentation Error: Verify lines {index} and {index + 1}')
-        if not is_indented(line2) and ":" in line1:
-            file.close()
-            raise AssertionError(
-                f'Indentation Error: Line {index + 1}: lines under label must be indented.')
 
     def store_instructions_in_ram(self):
         """
@@ -137,7 +141,8 @@ class Assembler:
                     VARIABLES[label] = f'{self.p_counter:011b}'
                     if source[0].lower() in OPCODE:
                         raise SyntaxError('Invalid instruction')
-                    elif len(source) > 1:
+
+                    if len(source) > 1:
                         self.convert_instruction_to_binary(source[1:])
                         self.p_counter += 2
                 else:
@@ -201,7 +206,7 @@ class Assembler:
             if instruction in ('load', 'loadim', 'addim', 'subim', 'loop'):
                 if len(inst) != 3:
                     raise SyntaxError(error)
-                ra = convert_to_binary(
+                register_a = convert_to_binary(
                     int(re.sub(r'[^\w\s]', '', inst[1])[1]), 3)
                 if inst[2] in VARIABLES:
                     address_or_const = VARIABLES[inst[2]]
@@ -213,48 +218,51 @@ class Assembler:
                 else:
                     address_or_const = convert_to_binary(
                         int(inst[2], 16), 8)
-                binary = opcode + ra + address_or_const
+                binary = opcode + register_a + address_or_const
             elif instruction in ('pop', 'push'):
                 if len(inst) != 2:
                     raise SyntaxError(error)
-                ra = convert_to_binary(
+                register_a = convert_to_binary(
                     int(re.sub(r'[^\w\s]', '', inst[1])[1]), 3)
-                binary = opcode + ra + '00000000'
+                binary = opcode + register_a + '00000000'
             elif instruction == 'store':
                 if len(inst) != 3:
                     raise SyntaxError(error)
-                ra = convert_to_binary(
+                register_a = convert_to_binary(
                     int(re.sub(r'[^\w\s]', '', inst[2])[1]), 3)
                 variable = re.sub(r'[^\w\s]', '', inst[1])
-                address = convert_to_binary(int(variable, 16), 8) if variable not in VARIABLES else \
-                    VARIABLES[variable]
-                binary = opcode + ra + address
+                if variable not in VARIABLES:
+                    address = convert_to_binary(int(variable, 16), 8)
+                else:
+                    address = VARIABLES[variable]
+                binary = opcode + register_a + address
             elif instruction in ('loadrind', 'storerind', 'not', 'neg'):
                 if len(inst) != 3:
                     raise SyntaxError(error)
-                ra = convert_to_binary(
+                register_a = convert_to_binary(
                     int(re.sub(r'[^\w\s]', '', inst[1])[1]), 3)
-                rb = convert_to_binary(
+                register_b = convert_to_binary(
                     int(re.sub(r'[^\w\s]', '', inst[2])[1]), 3)
-                binary = opcode + ra + rb + '00000'
-            elif instruction in ('add', 'sub', 'and', 'or', 'xor', 'shiftr', 'shiftl', 'rotar', 'rotal'):
+                binary = opcode + register_a + register_b + '00000'
+            elif instruction in ('add', 'sub', 'and', 'or', 'xor', 'shiftr', 'shiftl',
+                                 'rotar', 'rotal'):
                 if len(inst) != 4:
                     raise SyntaxError(error)
-                ra = convert_to_binary(
+                register_a = convert_to_binary(
                     int(re.sub(r'[^\w\s]', '', inst[1])[1]), 3)
-                rb = convert_to_binary(
+                register_b = convert_to_binary(
                     int(re.sub(r'[^\w\s]', '', inst[2])[1]), 3)
-                rc = convert_to_binary(
+                register_c = convert_to_binary(
                     int(re.sub(r'[^\w\s]', '', inst[3])[1]), 3)
-                binary = opcode + ra + rb + rc + '00'
+                binary = opcode + register_a + register_b + register_c + '00'
             elif instruction in ('grt', 'grteq', 'eq', 'neq'):
                 if len(inst) != 3:
                     raise SyntaxError(error)
-                ra = convert_to_binary(
+                register_a = convert_to_binary(
                     int(re.sub(r'[^\w\s]', '', inst[1])[1]), 3)
-                rb = convert_to_binary(
+                register_b = convert_to_binary(
                     int(re.sub(r'[^\w\s]', '', inst[2])[1]), 3)
-                binary = opcode + ra + rb + '00000'
+                binary = opcode + register_a + register_b + '00000'
             elif instruction in ('nop', 'return'):
                 if len(inst) != 1:
                     raise SyntaxError(error)
@@ -264,7 +272,8 @@ class Assembler:
 
     def correct_p_counter(self):
         """
-        Instructions must be stored in even memory addresses. Makes p_counter an even number if it is odd.
+        Instructions must be stored in even memory addresses.
+        Makes p_counter an even number if it is odd.
         """
         if self.p_counter % 2 != 0:
             self.p_counter += 1
