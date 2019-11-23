@@ -38,6 +38,15 @@ def hexify_ram_content():
         RAM[i] = f'{int(RAM[i], 2):02X}'
 
 
+def is_indented(line):
+    """
+    Checks if line is indented
+    :param line: str
+    :return: bool
+    """
+    return line.startswith("    ") and not line[4].startswith(" ")
+
+
 class Assembler:
     """Assembles assembly code"""
 
@@ -71,7 +80,13 @@ class Assembler:
         source.close()
 
     def verify_indentation(self, line, index, file):
-        if index == 0 and self.is_indented(line):
+        """
+        Verifies source code is indented properly
+        :param line: str
+        :param index: int
+        :param file: obj
+        """
+        if index == 0 and is_indented(line):
             file.close()
             raise AssertionError(
                 'Indentation Error: the first line cannot be indented.')
@@ -79,30 +94,37 @@ class Assembler:
             file.close()
             raise AssertionError(
                 f'Indentation error: Line {index + 1}: Tab detected.')
-        if not self.is_indented(line) and line.startswith(" ") and not line.isspace():
+        if not is_indented(line) and line.startswith(" ") and not line.isspace():
             file.close()
             raise AssertionError(f'Indentation error: Line {index + 1}: Ensure that '
                                  f'all indented lines have exactly 4 spaces.')
-        if ":" in line and self.is_indented(line):
+        if ":" in line and is_indented(line):
             file.close()
             raise AssertionError(
                 f'Indentation error: Line {index + 1}: Lines with \':\' cannot be indented.')
 
     def compare_indentation_between_lines(self, line1, line2, index, file):
-        if self.is_indented(line2) and ((not self.is_indented(line1) and ":" not in line1)
-                                        or line1.isspace() or line1 == '\n'):
+        """
+        Compares indentation between two lines
+        :param line1: str
+        :param line2: str
+        :param index: int
+        :param file: obj
+        """
+        if is_indented(line2) and ((not is_indented(line1) and ":" not in line1)
+                                   or line1.isspace() or line1 == '\n'):
             file.close()
             raise AssertionError(
                 f'Indentation Error: Verify lines {index} and {index + 1}')
-        if not self.is_indented(line2) and ":" in line1:
+        if not is_indented(line2) and ":" in line1:
             file.close()
             raise AssertionError(
                 f'Indentation Error: Line {index + 1}: lines under label must be indented.')
 
-    def is_indented(self, line):
-        return line.startswith("    ") and not line[4].startswith(" ")
-
     def store_instructions_in_ram(self):
+        """
+        Stores instructions in ram
+        """
         for instruction in self.micro_instr:
             if instruction:
                 is_first_inst = self.micro_instr.index(instruction) == 0
@@ -163,85 +185,82 @@ class Assembler:
                             raise SyntaxError(
                                 f"'{instruction}' not a valid instruction")
 
-    def convert_instruction_to_binary(self, inst, is_second_pass=False):
-        if not is_second_pass:
-            instruction = inst[0].lower()
-            if instruction.lower() == 'jmprind' or instruction.lower() == 'jmpaddr' or \
-                    instruction.lower() == 'jcondrin' or instruction.lower() == 'jcondaddr' or \
-                    instruction.lower() == 'call':
-                RAM[self.p_counter] = inst[0].lower()
-                RAM[self.p_counter + 1] = inst[1]
-            else:
-                opcode = OPCODE[instruction]
-                error = f"'{inst}' is an invalid instruction. Refer to manual for proper use."
-                binary = f'{0:016b}'
-                if instruction == 'load' or instruction == 'loadim' or instruction == 'addim' or \
-                        instruction == 'subim' or instruction == 'loop':
-                    if len(inst) != 3:
-                        raise SyntaxError(error)
-                    ra = convert_to_binary(
-                        int(re.sub(r'[^\w\s]', '', inst[1])[1]), 3)
-                    if inst[2] in VARIABLES:
-                        address_or_const = VARIABLES[inst[2]]
-                    elif inst[2] in CONSTANTS:
-                        address_or_const = CONSTANTS[inst[2]]
-                    elif '#' in inst[2]:
-                        address_or_const = convert_to_binary(
-                            int(inst[2][1:], 16), 8)
-                    else:
-                        address_or_const = convert_to_binary(
-                            int(inst[2], 16), 8)
-                    binary = opcode + ra + address_or_const
-                elif instruction == 'pop' or instruction == 'push':
-                    if len(inst) != 2:
-                        raise SyntaxError(error)
-                    ra = convert_to_binary(
-                        int(re.sub(r'[^\w\s]', '', inst[1])[1]), 3)
-                    binary = opcode + ra + '00000000'
-                elif instruction == 'store':
-                    if len(inst) != 3:
-                        raise SyntaxError(error)
-                    ra = convert_to_binary(
-                        int(re.sub(r'[^\w\s]', '', inst[2])[1]), 3)
-                    variable = re.sub(r'[^\w\s]', '', inst[1])
-                    address = convert_to_binary(int(variable, 16), 8) if variable not in VARIABLES else \
-                        VARIABLES[variable]
-                    binary = opcode + ra + address
-                elif instruction == 'loadrind' or instruction == 'storerind' or instruction == 'not' or \
-                        instruction == 'neg':
-                    if len(inst) != 3:
-                        raise SyntaxError(error)
-                    ra = convert_to_binary(
-                        int(re.sub(r'[^\w\s]', '', inst[1])[1]), 3)
-                    rb = convert_to_binary(
-                        int(re.sub(r'[^\w\s]', '', inst[2])[1]), 3)
-                    binary = opcode + ra + rb + '00000'
-                elif instruction == 'add' or instruction == 'sub' or instruction == 'and' or \
-                        instruction == 'or' or instruction == 'xor' or instruction == 'shiftr' or \
-                        instruction == 'shiftl' or instruction == 'rotar' or instruction == 'rotal':
-                    if len(inst) != 4:
-                        raise SyntaxError(error)
-                    ra = convert_to_binary(
-                        int(re.sub(r'[^\w\s]', '', inst[1])[1]), 3)
-                    rb = convert_to_binary(
-                        int(re.sub(r'[^\w\s]', '', inst[2])[1]), 3)
-                    rc = convert_to_binary(
-                        int(re.sub(r'[^\w\s]', '', inst[3])[1]), 3)
-                    binary = opcode + ra + rb + rc + '00'
-                elif instruction == 'grt' or instruction == 'grteq' or instruction == 'eq' or instruction == 'neq':
-                    if len(inst) != 3:
-                        raise SyntaxError(error)
-                    ra = convert_to_binary(
-                        int(re.sub(r'[^\w\s]', '', inst[1])[1]), 3)
-                    rb = convert_to_binary(
-                        int(re.sub(r'[^\w\s]', '', inst[2])[1]), 3)
-                    binary = opcode + ra + rb + '00000'
-                elif instruction == 'nop' or instruction == 'return':
-                    if len(inst) != 1:
-                        raise SyntaxError(error)
-                    binary = opcode + '00000000000'
-                RAM[self.p_counter] = binary[0:8]
-                RAM[self.p_counter + 1] = binary[8:]
+    def convert_instruction_to_binary(self, inst):
+        """
+        Converts instruction to binary
+        :param inst: str
+        """
+        instruction = inst[0].lower()
+        if instruction.lower() in ('jmprind', 'jmpaddr', 'jcondrin', 'jcondaddr', 'call'):
+            RAM[self.p_counter] = inst[0].lower()
+            RAM[self.p_counter + 1] = inst[1]
+        else:
+            opcode = OPCODE[instruction]
+            error = f"'{inst}' is an invalid instruction. Refer to manual for proper use."
+            binary = f'{0:016b}'
+            if instruction in ('load', 'loadim', 'addim', 'subim', 'loop'):
+                if len(inst) != 3:
+                    raise SyntaxError(error)
+                ra = convert_to_binary(
+                    int(re.sub(r'[^\w\s]', '', inst[1])[1]), 3)
+                if inst[2] in VARIABLES:
+                    address_or_const = VARIABLES[inst[2]]
+                elif inst[2] in CONSTANTS:
+                    address_or_const = CONSTANTS[inst[2]]
+                elif '#' in inst[2]:
+                    address_or_const = convert_to_binary(
+                        int(inst[2][1:], 16), 8)
+                else:
+                    address_or_const = convert_to_binary(
+                        int(inst[2], 16), 8)
+                binary = opcode + ra + address_or_const
+            elif instruction in ('pop', 'push'):
+                if len(inst) != 2:
+                    raise SyntaxError(error)
+                ra = convert_to_binary(
+                    int(re.sub(r'[^\w\s]', '', inst[1])[1]), 3)
+                binary = opcode + ra + '00000000'
+            elif instruction == 'store':
+                if len(inst) != 3:
+                    raise SyntaxError(error)
+                ra = convert_to_binary(
+                    int(re.sub(r'[^\w\s]', '', inst[2])[1]), 3)
+                variable = re.sub(r'[^\w\s]', '', inst[1])
+                address = convert_to_binary(int(variable, 16), 8) if variable not in VARIABLES else \
+                    VARIABLES[variable]
+                binary = opcode + ra + address
+            elif instruction in ('loadrind', 'storerind', 'not', 'neg'):
+                if len(inst) != 3:
+                    raise SyntaxError(error)
+                ra = convert_to_binary(
+                    int(re.sub(r'[^\w\s]', '', inst[1])[1]), 3)
+                rb = convert_to_binary(
+                    int(re.sub(r'[^\w\s]', '', inst[2])[1]), 3)
+                binary = opcode + ra + rb + '00000'
+            elif instruction in ('add', 'sub', 'and', 'or', 'xor', 'shiftr', 'shiftl', 'rotar', 'rotal'):
+                if len(inst) != 4:
+                    raise SyntaxError(error)
+                ra = convert_to_binary(
+                    int(re.sub(r'[^\w\s]', '', inst[1])[1]), 3)
+                rb = convert_to_binary(
+                    int(re.sub(r'[^\w\s]', '', inst[2])[1]), 3)
+                rc = convert_to_binary(
+                    int(re.sub(r'[^\w\s]', '', inst[3])[1]), 3)
+                binary = opcode + ra + rb + rc + '00'
+            elif instruction in ('grt', 'grteq', 'eq', 'neq'):
+                if len(inst) != 3:
+                    raise SyntaxError(error)
+                ra = convert_to_binary(
+                    int(re.sub(r'[^\w\s]', '', inst[1])[1]), 3)
+                rb = convert_to_binary(
+                    int(re.sub(r'[^\w\s]', '', inst[2])[1]), 3)
+                binary = opcode + ra + rb + '00000'
+            elif instruction in ('nop', 'return'):
+                if len(inst) != 1:
+                    raise SyntaxError(error)
+                binary = opcode + '00000000000'
+            RAM[self.p_counter] = binary[0:8]
+            RAM[self.p_counter + 1] = binary[8:]
 
     def correct_p_counter(self):
         """
