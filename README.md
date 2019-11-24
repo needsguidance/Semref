@@ -33,7 +33,7 @@ As mentioned before, a virtual environment is recommended for the use of this ap
 First, the user must make sure that they have the **virtualenv** package installed in Python; this package manages virtual environment creation within Python. To install the **virtualenv** package, the user must run the following: 
 
 ```Shell
-python -m virtualenv venv
+python -m pip install virtualenv
 ```
 
 Now that the package is installed, the user can now create virtual environment. To create a virtual environment called **venv**, the user would have to run the following: 
