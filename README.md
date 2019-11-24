@@ -16,9 +16,11 @@ Semref is an application that serves as a simulator of a microprocessor. It simu
 
 ## Technologies 
 
-* [Python3.6+](https://www.python.org/downloads/) - interpreted, high-level, general-purpose programming language 
+* [Python 2.7 - 3.5 - 3.6 - 3.7](https://www.python.org/downloads/release/python-374/) - interpreted, high-level, general-purpose programming language 
 * [Kivy](https://kivy.org/#home) - a free and open source Python library for developing apps and other multitouch application software with a natural user interface. 
 * [KivyMD](https://github.com/HeaTTheatR/KivyMD) - a collection of Material Design compliant widgets for use with Kivy, a framework for cross-platform, touch-enabled graphical applications. 
+
+**NOTE:** The Kivy toolbox is not compatible with Python version 3.8. Thus, the application will not run with this version. Please ensure that the Python version being used is one specified above. 
 
 ## Installation 
 
@@ -26,7 +28,15 @@ As seen by the [Technologies](#Technologies) section shown above, the applicatio
 
 ### Step 1 - Creating a virtual environment 
 
-As mentioned before, a virtual environment is recommended for the use of this application. To create a virtual environment, the command line can be used (if using an IDE such as PyCharm, the Command line is found on the **Terminal** section of the interface). To create a virtual environment called **venv**, the user would have to run the following: 
+As mentioned before, a virtual environment is recommended for the use of this application. To create a virtual environment, the command line can be used (if using an IDE such as PyCharm, the Command line is found on the **Terminal** section of the interface). 
+
+First, the user must make sure that they have the **virtualenv** package installed in Python; this package manages virtual environment creation within Python. To install the **virtualenv** package, the user must run the following: 
+
+```Shell
+python -m virtualenv venv
+```
+
+Now that the package is installed, the user can now create virtual environment. To create a virtual environment called **venv**, the user would have to run the following: 
 
 ```Shell
 python -m virtualenv venv
