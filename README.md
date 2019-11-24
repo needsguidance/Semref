@@ -16,7 +16,7 @@ Semref is an application that serves as a simulator of a microprocessor. It simu
 
 ## Technologies 
 
-* [Python 2.7 - 3.5 - 3.6 - 3.7](https://www.python.org/downloads/release/python-374/) - interpreted, high-level, general-purpose programming language 
+* [Python 3.5 - 3.6 - 3.7](https://www.python.org/downloads/release/python-374/) - interpreted, high-level, general-purpose programming language 
 * [Kivy](https://kivy.org/#home) - a free and open source Python library for developing apps and other multitouch application software with a natural user interface. 
 * [KivyMD](https://github.com/HeaTTheatR/KivyMD) - a collection of Material Design compliant widgets for use with Kivy, a framework for cross-platform, touch-enabled graphical applications. 
 
