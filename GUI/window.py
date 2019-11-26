@@ -156,7 +156,7 @@ class MainWindow(BoxLayout):
         self.buttons_y_pos = dp(0.2) if self.dpi < 192 else dp(0.1)
 
         self.first_inst = True
-        
+
         self.ids['left_actions'] = BoxLayout()
         self.orientation = 'vertical'
         self.toolbar_layout = BoxLayout(orientation='vertical')
@@ -310,7 +310,7 @@ class MainWindow(BoxLayout):
                 self.micro_sim.is_running = True
             else:
                 if self.micro_sim.is_ram_loaded:
-                    
+
                     if self.first_inst:
                         self.run_window.inst_table.get_data(self.micro_sim.program_counter,
                                                             self.micro_sim.disassembled_instruction())
@@ -392,7 +392,7 @@ class MainWindow(BoxLayout):
         if EVENTS['IS_RAM_EMPTY']:
             toast('There is nothing to clear')
         else:
-            
+
             EVENTS['FILE_PATH'] = ''
             EVENTS['LOADED_FILE'] = False
             self.run_window.editor.clear()
@@ -422,7 +422,6 @@ class MainWindow(BoxLayout):
 
     def clear_run(self):
 
-        
         clear_ram()
         self.micro_sim.micro_clear()
         self.run_window.reg_table.data_list.clear()
