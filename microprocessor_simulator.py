@@ -191,8 +191,7 @@ class MicroSim:
                         REGISTER[register_b], 16)))
                 self.program_counter += 2
                 REGISTER['pc'] = convert_to_hex(self.program_counter, 12)
-                if REGISTER['r0'] != '00':
-                    raise SystemError('R0 cannot be modified')
+                
             elif opcode in FORMAT_2_OPCODE:
                 register_a = f'r{int(instruction[5:8], 2)}'
                 address_or_const = int(instruction[8:], 2)
@@ -264,6 +263,8 @@ class MicroSim:
                 if stack_pointer >= len(RAM):
                     stack_pointer -= len(RAM)
                 REGISTER['sp'] = convert_to_hex(stack_pointer, 12)
+        if REGISTER['r0'] != '00':
+            raise SystemError('R0 cannot be modified')
 
     def bit_not(self, num, bits=8):
         """

@@ -156,7 +156,7 @@ class MainWindow(BoxLayout):
         self.buttons_y_pos = dp(0.2) if self.dpi < 192 else dp(0.1)
 
         self.first_inst = True
-        self.step_index = 0
+        
         self.ids['left_actions'] = BoxLayout()
         self.orientation = 'vertical'
         self.toolbar_layout = BoxLayout(orientation='vertical')
@@ -310,18 +310,20 @@ class MainWindow(BoxLayout):
                 self.micro_sim.is_running = True
             else:
                 if self.micro_sim.is_ram_loaded:
-                    self.step_index += 1
+                    
                     if self.first_inst:
                         self.run_window.inst_table.get_data(self.micro_sim.program_counter,
                                                             self.micro_sim.disassembled_instruction())
                         self.first_inst = False
                     else:
-                        self.micro_sim.run_micro_instructions()
-                        self.run_window.inst_table.get_data(self.micro_sim.program_counter,
-                                                            self.micro_sim.disassembled_instruction())
+                        try:
+                            self.micro_sim.run_micro_instructions()
+                            self.run_window.inst_table.get_data(self.micro_sim.program_counter,
+                                                                self.micro_sim.disassembled_instruction())
+                        except (SystemError, TimeoutError, IndexError) as e:
+                            self.micro_sim.is_running = False
+                            toast(f'Error! {e}')
 
-                    toast(
-                        f'Running instruction in step-by-step mode. Step {self.step_index} is running')
                     self.run_window.reg_table.get_data()
                     self.run_window.mem_table.data_list.clear()
                     self.run_window.mem_table.get_data()
@@ -390,7 +392,7 @@ class MainWindow(BoxLayout):
         if EVENTS['IS_RAM_EMPTY']:
             toast('There is nothing to clear')
         else:
-            self.step_index = 0
+            
             EVENTS['FILE_PATH'] = ''
             EVENTS['LOADED_FILE'] = False
             self.run_window.editor.clear()
@@ -409,7 +411,8 @@ class MainWindow(BoxLayout):
 
             self.run_window.light.change_color(traffic_lights_binary())
             self.run_window.ascii.update_ascii_grid()
-            self.run_window.seven_segment_display.activate_segments(seven_segment_binary())
+            self.run_window.seven_segment_display.activate_segments(
+                seven_segment_binary())
             self.run_window.seven_segment_display.clear_seven_segment()
             toast('Micro memory cleared! Load new data')
             EVENTS['IS_RAM_EMPTY'] = True
@@ -419,7 +422,7 @@ class MainWindow(BoxLayout):
 
     def clear_run(self):
 
-        self.step_index = 0
+        
         clear_ram()
         self.micro_sim.micro_clear()
         self.run_window.reg_table.data_list.clear()
@@ -436,7 +439,8 @@ class MainWindow(BoxLayout):
 
         self.run_window.light.change_color(traffic_lights_binary())
         self.run_window.ascii.update_ascii_grid()
-        self.run_window.seven_segment_display.activate_segments(seven_segment_binary())
+        self.run_window.seven_segment_display.activate_segments(
+            seven_segment_binary())
         self.run_window.seven_segment_display.clear_seven_segment()
 
     def open_reg_mem_save_dialog(self, instance):
@@ -577,7 +581,7 @@ class NavDrawer(MDNavigationDrawer):
 
         self.seven_segment = NavigationDrawerIconButton(icon='numeric-7-box-multiple',
                                                         text=SEVEN_SEGMENT_DISPLAY[
-                                                                 'menu_title'] + '. Current Port: ' + str(
+                                                            'menu_title'] + '. Current Port: ' + str(
                                                             SEVEN_SEGMENT_DISPLAY['port']),
                                                         on_release=self.io_config_open)
         self.ascii_table = NavigationDrawerIconButton(icon='alphabetical-variant',
