@@ -1,5 +1,5 @@
 org 0
-JMPADDR start:
+    JMPADDR start:
     a    db A
     b    db B
     suma db 0

@@ -1,5 +1,5 @@
 org 2 3
-JMPADDR start
+    JMPADDR start
 
 valor1 db 5
 valor2 db 7

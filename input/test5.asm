@@ -1,5 +1,5 @@
 org 0
-JMPADDR start
+    JMPADDR start
 org 4
 valor1 db 8
 arreglo db 5, A, FF, 73

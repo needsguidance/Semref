@@ -1,5 +1,5 @@
 org 0
-jmp start
+    jmp start
 
 valor1 db 5
 valor2 db 7
