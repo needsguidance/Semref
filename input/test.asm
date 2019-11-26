@@ -7,7 +7,7 @@ mayor  db 0
 const ten 0A
 
 start:
-    LOAD R1, valor1
+    LOAD R1, #5
     LOAD R2, valor2
     GRT  R1, R2
     JMPADDR R1esMayor

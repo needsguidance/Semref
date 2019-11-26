@@ -284,7 +284,7 @@ class MainWindow(BoxLayout):
                                 self.micro_sim.run_micro_instructions(timeout)
                                 self.run_window.inst_table.get_data(self.micro_sim.program_counter,
                                                                     self.micro_sim.disassembled_instruction())
-                            except (SystemError, TimeoutError) as e:
+                            except (SystemError, TimeoutError, IndexError) as e:
                                 self.micro_sim.is_running = False
                                 toast_message = f'Error! {e}'
                     self.run_window.reg_table.get_data()
@@ -887,7 +887,7 @@ class InstructionTable(RecycleView):
             self.data_list.append('ADDRESS')
             self.data_list.append('CONTENT')
             self.data_list.append('DISASSEMBLY')
-        else:
+        elif f'{RAM[address]}' != '00' and instruction.upper() != 'LOAD R0, 00':
             self.data_list.append(f'{address:02x}'.upper())
             self.data_list.append(f'{RAM[address]}')
             self.data_list.append(instruction.upper())

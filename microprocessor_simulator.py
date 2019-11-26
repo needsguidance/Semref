@@ -83,6 +83,7 @@ class MicroSim:
                 dis_instruction = f'{opcode} {address}'
         else:
             dis_instruction = f'{opcode}'
+        
         return dis_instruction.upper()
 
     def run_micro_instructions(self, timeout=0):
@@ -93,6 +94,7 @@ class MicroSim:
         if timeout != 0 and time.time() > timeout:
             self.is_running = False
             raise TimeoutError('Infinite loop detected.')
+        
         REGISTER['ir'] = f'{RAM[self.program_counter]}{RAM[self.program_counter + 1]}'
         binary_instruction = hex_to_binary(
             f'{RAM[self.program_counter]}{RAM[self.program_counter + 1]}')
@@ -101,6 +103,8 @@ class MicroSim:
             self.is_running = False
         else:
             self.prev_program_counter = self.program_counter
+        
+
 
     def micro_clear(self):
         """
