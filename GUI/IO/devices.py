@@ -201,7 +201,7 @@ class SevenSegmentDisplay(Widget):
         :param binary: str
         """
         control_bit = int(binary[-1])
-        if control_bit == 1:
+        if control_bit == 0:
             for i in range(len(self.left_display)):
                 if binary[i] == '0':
                     self.left_display[i] = (.41, .41, .41)
