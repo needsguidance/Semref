@@ -288,6 +288,8 @@ class MainWindow(BoxLayout):
                                 self.micro_sim.run_micro_instructions(timeout)
                                 self.run_window.inst_table.get_data(self.micro_sim.program_counter,
                                                                     self.micro_sim.disassembled_instruction())
+                                self.run_window.seven_segment_display.activate_segments(seven_segment_binary())
+                                
                             except (SystemError, TimeoutError, IndexError) as e:
                                 self.micro_sim.is_running = False
                                 toast_message = f'Error! {e}'

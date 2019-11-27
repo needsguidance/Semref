@@ -127,7 +127,10 @@ class MicroSim:
         if re.match('^[0]+$', instruction):
             self.prev_program_counter = self.program_counter
             self.program_counter += 2
-            REGISTER['pc'] = convert_to_hex(self.program_counter, 3)
+            if self.program_counter < 4096:
+                REGISTER['pc'] = convert_to_hex(self.program_counter, 3)
+            else:
+                self.program_counter = self.prev_program_counter
         else:
             opcode = get_opcode_key(instruction[0:5])
 
