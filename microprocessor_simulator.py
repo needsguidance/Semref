@@ -201,7 +201,7 @@ class MicroSim:
                 elif opcode == 'loadim':
                     REGISTER[register_a] = convert_to_hex(address_or_const, 8)
                 elif opcode == 'store':
-                    RAM[int(RAM[address_or_const], 16)] = REGISTER[register_a]
+                    RAM[address_or_const] = REGISTER[register_a]
                 elif opcode == 'addim':
                     _addim = int(REGISTER[register_a], 16) + address_or_const
                     REGISTER[register_a] = convert_to_hex(_addim, 8)
