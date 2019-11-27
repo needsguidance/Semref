@@ -19,12 +19,12 @@ start:
 
     LOADIM R5,#0F2
     STORE sevenseg,R5
-    LOAD R5,#0B7
+    LOADIM R5,#0B7
     STORE sevenseg,R5
 
     LOAD R5,keyb
     LOAD R6,keyb
-    ADDIM R5,#40
-    ADDIM R6,#40
+    ADDIM R5,#31
+    ADDIM R6,#22
     STORE asciidisp1,R5
     STORE asciidisp2,R6
