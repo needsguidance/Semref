@@ -140,7 +140,7 @@ class MicroSim:
                 elif opcode == 'storerind':
                     RAM[int(REGISTER[register_a], 16)] = REGISTER[register_b]
                 elif opcode == 'grt':
-                    _grt = int(REGISTER[register_a] > REGISTER[register_b])
+                    _grt = int(REGISTER[register_a],16) > int(REGISTER[register_b], 16)
                     REGISTER['cond'] = convert_to_hex(_grt, 4)
                 elif opcode == 'add':
                     _add = int(REGISTER[register_b], 16) + int(REGISTER[register_c], 16)

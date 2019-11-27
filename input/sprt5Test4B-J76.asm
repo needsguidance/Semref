@@ -3,7 +3,6 @@ org 0
 mayor db 0
 suma  db 0
 start:
-    LOADIM R0,#03
     LOADIM R2,#05
     LOADIM R3,#00
 again:
@@ -11,6 +10,6 @@ again:
     SUBIM R2,#01
     NEQ R2,R0
     JCONDADDR again
-    STORE suma,R3
+    STORE suma, R3
 stay:
     JMPADDR stay
