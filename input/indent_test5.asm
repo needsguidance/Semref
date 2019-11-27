@@ -1,5 +1,5 @@
 org 0
-JMPADDR start
+    JMPADDR start
 
 start:
     LOADIM R1, #5

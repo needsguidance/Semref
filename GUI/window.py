@@ -2,6 +2,7 @@ import ntpath
 import os
 import time
 from pathlib import Path
+import traceback
 
 from kivy.app import App
 from kivy.clock import Clock
@@ -36,7 +37,7 @@ from microprocessor_simulator import MicroSim
 from utils import (ASCII_TABLE, EVENTS, HEX_KEYBOARD, REGISTER,
                    SEVEN_SEGMENT_DISPLAY, TRAFFIC_LIGHT, is_valid_port,
                    update_indicators, update_reserved_ports, RAM, seven_segment_binary,
-                   traffic_lights_binary, clear_ram)
+                   traffic_lights_binary, clear_ram, convert_to_hex)
 
 
 class RunWindow(FloatLayout):
@@ -156,7 +157,8 @@ class MainWindow(BoxLayout):
         self.buttons_y_pos = dp(0.2) if self.dpi < 192 else dp(0.1)
 
         self.first_inst = True
-        self.step_index = 0
+        self.step_assembly = False
+
         self.ids['left_actions'] = BoxLayout()
         self.orientation = 'vertical'
         self.toolbar_layout = BoxLayout(orientation='vertical')
@@ -248,6 +250,7 @@ class MainWindow(BoxLayout):
         self.add_widget(self.md_toolbar)
         self.add_widget(self.run_window)
         self.add_widget(self.not_loaded_file)
+        
 
     def run_micro_instructions(self, instance):
         """
@@ -264,6 +267,7 @@ class MainWindow(BoxLayout):
                 self.run_micro_sim(EVENTS['FILE_PATH'])
             else:
                 self.assembler()
+                
             self.micro_sim.is_running = True
             if self.micro_sim.is_ram_loaded:
                 for m in range(2):
@@ -284,9 +288,13 @@ class MainWindow(BoxLayout):
                                 self.micro_sim.run_micro_instructions(timeout)
                                 self.run_window.inst_table.get_data(self.micro_sim.program_counter,
                                                                     self.micro_sim.disassembled_instruction())
-                            except (SystemError, TimeoutError) as e:
+                                self.run_window.seven_segment_display.activate_segments(seven_segment_binary())
+                                
+                            except (SystemError, TimeoutError, IndexError) as e:
                                 self.micro_sim.is_running = False
+                                traceback.print_exc()
                                 toast_message = f'Error! {e}'
+
                     self.run_window.reg_table.get_data()
                     self.run_window.mem_table.data_list.clear()
                     self.run_window.mem_table.get_data()
@@ -300,28 +308,38 @@ class MainWindow(BoxLayout):
             toast("Invalid code. Load file to run or write valid code in editor")
         elif EVENTS['EDITOR_SAVED']:
             # If file is an .obj file, runs simulator
-            if EVENTS['FILE_PATH'].endswith('.obj'):
-                self.run_micro_sim(EVENTS['FILE_PATH'])
-            else:
-                self.assembler()
+            if self.step_assembly == False:
+                if EVENTS['FILE_PATH'].endswith('.obj'):
+                    self.run_micro_sim(EVENTS['FILE_PATH'])
 
+                else:
+                    self.assembler()
+                self.step_assembly = True
+
+            self.run_window.blinking_on.cancel()
+            self.run_window.blinking_off.cancel()
             if not self.micro_sim.is_running:
                 self.clear_run()
                 self.micro_sim.is_running = True
             else:
                 if self.micro_sim.is_ram_loaded:
-                    self.step_index += 1
+
                     if self.first_inst:
                         self.run_window.inst_table.get_data(self.micro_sim.program_counter,
                                                             self.micro_sim.disassembled_instruction())
                         self.first_inst = False
                     else:
-                        self.micro_sim.run_micro_instructions()
-                        self.run_window.inst_table.get_data(self.micro_sim.program_counter,
-                                                            self.micro_sim.disassembled_instruction())
+                        self.run_window.blinking_on()
+                        self.run_window.blinking_off()
+                        try:
+                            self.micro_sim.run_micro_instructions()
+                            self.run_window.inst_table.get_data(self.micro_sim.program_counter,
+                                                                self.micro_sim.disassembled_instruction())
+                        except (SystemError, TimeoutError, IndexError) as e:
+                            self.micro_sim.is_running = False
+                            traceback.print_exc()
+                            toast(f'Error! {e}')
 
-                    toast(
-                        f'Running instruction in step-by-step mode. Step {self.step_index} is running')
                     self.run_window.reg_table.get_data()
                     self.run_window.mem_table.data_list.clear()
                     self.run_window.mem_table.get_data()
@@ -353,6 +371,7 @@ class MainWindow(BoxLayout):
             self.run_micro_sim(output_file_location)
 
         except (AssertionError, FileNotFoundError, ValueError, MemoryError, KeyError, SyntaxError) as e:
+            traceback.print_exc()
             toast(f'{e}')
 
     def run_micro_sim(self, file):
@@ -390,9 +409,10 @@ class MainWindow(BoxLayout):
         if EVENTS['IS_RAM_EMPTY']:
             toast('There is nothing to clear')
         else:
-            self.step_index = 0
+
             EVENTS['FILE_PATH'] = ''
             EVENTS['LOADED_FILE'] = False
+            self.step_assembly = False
             self.run_window.editor.clear()
             self.micro_sim.micro_clear()
             self.run_window.reg_table.data_list.clear()
@@ -409,7 +429,8 @@ class MainWindow(BoxLayout):
 
             self.run_window.light.change_color(traffic_lights_binary())
             self.run_window.ascii.update_ascii_grid()
-            self.run_window.seven_segment_display.activate_segments(seven_segment_binary())
+            self.run_window.seven_segment_display.activate_segments(
+                seven_segment_binary())
             self.run_window.seven_segment_display.clear_seven_segment()
             toast('Micro memory cleared! Load new data')
             EVENTS['IS_RAM_EMPTY'] = True
@@ -419,8 +440,8 @@ class MainWindow(BoxLayout):
 
     def clear_run(self):
 
-        self.step_index = 0
         clear_ram()
+        self.step_assembly = False
         self.micro_sim.micro_clear()
         self.run_window.reg_table.data_list.clear()
         self.run_window.reg_table.get_data()
@@ -436,7 +457,8 @@ class MainWindow(BoxLayout):
 
         self.run_window.light.change_color(traffic_lights_binary())
         self.run_window.ascii.update_ascii_grid()
-        self.run_window.seven_segment_display.activate_segments(seven_segment_binary())
+        self.run_window.seven_segment_display.activate_segments(
+            seven_segment_binary())
         self.run_window.seven_segment_display.clear_seven_segment()
 
     def open_reg_mem_save_dialog(self, instance):
@@ -577,7 +599,7 @@ class NavDrawer(MDNavigationDrawer):
 
         self.seven_segment = NavigationDrawerIconButton(icon='numeric-7-box-multiple',
                                                         text=SEVEN_SEGMENT_DISPLAY[
-                                                                 'menu_title'] + '. Current Port: ' + str(
+                                                            'menu_title'] + '. Current Port: ' + str(
                                                             SEVEN_SEGMENT_DISPLAY['port']),
                                                         on_release=self.io_config_open)
         self.ascii_table = NavigationDrawerIconButton(icon='alphabetical-variant',
@@ -600,7 +622,7 @@ class NavDrawer(MDNavigationDrawer):
         :param instance: obj
         """
         dialog = MDInputDialog(title=instance.text,
-                               hint_text='Input port number [0-4095]',
+                               hint_text='Input port number [000-FFF]',
                                text_button_ok='Save',
                                text_button_cancel='Cancel',
                                events_callback=self.save_io_ports)
@@ -622,23 +644,24 @@ class NavDrawer(MDNavigationDrawer):
         if args[0] == 'Save':
             title = args[1].title
             text = args[1].text_field.text
-            if text.isdigit():
-                port = int(text)
+            try:
+                port = int(text, 16)
                 if port < 0 or port > 4095:
                     toast('Invalid port number. Valid port numbers [0-4095]')
                 else:
                     if is_valid_port(port):
+                        hex_port = convert_to_hex(port, 12)
                         if TRAFFIC_LIGHT['menu_title'] in title:
                             update_reserved_ports(TRAFFIC_LIGHT,
                                                   TRAFFIC_LIGHT['port'],
-                                                  port)
+                                                  hex_port)
                             self.traffic_lights.text = TRAFFIC_LIGHT['menu_title'] + '. Current Port: ' + str(
                                 TRAFFIC_LIGHT['port'])
                             toast_message = f'Changed Traffic Light I/O port number to {port}'
                         elif SEVEN_SEGMENT_DISPLAY['menu_title'] in title:
                             update_reserved_ports(SEVEN_SEGMENT_DISPLAY,
                                                   SEVEN_SEGMENT_DISPLAY['port'],
-                                                  port)
+                                                  hex_port)
                             self.seven_segment.text = SEVEN_SEGMENT_DISPLAY['menu_title'] + '. Current Port: ' + str(
                                 SEVEN_SEGMENT_DISPLAY['port'])
                             toast_message = f'Changed Seven Segment I/O port number to {port}'
@@ -649,7 +672,7 @@ class NavDrawer(MDNavigationDrawer):
                                 try:
                                     update_reserved_ports(ASCII_TABLE,
                                                           ASCII_TABLE['port'],
-                                                          port, True)
+                                                          hex_port, True)
                                     self.ascii_table.text = ASCII_TABLE['menu_title'] + '. Current Port: ' + str(
                                         ASCII_TABLE['port'])
                                     toast_message = f'Changed ASCII Table I/O port number to {port}'
@@ -658,15 +681,15 @@ class NavDrawer(MDNavigationDrawer):
                         else:
                             update_reserved_ports(HEX_KEYBOARD,
                                                   HEX_KEYBOARD['port'],
-                                                  port)
+                                                  hex_port)
                             self.hex_keyboard.text = HEX_KEYBOARD['menu_title'] + '. Current Port: ' + str(
                                 HEX_KEYBOARD['port'])
                             toast_message = f'Changed HEX Keyboard I/O port number to {port}'
                         toast(toast_message)
                     else:
                         toast('Invalid input. That port is reserved!')
-            else:
-                toast('Invalid input. Not a number!')
+            except ValueError as e:
+                toast(f'Not a valid port!')
 
     def file_manager_open(self, instance):
         """
@@ -887,7 +910,7 @@ class InstructionTable(RecycleView):
             self.data_list.append('ADDRESS')
             self.data_list.append('CONTENT')
             self.data_list.append('DISASSEMBLY')
-        else:
+        elif f'{RAM[address]}{RAM[address + 1]}' != '0000' and instruction:
             self.data_list.append(f'{address:02x}'.upper())
             self.data_list.append(f'{RAM[address]}')
             self.data_list.append(instruction.upper())

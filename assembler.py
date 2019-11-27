@@ -36,7 +36,10 @@ def hexify_ram_content():
     """
     i = 0
     while i < len(RAM):
-        RAM[i] = f'{int(RAM[i], 2):02X}'
+        try:
+            RAM[i] = f'{int(RAM[i], 2):02X}'
+        except (ValueError):
+            print('assmbly')
         i += 1
 
 
@@ -47,10 +50,6 @@ def verify_indentation(line, index, file):
     :param index: int
     :param file: obj
     """
-    if index == 0 and is_indented(line):
-        file.close()
-        raise AssertionError(
-            'Indentation Error: the first line cannot be indented.')
     if "\t" in line:
         file.close()
         raise AssertionError(
@@ -63,6 +62,14 @@ def verify_indentation(line, index, file):
         file.close()
         raise AssertionError(
             f'Indentation error: Line {index + 1}: Lines with \':\' cannot be indented.')
+    if is_indented(line) and not contains_instruction(line):
+        file.close()
+        raise AssertionError(
+            f'Indentation error: Line {index + 1}: Lines without instructions cannot be indented.')
+    if not is_indented(line) and contains_instruction(line):
+        file.close()
+        raise AssertionError(
+            f'Indentation error: Line {index + 1}: Lines with instructions must be indented.')
 
 
 def compare_indentation_between_lines(line1, line2, index, file):
@@ -73,11 +80,6 @@ def compare_indentation_between_lines(line1, line2, index, file):
     :param index: int
     :param file: obj
     """
-    if is_indented(line2) and ((not is_indented(line1) and ":" not in line1)
-                               or line1.isspace() or line1 == '\n'):
-        file.close()
-        raise AssertionError(
-            f'Indentation Error: Verify lines {index} and {index + 1}')
     if not is_indented(line2) and ":" in line1:
         file.close()
         raise AssertionError(
@@ -91,6 +93,18 @@ def is_indented(line):
     :return: bool
     """
     return line.startswith("    ") and not line[4].startswith(" ")
+
+
+def contains_instruction(line):
+    """
+    Checks if the line contains an instruction defined in OPCODE
+    :param line: str
+    :return: bool
+   """
+    text = line.split()
+    if text:
+        return text[0].lower() in OPCODE
+    return False
 
 
 class Assembler:
