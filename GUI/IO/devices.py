@@ -53,7 +53,7 @@ class ASCIIGrid(GridLayout):
     def update_ascii_grid(self):
         i = 0
         while i < len(self.labels):
-            self.labels[i].text = chr(int(RAM[ASCII_TABLE["port"] + i], 16))
+            self.labels[i].text = chr(int(RAM[int(ASCII_TABLE["port"], 16) + i], 16))
             i += 1
 
 
@@ -64,6 +64,7 @@ class HexKeyboard(GridLayout):
         self.mem_table = kwargs.pop('mem_table')
         self.dpi = kwargs.pop('dpi')
         super(HexKeyboard, self).__init__(**kwargs)
+        self.can_write = True
         self.queue = Queue(maxsize=10)
         self.lock = Lock()
         self.semaphore = Semaphore()
@@ -142,8 +143,7 @@ class HexKeyboard(GridLayout):
         Current thread is allowed to write to RAM if the LSB is 0, otherwise it must wait.
         """
         with self.semaphore:
-            binary = hex_to_binary(RAM[HEX_KEYBOARD['port']])
-            if binary[-1] != 0:
+            if self.can_write:
                 self.condition.acquire()
             self.write_ram()
 
@@ -152,13 +152,15 @@ class HexKeyboard(GridLayout):
         Writes hex keyboard input to RAM.
         Hex input is queued until RAM is ready to receive data
         """
-        with self.lock:
-            RAM[HEX_KEYBOARD['port']] = convert_to_hex(
-                int(f'{self.queue.get()}0001', 2), 8)
 
+        with self.lock:
+            self.can_write = False
+            RAM[int(HEX_KEYBOARD['port'], 16)] = convert_to_hex(
+                int(f'{self.queue.get()}0000', 2), 8)
             self.mem_table.data_list.clear()
             self.mem_table.get_data()
             sleep(1)
+            self.can_write = True
             self.condition.release()
         EVENTS['IS_RAM_EMPTY'] = False
 
