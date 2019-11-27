@@ -2,6 +2,7 @@ import ntpath
 import os
 import time
 from pathlib import Path
+import traceback
 
 from kivy.app import App
 from kivy.clock import Clock
@@ -287,6 +288,7 @@ class MainWindow(BoxLayout):
                             except (SystemError, TimeoutError, IndexError) as e:
                                 self.micro_sim.is_running = False
                                 toast_message = f'Error! {e}'
+
                     self.run_window.reg_table.get_data()
                     self.run_window.mem_table.data_list.clear()
                     self.run_window.mem_table.get_data()
@@ -305,6 +307,8 @@ class MainWindow(BoxLayout):
             else:
                 self.assembler()
 
+            self.run_window.blinking_on.cancel()
+            self.run_window.blinking_off.cancel()
             if not self.micro_sim.is_running:
                 self.clear_run()
                 self.micro_sim.is_running = True
@@ -316,6 +320,8 @@ class MainWindow(BoxLayout):
                                                             self.micro_sim.disassembled_instruction())
                         self.first_inst = False
                     else:
+                        self.run_window.blinking_on()
+                        self.run_window.blinking_off()
                         try:
                             self.micro_sim.run_micro_instructions()
                             self.run_window.inst_table.get_data(self.micro_sim.program_counter,
@@ -355,6 +361,7 @@ class MainWindow(BoxLayout):
             self.run_micro_sim(output_file_location)
 
         except (AssertionError, FileNotFoundError, ValueError, MemoryError, KeyError, SyntaxError) as e:
+            traceback.print_exc()
             toast(f'{e}')
 
     def run_micro_sim(self, file):

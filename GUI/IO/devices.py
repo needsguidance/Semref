@@ -266,13 +266,14 @@ class TrafficLights(Widget):
         :param dt: float
         """
         # First traffic light
+
         if self.binary[-2:] == '11':
             for i in range(len(self.lights)):
-                if i == 0 or i == 3:
+                if self.binary[i] == '1' and (i == 0 or i == 3):
                     self.lights[i] = (1, 0, 0)
-                elif i == 1 or i == 4:
+                elif self.binary[i] == '1' and (i == 1 or i == 4):
                     self.lights[i] = (1, 1, 0)
-                elif i == 2 or i == 5:
+                elif self.binary[i] == '1' and (i == 2 or i == 5):
                     self.lights[i] = (0, 1, 0)
 
     # Iterates through the binary at the Input location (RAM) to determine which are 1s and which are 0s
@@ -285,6 +286,7 @@ class TrafficLights(Widget):
             1 -> Turn on LED with predetermined color
         :param binary: str
         """
+
         self.binary = binary
         for i in range(len(self.lights)):
             if self.binary[i] == '0':
