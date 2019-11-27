@@ -36,7 +36,7 @@ from microprocessor_simulator import MicroSim
 from utils import (ASCII_TABLE, EVENTS, HEX_KEYBOARD, REGISTER,
                    SEVEN_SEGMENT_DISPLAY, TRAFFIC_LIGHT, is_valid_port,
                    update_indicators, update_reserved_ports, RAM, seven_segment_binary,
-                   traffic_lights_binary, clear_ram)
+                   traffic_lights_binary, clear_ram, convert_to_hex)
 
 
 class RunWindow(FloatLayout):
@@ -603,7 +603,7 @@ class NavDrawer(MDNavigationDrawer):
         :param instance: obj
         """
         dialog = MDInputDialog(title=instance.text,
-                               hint_text='Input port number [0-4095]',
+                               hint_text='Input port number [000-FFF]',
                                text_button_ok='Save',
                                text_button_cancel='Cancel',
                                events_callback=self.save_io_ports)
@@ -625,23 +625,24 @@ class NavDrawer(MDNavigationDrawer):
         if args[0] == 'Save':
             title = args[1].title
             text = args[1].text_field.text
-            if text.isdigit():
-                port = int(text)
+            try:
+                port = int(text, 16)
                 if port < 0 or port > 4095:
                     toast('Invalid port number. Valid port numbers [0-4095]')
                 else:
                     if is_valid_port(port):
+                        hex_port = convert_to_hex(port, 12)
                         if TRAFFIC_LIGHT['menu_title'] in title:
                             update_reserved_ports(TRAFFIC_LIGHT,
                                                   TRAFFIC_LIGHT['port'],
-                                                  port)
+                                                  hex_port)
                             self.traffic_lights.text = TRAFFIC_LIGHT['menu_title'] + '. Current Port: ' + str(
                                 TRAFFIC_LIGHT['port'])
                             toast_message = f'Changed Traffic Light I/O port number to {port}'
                         elif SEVEN_SEGMENT_DISPLAY['menu_title'] in title:
                             update_reserved_ports(SEVEN_SEGMENT_DISPLAY,
                                                   SEVEN_SEGMENT_DISPLAY['port'],
-                                                  port)
+                                                  hex_port)
                             self.seven_segment.text = SEVEN_SEGMENT_DISPLAY['menu_title'] + '. Current Port: ' + str(
                                 SEVEN_SEGMENT_DISPLAY['port'])
                             toast_message = f'Changed Seven Segment I/O port number to {port}'
@@ -652,7 +653,7 @@ class NavDrawer(MDNavigationDrawer):
                                 try:
                                     update_reserved_ports(ASCII_TABLE,
                                                           ASCII_TABLE['port'],
-                                                          port, True)
+                                                          hex_port, True)
                                     self.ascii_table.text = ASCII_TABLE['menu_title'] + '. Current Port: ' + str(
                                         ASCII_TABLE['port'])
                                     toast_message = f'Changed ASCII Table I/O port number to {port}'
@@ -661,15 +662,15 @@ class NavDrawer(MDNavigationDrawer):
                         else:
                             update_reserved_ports(HEX_KEYBOARD,
                                                   HEX_KEYBOARD['port'],
-                                                  port)
+                                                  hex_port)
                             self.hex_keyboard.text = HEX_KEYBOARD['menu_title'] + '. Current Port: ' + str(
                                 HEX_KEYBOARD['port'])
                             toast_message = f'Changed HEX Keyboard I/O port number to {port}'
                         toast(toast_message)
                     else:
                         toast('Invalid input. That port is reserved!')
-            else:
-                toast('Invalid input. Not a number!')
+            except ValueError as e:
+                toast(f'Not a valid port!')
 
     def file_manager_open(self, instance):
         """

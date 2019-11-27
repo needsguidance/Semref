@@ -53,20 +53,21 @@ def update_reserved_ports(device, port_to_remove, port_to_add, reserve_block=Fal
     :param port_to_remove: int
     :param port_to_add: int
     """
+    new_port = int(port_to_add, 16)
+    port_to_remove = int(port_to_remove, 16)
     if not reserve_block:
         if port_to_remove in RESERVED_PORTS:
             RESERVED_PORTS.remove(port_to_remove)
-
-        RESERVED_PORTS.append(port_to_add)
+        RESERVED_PORTS.append(new_port)
     else:
         for i in range(8):
-            if port_to_add + i in RESERVED_PORTS:
+            if new_port + i in RESERVED_PORTS:
                 raise MemoryError('Illegal port')
-        for i in range(8):
+
             if port_to_remove + i in RESERVED_PORTS:
                 RESERVED_PORTS.remove(port_to_remove + i)
 
-            RESERVED_PORTS.append(port_to_add + i)
+            RESERVED_PORTS.append(new_port + i)
 
     device['port'] = port_to_add
 
@@ -130,7 +131,7 @@ def traffic_lights_binary():
     Gets traffic lights binary representation from RAM
     :return: str
     """
-    return hex_to_binary(f'{RAM[TRAFFIC_LIGHT["port"]]}')
+    return hex_to_binary(f'{RAM[int(TRAFFIC_LIGHT["port"], 16)]}')
 
 
 def seven_segment_binary():
@@ -138,7 +139,7 @@ def seven_segment_binary():
     Gets seven segment display binary representation from RAM
     :return: str
     """
-    return hex_to_binary(f'{RAM[SEVEN_SEGMENT_DISPLAY["port"]]}')
+    return hex_to_binary(f'{RAM[int(SEVEN_SEGMENT_DISPLAY["port"], 16)]}')
 
 
 def clear_ram():
@@ -247,22 +248,22 @@ FORMAT_3_OPCODE = [
 # General Information of Traffic Light Object.
 TRAFFIC_LIGHT = {
     'menu_title': 'Configure Traffic Light Port',
-    'port': 0
+    'port': '000'
 }
 # General Information of Seven Segment Display Object.
 SEVEN_SEGMENT_DISPLAY = {
     'menu_title': 'Configure 7 Segment Display Port',
-    'port': 1
+    'port': '001'
 }
 # General Information of ASCII Table Object.
 ASCII_TABLE = {
     'menu_title': 'Configure ASCII Table Port',
-    'port': 3
+    'port': '003'
 }
 # General Information of HEX Keyboard Object.
 HEX_KEYBOARD = {
     'menu_title': 'Configure Hex Keyboard Port',
-    'port': 2
+    'port': '002'
 }
 
 # Reserved ports for I/O devices.

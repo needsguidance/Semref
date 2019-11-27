@@ -53,7 +53,7 @@ class ASCIIGrid(GridLayout):
     def update_ascii_grid(self):
         i = 0
         while i < len(self.labels):
-            self.labels[i].text = chr(int(RAM[ASCII_TABLE["port"] + i], 16))
+            self.labels[i].text = chr(int(RAM[int(ASCII_TABLE["port"], 16) + i], 16))
             i += 1
 
 
@@ -143,7 +143,6 @@ class HexKeyboard(GridLayout):
         Current thread is allowed to write to RAM if the LSB is 0, otherwise it must wait.
         """
         with self.semaphore:
-            binary = hex_to_binary(RAM[HEX_KEYBOARD['port']])
             if self.can_write:
                 self.condition.acquire()
             self.write_ram()
@@ -156,7 +155,7 @@ class HexKeyboard(GridLayout):
 
         with self.lock:
             self.can_write = False
-            RAM[HEX_KEYBOARD['port']] = convert_to_hex(
+            RAM[int(HEX_KEYBOARD['port'], 16)] = convert_to_hex(
                 int(f'{self.queue.get()}0000', 2), 8)
             self.mem_table.data_list.clear()
             self.mem_table.get_data()
