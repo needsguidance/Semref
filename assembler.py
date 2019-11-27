@@ -96,9 +96,9 @@ def contains_instruction(line):
     :param line: str
     :return: bool
    """
-    for s in OPCODE:
-        if s.upper() in line and 'org' not in line and 'db' not in line and 'const' not in line and ':' not in line:
-            return True
+    text = line.split()
+    if text:
+        return text[0].lower() in OPCODE
     return False
 
 

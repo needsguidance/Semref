@@ -275,9 +275,8 @@ class AssemblerTestCase(TestCase):
         with mock.patch('builtins.input', return_value=return_values[0]):
             filename = input()
             asm = Assembler(filename=filename)
-            asm.read_source()
-            with self.assertRaises(SyntaxError):
-                asm.store_instructions_in_ram()
+            with self.assertRaises(AssertionError):
+                asm.read_source()
 
         with mock.patch('builtins.input', return_value=return_values[1]):
             filename = input()
@@ -296,9 +295,8 @@ class AssemblerTestCase(TestCase):
         with mock.patch('builtins.input', return_value=return_values[3]):
             filename = input()
             asm = Assembler(filename=filename)
-            asm.read_source()
-            with self.assertRaises(SyntaxError):
-                asm.store_instructions_in_ram()
+            with self.assertRaises(AssertionError):
+                asm.read_source()
 
     def test_invalid_indentation(self):
         """
