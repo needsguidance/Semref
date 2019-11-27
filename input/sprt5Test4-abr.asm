@@ -1,7 +1,7 @@
 org 0
 mayor db 0
 menor db 0
-    LOADIM R0,#03
+    LOADIM R1,#03
     LOADIM R2,#04
     LOADIM R3,#0A
     LOADIM R4,#0F
@@ -18,5 +18,5 @@ R3mayor:
 R4mayor:
     ADD R5,R0,R4
 fin:
-    STORE mayor,R5
+    STORE mayor, R5
     JMPRIND R2

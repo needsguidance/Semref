@@ -157,6 +157,7 @@ class MainWindow(BoxLayout):
         self.buttons_y_pos = dp(0.2) if self.dpi < 192 else dp(0.1)
 
         self.first_inst = True
+        self.step_assembly = False
 
         self.ids['left_actions'] = BoxLayout()
         self.orientation = 'vertical'
@@ -249,6 +250,7 @@ class MainWindow(BoxLayout):
         self.add_widget(self.md_toolbar)
         self.add_widget(self.run_window)
         self.add_widget(self.not_loaded_file)
+        
 
     def run_micro_instructions(self, instance):
         """
@@ -265,6 +267,7 @@ class MainWindow(BoxLayout):
                 self.run_micro_sim(EVENTS['FILE_PATH'])
             else:
                 self.assembler()
+                
             self.micro_sim.is_running = True
             if self.micro_sim.is_ram_loaded:
                 for m in range(2):
@@ -302,10 +305,13 @@ class MainWindow(BoxLayout):
             toast("Invalid code. Load file to run or write valid code in editor")
         elif EVENTS['EDITOR_SAVED']:
             # If file is an .obj file, runs simulator
-            if EVENTS['FILE_PATH'].endswith('.obj'):
-                self.run_micro_sim(EVENTS['FILE_PATH'])
-            else:
-                self.assembler()
+            if self.step_assembly == False:
+                if EVENTS['FILE_PATH'].endswith('.obj'):
+                    self.run_micro_sim(EVENTS['FILE_PATH'])
+
+                else:
+                    self.assembler()
+                self.step_assembly = True
 
             self.run_window.blinking_on.cancel()
             self.run_window.blinking_off.cancel()
@@ -402,6 +408,7 @@ class MainWindow(BoxLayout):
 
             EVENTS['FILE_PATH'] = ''
             EVENTS['LOADED_FILE'] = False
+            self.step_assembly = False
             self.run_window.editor.clear()
             self.micro_sim.micro_clear()
             self.run_window.reg_table.data_list.clear()
@@ -430,6 +437,7 @@ class MainWindow(BoxLayout):
     def clear_run(self):
 
         clear_ram()
+        self.step_assembly = False
         self.micro_sim.micro_clear()
         self.run_window.reg_table.data_list.clear()
         self.run_window.reg_table.get_data()

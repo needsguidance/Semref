@@ -23,3 +23,4 @@ org 0
     STORERIND R4,R5
     ADD R4,R0,R1
     STORERIND R4,R6
+    NOP

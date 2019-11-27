@@ -39,7 +39,7 @@ def hexify_ram_content():
         try:
             RAM[i] = f'{int(RAM[i], 2):02X}'
         except (ValueError):
-            print('')
+            print('assmbly')
         i += 1
 
 
