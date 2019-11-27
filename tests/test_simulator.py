@@ -179,7 +179,7 @@ class SimulatorTest(TestCase):
                 'output/test9.obj'
             ]
         with mock.patch('builtins.input', return_value=return_values[0]):
-            with self.assertRaises(TimeoutError) or self.assertRaises(SystemError):
+            with self.assertRaises(TimeoutError) or self.assertRaises(ValueError):
                 verify_ram_content_helper(self, instance)
             clear_registers()
 
