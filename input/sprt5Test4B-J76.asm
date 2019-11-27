@@ -3,7 +3,6 @@ org 0
 mayor db 0
 suma  db 0
 start:
-    LOADIM R0,#03
     LOADIM R2,#05
     LOADIM R3,#00
 again:
