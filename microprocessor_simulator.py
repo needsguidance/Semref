@@ -149,7 +149,7 @@ class MicroSim:
                     _sub = int(REGISTER[register_b], 16) - int(REGISTER[register_c], 16)
                     REGISTER[register_a] = convert_to_hex(_sub, 8)
                 elif opcode == 'and':
-                    _and = int(REGISTER[register_b]) & int(REGISTER[register_c])
+                    _and = int(REGISTER[register_b], 16) & int(REGISTER[register_c], 16)
                     REGISTER[register_a] = convert_to_hex(_and, 8)
                 elif opcode == 'or':
                     _or = int(REGISTER[register_b]) | int(REGISTER[register_c])
