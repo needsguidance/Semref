@@ -36,7 +36,10 @@ def hexify_ram_content():
     """
     i = 0
     while i < len(RAM):
-        RAM[i] = f'{int(RAM[i], 2):02X}'
+        try:
+            RAM[i] = f'{int(RAM[i], 2):02X}'
+        except (ValueError):
+            print('')
         i += 1
 
 
@@ -61,10 +64,12 @@ def verify_indentation(line, index, file):
             f'Indentation error: Line {index + 1}: Lines with \':\' cannot be indented.')
     if is_indented(line) and not contains_instruction(line):
         file.close()
-        raise AssertionError(f'Indentation error: Line {index + 1}: Lines without instructions cannot be indented.')
+        raise AssertionError(
+            f'Indentation error: Line {index + 1}: Lines without instructions cannot be indented.')
     if not is_indented(line) and contains_instruction(line):
         file.close()
-        raise AssertionError(f'Indentation error: Line {index + 1}: Lines with instructions must be indented.')
+        raise AssertionError(
+            f'Indentation error: Line {index + 1}: Lines with instructions must be indented.')
 
 
 def compare_indentation_between_lines(line1, line2, index, file):
