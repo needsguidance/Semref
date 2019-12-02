@@ -288,8 +288,11 @@ class MainWindow(BoxLayout):
                                 self.micro_sim.run_micro_instructions(timeout)
                                 self.run_window.inst_table.get_data(self.micro_sim.program_counter,
                                                                     self.micro_sim.disassembled_instruction())
+                                self.run_window.seven_segment_display.activate_segments(seven_segment_binary())
+                                
                             except (SystemError, TimeoutError, IndexError) as e:
                                 self.micro_sim.is_running = False
+                                traceback.print_exc()
                                 toast_message = f'Error! {e}'
 
                     self.run_window.reg_table.get_data()
@@ -334,6 +337,7 @@ class MainWindow(BoxLayout):
                                                                 self.micro_sim.disassembled_instruction())
                         except (SystemError, TimeoutError, IndexError) as e:
                             self.micro_sim.is_running = False
+                            traceback.print_exc()
                             toast(f'Error! {e}')
 
                     self.run_window.reg_table.get_data()
@@ -906,7 +910,7 @@ class InstructionTable(RecycleView):
             self.data_list.append('ADDRESS')
             self.data_list.append('CONTENT')
             self.data_list.append('DISASSEMBLY')
-        elif f'{RAM[address]}' != '00' and instruction.upper() != 'LOAD R0, 00':
+        elif f'{RAM[address]}{RAM[address + 1]}' != '0000' and instruction:
             self.data_list.append(f'{address:02x}'.upper())
             self.data_list.append(f'{RAM[address]}')
             self.data_list.append(instruction.upper())

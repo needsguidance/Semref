@@ -10,6 +10,6 @@ again:
     SUBIM R2,#01
     NEQ R2,R0
     JCONDADDR again
-    STORE suma,R3
+    STORE suma, R3
 stay:
     JMPADDR stay

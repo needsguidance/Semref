@@ -51,7 +51,8 @@ class MicroSim:
 
     def disassembled_instruction(self):
         """Disassembles executed assembly instruction"""
-        instruction = hex_to_binary(f'{RAM[self.program_counter]}{RAM[self.program_counter + 1]}')
+        instruction = hex_to_binary(
+            f'{RAM[self.program_counter]}{RAM[self.program_counter + 1]}')
         opcode = get_opcode_key(instruction[0:5])
         if opcode in FORMAT_1_OPCODE:
             register_a = f'R{int(instruction[5:8], 2)}'
@@ -83,7 +84,7 @@ class MicroSim:
                 dis_instruction = f'{opcode} {address}'
         else:
             dis_instruction = f'{opcode}'
-        
+
         return dis_instruction.upper()
 
     def run_micro_instructions(self, timeout=0):
@@ -94,7 +95,10 @@ class MicroSim:
         if timeout != 0 and time.time() > timeout:
             self.is_running = False
             raise TimeoutError('Infinite loop detected.')
-        
+        if self.program_counter % 2 != 0:
+            self.program_counter -= 1
+            raise SystemError('Invalid PC value')
+
         REGISTER['ir'] = f'{RAM[self.program_counter]}{RAM[self.program_counter + 1]}'
         binary_instruction = hex_to_binary(
             f'{RAM[self.program_counter]}{RAM[self.program_counter + 1]}')
@@ -103,8 +107,6 @@ class MicroSim:
             self.is_running = False
         else:
             self.prev_program_counter = self.program_counter
-        
-
 
     def micro_clear(self):
         """
@@ -127,7 +129,10 @@ class MicroSim:
         if re.match('^[0]+$', instruction):
             self.prev_program_counter = self.program_counter
             self.program_counter += 2
-            REGISTER['pc'] = convert_to_hex(self.program_counter, 3)
+            if self.program_counter < 4096:
+                REGISTER['pc'] = convert_to_hex(self.program_counter, 3)
+            else:
+                self.program_counter = self.prev_program_counter
         else:
             opcode = get_opcode_key(instruction[0:5])
 
@@ -140,22 +145,27 @@ class MicroSim:
                 elif opcode == 'storerind':
                     RAM[int(REGISTER[register_a], 16)] = REGISTER[register_b]
                 elif opcode == 'grt':
-                    _grt = int(REGISTER[register_a] > REGISTER[register_b])
+                    _grt = int(REGISTER[register_a], 16) > int(
+                        REGISTER[register_b], 16)
                     REGISTER['cond'] = convert_to_hex(_grt, 4)
                 elif opcode == 'add':
-                    _add = int(REGISTER[register_b], 16) + int(REGISTER[register_c], 16)
+                    _add = int(REGISTER[register_b], 16) + \
+                        int(REGISTER[register_c], 16)
                     REGISTER[register_a] = convert_to_hex(_add, 8)
                 elif opcode == 'sub':
-                    _sub = int(REGISTER[register_b], 16) - int(REGISTER[register_c], 16)
+                    _sub = int(REGISTER[register_b], 16) - \
+                        int(REGISTER[register_c], 16)
                     REGISTER[register_a] = convert_to_hex(_sub, 8)
                 elif opcode == 'and':
-                    _and = int(REGISTER[register_b], 16) & int(REGISTER[register_c], 16)
+                    _and = int(REGISTER[register_b], 16) & int(
+                        REGISTER[register_c], 16)
                     REGISTER[register_a] = convert_to_hex(_and, 8)
                 elif opcode == 'or':
-                    _or = int(REGISTER[register_b]) | int(REGISTER[register_c])
+                    _or = int(REGISTER[register_b], 16) | int(REGISTER[register_c], 16)
                     REGISTER[register_a] = convert_to_hex(_or, 8)
                 elif opcode == 'xor':
-                    _xor = int(REGISTER[register_b]) ^ int(REGISTER[register_c])
+                    _xor = int(REGISTER[register_b]) ^ int(
+                        REGISTER[register_c])
                     REGISTER[register_a] = convert_to_hex(_xor, 8)
                 elif opcode == 'not':
                     _not = self.bit_not(int(REGISTER[register_b], 16)) + 1
@@ -164,10 +174,12 @@ class MicroSim:
                     _neg = self.bit_not(int(REGISTER[register_b], 16))
                     REGISTER[register_a] = convert_to_hex(_neg, 8)
                 elif opcode == 'shiftr':
-                    _shiftr = int(REGISTER[register_b], 16) >> int(REGISTER[register_c], 16)
+                    _shiftr = int(REGISTER[register_b], 16) >> int(
+                        REGISTER[register_c], 16)
                     REGISTER[register_a] = convert_to_hex(_shiftr, 8)
                 elif opcode == 'shiftl':
-                    _shiftl = int(REGISTER[register_b], 16) << int(REGISTER[register_c], 16)
+                    _shiftl = int(REGISTER[register_b], 16) << int(
+                        REGISTER[register_c], 16)
                     REGISTER[register_a] = convert_to_hex(_shiftl, 8)
                 elif opcode == 'rotar':
                     _rotar = self.rotr(int(REGISTER[register_b], 16), int(
@@ -191,7 +203,7 @@ class MicroSim:
                         REGISTER[register_b], 16)))
                 self.program_counter += 2
                 REGISTER['pc'] = convert_to_hex(self.program_counter, 12)
-                
+
             elif opcode in FORMAT_2_OPCODE:
                 register_a = f'r{int(instruction[5:8], 2)}'
                 address_or_const = int(instruction[8:], 2)
@@ -215,19 +227,24 @@ class MicroSim:
                     if stack_pointer >= len(RAM):
                         stack_pointer -= len(RAM)
                     REGISTER['sp'] = convert_to_hex(stack_pointer, 12)
+                    REGISTER['r7'] = REGISTER['sp']
                 elif opcode == 'push':
                     stack_pointer = int(REGISTER['sp'], 16) - 1
                     if stack_pointer < 0:
                         stack_pointer += len(RAM)
                     REGISTER['sp'] = convert_to_hex(stack_pointer, 12)
+                    REGISTER['r7'] = REGISTER['sp']
                     RAM[stack_pointer] = REGISTER[register_a]
                 elif opcode == 'loop':
                     reg_ra = int(REGISTER[register_a], 16) - 1
+                    if reg_ra < 0:
+                        reg_ra = 0
                     REGISTER[register_a] = convert_to_hex(reg_ra, 8)
                     if reg_ra != 0:
                         self.program_counter = address_or_const - 2
                         self.prev_program_counter = self.program_counter - 2
-                        REGISTER['pc'] = convert_to_hex(self.program_counter, 12)
+                        REGISTER['pc'] = convert_to_hex(
+                            self.program_counter, 12)
                 self.program_counter += 2
                 REGISTER['pc'] = convert_to_hex(
                     int(REGISTER['pc'], 16) + 2, 12)
@@ -253,18 +270,22 @@ class MicroSim:
                     RAM[stack_pointer] = f'0{REGISTER["pc"][0]}'
                     RAM[stack_pointer + 1] = REGISTER["pc"][1:]
                     REGISTER['sp'] = convert_to_hex(stack_pointer, 12)
+                    REGISTER['r7'] = REGISTER['sp']
                     REGISTER['pc'] = convert_to_hex(address, 12)
                     self.program_counter = address
             elif opcode == 'return':
                 stack_pointer = int(REGISTER['sp'], 16)
-                self.program_counter = int(RAM[stack_pointer][1], 16) + int(RAM[stack_pointer + 1], 16) + 2
+                self.program_counter = int(
+                    RAM[stack_pointer][1], 16) + int(RAM[stack_pointer + 1], 16) + 2
                 REGISTER['pc'] = convert_to_hex(self.program_counter, 12)
                 stack_pointer += 2
                 if stack_pointer >= len(RAM):
                     stack_pointer -= len(RAM)
                 REGISTER['sp'] = convert_to_hex(stack_pointer, 12)
+                REGISTER['r7'] = REGISTER['sp']
         if REGISTER['r0'] != '00':
             raise SystemError('R0 cannot be modified')
+        REGISTER['sp'] = REGISTER['r7']
 
     def bit_not(self, num, bits=8):
         """
