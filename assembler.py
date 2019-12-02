@@ -123,11 +123,17 @@ class Assembler:
         if filepath:
             self.filename = filepath
         is_valid, file_ext = is_valid_file(self.filename)
+
         if not is_valid and file_ext != 'asm':
             raise AssertionError(
                 f'Unsupported file type [{self.filename}]. Only accepting files ending in .asm')
         source = open(self.filename, 'r')
         lines = source.readlines()
+
+        # Removes comments from instructions
+        for i in range(len(lines)):
+            lines[i] = re.sub(r'//(\w.+)*', '', lines[i])
+
         verify_indentation(lines[0], 0, source)
         self.micro_instr.append(lines[0].strip())
         for i in range(1, len(lines)):
