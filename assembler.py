@@ -53,7 +53,7 @@ def verify_indentation(line, index, file):
     if "\t" in line:
         file.close()
         raise AssertionError(
-            f'Indentation error: Line {index + 1}: Tab detected.')
+            f'Indentation error on line {index + 1}: Tab detected.')
     if not is_indented(line) and line.startswith(" ") and not line.isspace():
         file.close()
         raise AssertionError(f'Indentation error: Line {index + 1}: Ensure that '
@@ -61,11 +61,11 @@ def verify_indentation(line, index, file):
     if ":" in line and is_indented(line):
         file.close()
         raise AssertionError(
-            f'Indentation error: Line {index + 1}: Lines with \':\' cannot be indented.')
+            f'Indentation error on line {index + 1}: Lines with \':\' cannot be indented.')
     if is_indented(line) and not contains_instruction(line):
         file.close()
         raise AssertionError(
-            f'Indentation error: Line {index + 1}: Lines without instructions cannot be indented.')
+            f"Indentation error on line {index + 1}: [org, db, const] instructions cannot be indented")
     if not is_indented(line) and contains_instruction(line):
         file.close()
         raise AssertionError(
@@ -268,12 +268,19 @@ class Assembler:
                                  'rotar', 'rotal'):
                 if len(inst) != 4:
                     raise SyntaxError(error)
+                register_a = re.sub(r'[^\w\s]', '', inst[1])
+                register_b = re.sub(r'[^\w\s]', '', inst[2])
+                register_c = re.sub(r'[^\w\s]', '', inst[3])
+                if not re.match(r'^(R|r)[1-7]{1}$', register_a) or \
+                        not re.match(r'^(R|r)[1-7]{1}$', register_b) or \
+                        not re.match(r'^(R|r)[1-7]{1}$', register_c):
+                    raise SyntaxError(f'Incorrect syntax for {inst}. Only accepts Register values')
                 register_a = convert_to_binary(
-                    int(re.sub(r'[^\w\s]', '', inst[1])[1]), 3)
+                    int(register_a[1]), 3)
                 register_b = convert_to_binary(
-                    int(re.sub(r'[^\w\s]', '', inst[2])[1]), 3)
+                    int(register_b[1]), 3)
                 register_c = convert_to_binary(
-                    int(re.sub(r'[^\w\s]', '', inst[3])[1]), 3)
+                    int(register_c[1]), 3)
                 binary = opcode + register_a + register_b + register_c + '00'
             elif instruction in ('grt', 'grteq', 'eq', 'neq'):
                 if len(inst) != 3:
