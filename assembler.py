@@ -132,7 +132,7 @@ class Assembler:
 
         # Removes comments from instructions
         for i in range(len(lines)):
-            lines[i] = re.sub(r'//(\w.+)*', '', lines[i])
+            lines[i] = re.sub(r'//\s*(\w.+)*', '', lines[i])
 
         verify_indentation(lines[0], 0, source)
         self.micro_instr.append(lines[0].strip())

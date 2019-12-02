@@ -6,7 +6,7 @@ class SemrefLexer(RegexLexer):
     """Text Editor Syntax highlighter"""
     tokens = {
         'root': [
-            (r'//(\w.+)*', Keyword),
+            (r'//\s*(\w.+)*', Keyword),
             (words((
                 'load', 'loadim', 'pop', 'store', 'push', 'loadrind', 'storerind',
                 'add', 'sub', 'addim', 'subim', 'and', 'or', 'xor', 'not',
