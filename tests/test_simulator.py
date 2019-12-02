@@ -66,9 +66,9 @@ class SimulatorTest(TestCase):
             ]
         with mock.patch('builtins.input', return_value=return_values[0]):
             self.ram_content = [
-                ('0506', 0),  # JMPADDR start
+                ('A806', 0),  # JMPADDR start
                 ('0507', 2),
-                ('0000', 4),
+                ('0500', 4),
                 ('0102', 6),  # LOAD R1, valor1
                 ('0203', 8),  # LOAD R2, valor2
                 ('C940', 10),  # GRT  R1, R2
@@ -179,7 +179,7 @@ class SimulatorTest(TestCase):
                 'output/test9.obj'
             ]
         with mock.patch('builtins.input', return_value=return_values[0]):
-            with self.assertRaises(SystemError):
+            with self.assertRaises(TimeoutError) or self.assertRaises(ValueError):
                 verify_ram_content_helper(self, instance)
             clear_registers()
 

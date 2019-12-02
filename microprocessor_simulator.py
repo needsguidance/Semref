@@ -227,13 +227,13 @@ class MicroSim:
                     if stack_pointer >= len(RAM):
                         stack_pointer -= len(RAM)
                     REGISTER['sp'] = convert_to_hex(stack_pointer, 12)
-                    REGISTER['r7'] = REGISTER['sp']
+                    REGISTER['r7'] = convert_to_hex(int(REGISTER['sp'], 16), 8)
                 elif opcode == 'push':
                     stack_pointer = int(REGISTER['sp'], 16) - 1
                     if stack_pointer < 0:
                         stack_pointer += len(RAM)
                     REGISTER['sp'] = convert_to_hex(stack_pointer, 12)
-                    REGISTER['r7'] = REGISTER['sp']
+                    REGISTER['r7'] = convert_to_hex(int(REGISTER['sp'], 16), 8)
                     RAM[stack_pointer] = REGISTER[register_a]
                 elif opcode == 'loop':
                     reg_ra = int(REGISTER[register_a], 16) - 1
@@ -270,7 +270,7 @@ class MicroSim:
                     RAM[stack_pointer] = f'0{REGISTER["pc"][0]}'
                     RAM[stack_pointer + 1] = REGISTER["pc"][1:]
                     REGISTER['sp'] = convert_to_hex(stack_pointer, 12)
-                    REGISTER['r7'] = REGISTER['sp']
+                    REGISTER['r7'] = convert_to_hex(int(REGISTER['sp'], 16), 8)
                     REGISTER['pc'] = convert_to_hex(address, 12)
                     self.program_counter = address
             elif opcode == 'return':
@@ -282,10 +282,10 @@ class MicroSim:
                 if stack_pointer >= len(RAM):
                     stack_pointer -= len(RAM)
                 REGISTER['sp'] = convert_to_hex(stack_pointer, 12)
-                REGISTER['r7'] = REGISTER['sp']
+                REGISTER['r7'] = convert_to_hex(int(REGISTER['sp'], 16), 8)
         if REGISTER['r0'] != '00':
             raise SystemError('R0 cannot be modified')
-        REGISTER['sp'] = REGISTER['r7']
+        REGISTER['sp'] = convert_to_hex(int(REGISTER['r7'], 16), 12)
 
     def bit_not(self, num, bits=8):
         """
