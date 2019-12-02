@@ -6,7 +6,7 @@ class SemrefLexer(RegexLexer):
     """Text Editor Syntax highlighter"""
     tokens = {
         'root': [
-            (r'^[^:]+:\s*', Name.Variable),
+            (r'//(\w.+)*', Keyword),
             (words((
                 'load', 'loadim', 'pop', 'store', 'push', 'loadrind', 'storerind',
                 'add', 'sub', 'addim', 'subim', 'and', 'or', 'xor', 'not',
@@ -24,8 +24,8 @@ class SemrefLexer(RegexLexer):
             (words(('R0', 'R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7'),
                    suffix=r'\b', prefix=r'\b'), Name.Constant),
             (words((
-                'org', 'ORG', 'db', 'DB', 'CONST', 'const'), suffix=r'\b', prefix=r'\b'), Keyword),
-            (words('#'), Keyword)
+                'org', 'ORG', 'db', 'DB', 'CONST', 'const'), suffix=r'\b', prefix=r'\b'), Name.Variable),
+            (words('#'), Name.Variable)
 
         ]
     }
