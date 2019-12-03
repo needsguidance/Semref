@@ -232,6 +232,8 @@ class Assembler:
                     address_or_const = VARIABLES[inst[2]]
                 elif inst[2] in CONSTANTS:
                     address_or_const = CONSTANTS[inst[2]]
+                elif not re.match(r'#([0-9]+)', inst[2]):
+                    raise SyntaxError(error)
                 elif '#' in inst[2]:
                     address_or_const = convert_to_binary(
                         int(inst[2][1:], 16), 8)
