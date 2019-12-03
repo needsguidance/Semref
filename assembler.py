@@ -21,8 +21,13 @@ def verify_ram_content():
         elif RAM[i] in ('jmpaddr', 'jcondaddr', 'call'):
             opcode = OPCODE[RAM[i]]
             if RAM[i + 1] not in VARIABLES:
+                if re.match(r'^[A-Za-z][A-Za-z0-9]*$', RAM[i + 1]):
+                    raise SyntaxError(f'Invalid label {RAM[i + 1]}. Please input a valid and defined label.')
+                elif not re.match(r'^[0-9]+$', RAM[i + 1]):
+                    raise SyntaxError(f'Invalid label {RAM[i + 1]}. Labels must start with letters!! Please input a valid and defined label.')
                 address = f'{int(RAM[i + 1], 16):011b}'
             else:
+                
                 address = VARIABLES[RAM[i + 1]]
             binary = opcode + address if len(address) == 11 else address
             RAM[i] = binary[0:8]
@@ -53,7 +58,7 @@ def verify_indentation(line, index, file):
     if "\t" in line:
         file.close()
         raise AssertionError(
-            f'Indentation error: Line {index + 1}: Tab detected.')
+            f'Indentation error on line {index + 1}: Tab detected.')
     if not is_indented(line) and line.startswith(" ") and not line.isspace():
         file.close()
         raise AssertionError(f'Indentation error: Line {index + 1}: Ensure that '
@@ -61,11 +66,11 @@ def verify_indentation(line, index, file):
     if ":" in line and is_indented(line):
         file.close()
         raise AssertionError(
-            f'Indentation error: Line {index + 1}: Lines with \':\' cannot be indented.')
+            f'Indentation error on line {index + 1}: Lines with \':\' cannot be indented.')
     if is_indented(line) and not contains_instruction(line):
         file.close()
         raise AssertionError(
-            f'Indentation error: Line {index + 1}: Lines without instructions cannot be indented.')
+            f"Indentation error on line {index + 1}: [org, db, const] instructions cannot be indented")
     if not is_indented(line) and contains_instruction(line):
         file.close()
         raise AssertionError(
@@ -123,11 +128,17 @@ class Assembler:
         if filepath:
             self.filename = filepath
         is_valid, file_ext = is_valid_file(self.filename)
+
         if not is_valid and file_ext != 'asm':
             raise AssertionError(
                 f'Unsupported file type [{self.filename}]. Only accepting files ending in .asm')
         source = open(self.filename, 'r')
         lines = source.readlines()
+
+        # Removes comments from instructions
+        for i in range(len(lines)):
+            lines[i] = re.sub(r'//\s*(\w.+)*', '', lines[i])
+
         verify_indentation(lines[0], 0, source)
         self.micro_instr.append(lines[0].strip())
         for i in range(1, len(lines)):
@@ -150,6 +161,8 @@ class Assembler:
                 source = instruction.split()
                 contains_label = [s for s in source if ':' in s]
                 if contains_label:
+                    if not re.match(r'^[A-Za-z][A-Za-z0-9:]*$', source[0]):
+                        raise SyntaxError(f'Invalid label {source[0]}. Labels must start with letters!! Please define a valid label.')
                     self.correct_p_counter()
                     label = source[0][:-1]
                     VARIABLES[label] = f'{self.p_counter:011b}'
@@ -217,18 +230,40 @@ class Assembler:
             opcode = OPCODE[instruction]
             error = f"'{inst}' is an invalid instruction. Refer to manual for proper use."
             binary = f'{0:016b}'
-            if instruction in ('load', 'loadim', 'addim', 'subim', 'loop'):
+            if instruction in ('loadim', 'addim', 'subim'):
                 if len(inst) != 3:
                     raise SyntaxError(error)
+                if not re.match(r'^(R|r)[0-7]{1}$', inst[1]):
+                    raise SyntaxError(f'Incorrect syntax for {inst}. Only accepts Register values as first input')
                 register_a = convert_to_binary(
                     int(re.sub(r'[^\w\s]', '', inst[1])[1]), 3)
                 if inst[2] in VARIABLES:
                     address_or_const = VARIABLES[inst[2]]
                 elif inst[2] in CONSTANTS:
                     address_or_const = CONSTANTS[inst[2]]
+                # elif not re.match(r'#([0-9]+)', inst[2]):
+                    # raise SyntaxError(error)
                 elif '#' in inst[2]:
                     address_or_const = convert_to_binary(
                         int(inst[2][1:], 16), 8)
+                else:
+                    address_or_const = convert_to_binary(
+                        int(inst[2], 16), 8)
+                binary = opcode + register_a + address_or_const
+            elif instruction in ('load', 'loop'):
+                register_a = re.sub(r'[^\w\s]', '', inst[1])
+                if len(inst) != 3:
+                    raise SyntaxError(error)
+                elif not re.match(r'^(R|r)[0-7]{1}$', register_a) or re.match(r'^(R|r)[0-7]{1}$', inst[2]):
+                    raise SyntaxError(f'Incorrect syntax for {inst}. Only accepts Register values as first input')
+                register_a = convert_to_binary(
+                    int(register_a[1]), 3)
+                if inst[2] in VARIABLES:
+                    address_or_const = VARIABLES[inst[2]]
+                elif inst[2] in CONSTANTS:
+                    address_or_const = CONSTANTS[inst[2]]
+                elif '#' in inst[2]:
+                    raise SyntaxError(f'Incorrect syntax for {inst}. Must pass an address')
                 else:
                     address_or_const = convert_to_binary(
                         int(inst[2], 16), 8)
@@ -257,17 +292,27 @@ class Assembler:
                     int(re.sub(r'[^\w\s]', '', inst[1])[1]), 3)
                 register_b = convert_to_binary(
                     int(re.sub(r'[^\w\s]', '', inst[2])[1]), 3)
+                if not re.match(r'^(R|r)[0-7]{1}$', inst[1]) or \
+                        not re.match(r'^(R|r)[0-7]{1}$', inst[2]):
+                    raise SyntaxError(f'Incorrect syntax for {inst}. Only accepts Register values')
                 binary = opcode + register_a + register_b + '00000'
             elif instruction in ('add', 'sub', 'and', 'or', 'xor', 'shiftr', 'shiftl',
                                  'rotar', 'rotal'):
                 if len(inst) != 4:
                     raise SyntaxError(error)
+                register_a = re.sub(r'[^\w\s]', '', inst[1])
+                register_b = re.sub(r'[^\w\s]', '', inst[2])
+                register_c = re.sub(r'[^\w\s]', '', inst[3])
+                if not re.match(r'^(R|r)[0-7]{1}$', register_a) or \
+                        not re.match(r'^(R|r)[0-7]{1}$', register_b) or \
+                        not re.match(r'^(R|r)[0-7]{1}$', register_c):
+                    raise SyntaxError(f'Incorrect syntax for {inst}. Only accepts Register values')
                 register_a = convert_to_binary(
-                    int(re.sub(r'[^\w\s]', '', inst[1])[1]), 3)
+                    int(register_a[1]), 3)
                 register_b = convert_to_binary(
-                    int(re.sub(r'[^\w\s]', '', inst[2])[1]), 3)
+                    int(register_b[1]), 3)
                 register_c = convert_to_binary(
-                    int(re.sub(r'[^\w\s]', '', inst[3])[1]), 3)
+                    int(register_c[1]), 3)
                 binary = opcode + register_a + register_b + register_c + '00'
             elif instruction in ('grt', 'grteq', 'eq', 'neq'):
                 if len(inst) != 3:

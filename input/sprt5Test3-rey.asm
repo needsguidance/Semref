@@ -1,8 +1,6 @@
-//sprt5Test3.asm
 //Operaciones con el stack y loop
-org 0
 start:
-    LOADIM R7,#100  //SP <- 100
+    LOADIM R7,#100    //SP <- 100
     CALL fun
     PUSH R5         //Revisar stack
     PUSH R6         //Revisar stack

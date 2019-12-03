@@ -73,6 +73,8 @@ class MicroSim:
                 dis_instruction = f'{opcode} {register_a}'
             elif opcode in ('loadim', 'addim', 'subim'):
                 dis_instruction = f'{opcode} {register_a}, #{address_or_const}'
+            elif opcode == 'store':
+                dis_instruction = f'{opcode} {address_or_const}, {register_a}'
             else:
                 dis_instruction = f'{opcode} {register_a}, {address_or_const}'
         elif opcode in FORMAT_3_OPCODE:
@@ -286,6 +288,8 @@ class MicroSim:
         if REGISTER['r0'] != '00':
             raise SystemError('R0 cannot be modified')
         REGISTER['sp'] = convert_to_hex(int(REGISTER['r7'], 16), 12)
+        if (int(REGISTER['r7'], 16) > 255):
+            REGISTER['r7'] = convert_to_hex(int(REGISTER['r7'], 16) & 255, 8)
 
     def bit_not(self, num, bits=8):
         """
