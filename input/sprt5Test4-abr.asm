@@ -1,8 +1,8 @@
 org 0
 mayor db 0
 menor db 0
-    LOADIM R1,#03
-    LOADIM R2,#04
+    LOADIM R1, #01
+    LOADIM R2,#042
     LOADIM R3,#0A
     LOADIM R4,#0F
     GRT R2,R3

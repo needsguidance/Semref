@@ -21,8 +21,13 @@ def verify_ram_content():
         elif RAM[i] in ('jmpaddr', 'jcondaddr', 'call'):
             opcode = OPCODE[RAM[i]]
             if RAM[i + 1] not in VARIABLES:
+                if re.match(r'^[A-Za-z][A-Za-z0-9]*$', RAM[i + 1]):
+                    raise SyntaxError(f'Invalid label {RAM[i + 1]}. Please input a valid and defined label.')
+                elif not re.match(r'^[0-9]+$', RAM[i + 1]):
+                    raise SyntaxError(f'Invalid label {RAM[i + 1]}. Labels must start with letters!! Please input a valid and defined label.')
                 address = f'{int(RAM[i + 1], 16):011b}'
             else:
+                
                 address = VARIABLES[RAM[i + 1]]
             binary = opcode + address if len(address) == 11 else address
             RAM[i] = binary[0:8]
@@ -156,6 +161,8 @@ class Assembler:
                 source = instruction.split()
                 contains_label = [s for s in source if ':' in s]
                 if contains_label:
+                    if not re.match(r'^[A-Za-z][A-Za-z0-9:]*$', source[0]):
+                        raise SyntaxError(f'Invalid label {source[0]}. Labels must start with letters!! Please define a valid label.')
                     self.correct_p_counter()
                     label = source[0][:-1]
                     VARIABLES[label] = f'{self.p_counter:011b}'
@@ -226,6 +233,8 @@ class Assembler:
             if instruction in ('loadim', 'addim', 'subim'):
                 if len(inst) != 3:
                     raise SyntaxError(error)
+                if not re.match(r'^(R|r)[0-7]{1}$', inst[1]):
+                    raise SyntaxError(f'Incorrect syntax for {inst}. Only accepts Register values as first input')
                 register_a = convert_to_binary(
                     int(re.sub(r'[^\w\s]', '', inst[1])[1]), 3)
                 if inst[2] in VARIABLES:
@@ -280,6 +289,9 @@ class Assembler:
                     int(re.sub(r'[^\w\s]', '', inst[1])[1]), 3)
                 register_b = convert_to_binary(
                     int(re.sub(r'[^\w\s]', '', inst[2])[1]), 3)
+                if not re.match(r'^(R|r)[0-7]{1}$', inst[1]) or \
+                        not re.match(r'^(R|r)[0-7]{1}$', inst[2]):
+                    raise SyntaxError(f'Incorrect syntax for {inst}. Only accepts Register values')
                 binary = opcode + register_a + register_b + '00000'
             elif instruction in ('add', 'sub', 'and', 'or', 'xor', 'shiftr', 'shiftl',
                                  'rotar', 'rotal'):
