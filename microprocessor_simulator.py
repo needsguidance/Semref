@@ -73,6 +73,8 @@ class MicroSim:
                 dis_instruction = f'{opcode} {register_a}'
             elif opcode in ('loadim', 'addim', 'subim'):
                 dis_instruction = f'{opcode} {register_a}, #{address_or_const}'
+            elif opcode == 'store':
+                dis_instruction = f'{opcode} {address_or_const}, {register_a}'
             else:
                 dis_instruction = f'{opcode} {register_a}, {address_or_const}'
         elif opcode in FORMAT_3_OPCODE:

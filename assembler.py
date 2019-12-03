@@ -271,9 +271,9 @@ class Assembler:
                 register_a = re.sub(r'[^\w\s]', '', inst[1])
                 register_b = re.sub(r'[^\w\s]', '', inst[2])
                 register_c = re.sub(r'[^\w\s]', '', inst[3])
-                if not re.match(r'^(R|r)[1-7]{1}$', register_a) or \
-                        not re.match(r'^(R|r)[1-7]{1}$', register_b) or \
-                        not re.match(r'^(R|r)[1-7]{1}$', register_c):
+                if not re.match(r'^(R|r)[0-7]{1}$', register_a) or \
+                        not re.match(r'^(R|r)[0-7]{1}$', register_b) or \
+                        not re.match(r'^(R|r)[0-7]{1}$', register_c):
                     raise SyntaxError(f'Incorrect syntax for {inst}. Only accepts Register values')
                 register_a = convert_to_binary(
                     int(register_a[1]), 3)
