@@ -251,10 +251,13 @@ class Assembler:
                         int(inst[2], 16), 8)
                 binary = opcode + register_a + address_or_const
             elif instruction in ('load', 'loop'):
+                register_a = re.sub(r'[^\w\s]', '', inst[1])
                 if len(inst) != 3:
                     raise SyntaxError(error)
+                elif not re.match(r'^(R|r)[0-7]{1}$', register_a) or re.match(r'^(R|r)[0-7]{1}$', inst[2]):
+                    raise SyntaxError(f'Incorrect syntax for {inst}. Only accepts Register values as first input')
                 register_a = convert_to_binary(
-                    int(re.sub(r'[^\w\s]', '', inst[1])[1]), 3)
+                    int(register_a[1]), 3)
                 if inst[2] in VARIABLES:
                     address_or_const = VARIABLES[inst[2]]
                 elif inst[2] in CONSTANTS:
