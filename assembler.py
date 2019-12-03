@@ -223,7 +223,7 @@ class Assembler:
             opcode = OPCODE[instruction]
             error = f"'{inst}' is an invalid instruction. Refer to manual for proper use."
             binary = f'{0:016b}'
-            if instruction in ('load', 'loadim', 'addim', 'subim', 'loop'):
+            if instruction in ('loadim', 'addim', 'subim'):
                 if len(inst) != 3:
                     raise SyntaxError(error)
                 register_a = convert_to_binary(
@@ -235,6 +235,21 @@ class Assembler:
                 elif '#' in inst[2]:
                     address_or_const = convert_to_binary(
                         int(inst[2][1:], 16), 8)
+                else:
+                    address_or_const = convert_to_binary(
+                        int(inst[2], 16), 8)
+                binary = opcode + register_a + address_or_const
+            elif instruction in ('load', 'loop'):
+                if len(inst) != 3:
+                    raise SyntaxError(error)
+                register_a = convert_to_binary(
+                    int(re.sub(r'[^\w\s]', '', inst[1])[1]), 3)
+                if inst[2] in VARIABLES:
+                    address_or_const = VARIABLES[inst[2]]
+                elif inst[2] in CONSTANTS:
+                    address_or_const = CONSTANTS[inst[2]]
+                elif '#' in inst[2]:
+                    raise SyntaxError(f'Incorrect syntax for {inst}. Must pass an address')
                 else:
                     address_or_const = convert_to_binary(
                         int(inst[2], 16), 8)
